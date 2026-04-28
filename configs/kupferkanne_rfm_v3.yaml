@@ -1,0 +1,827 @@
+company:
+  name: Kupferkanne
+  headquarters: Erlangen, Germany
+  markets:
+    - DACH
+    - Benelux
+    - Poland
+    - UK
+    - Nordics
+  business_model: D2C e-commerce
+  annual_revenue_eur: 2500000
+
+period:
+  start_date: 2023-01-01
+  end_date: 2026-03-15
+
+output:
+  default_dir: ./output/
+  dimensions_dirname: dimensions
+  monthly_dirname: monthly
+  orders_prefix: orders20
+  items_prefix: items20
+  docs_filename: kupferkanne_rfm_schema.md
+  effective_config_filename: effective_config.yaml
+  manifest_filename: manifest.json
+  dim_customers_filename: dim_customers.csv
+  dim_products_filename: dim_products.csv
+  dim_customers_extra_columns:
+    - first_name
+    - last_name
+    - email
+    - phone
+    - state
+    - city
+    - address
+
+catalog:
+  category_order_shares:
+    Specialty Coffee: 0.28
+    Premium Teas: 0.15
+    Artisan Spices & Oils: 0.20
+    Specialty Pantry: 0.18
+    Kitchen Accessories: 0.12
+    Curated Gift Boxes: 0.07
+  products:
+    - product_id: PROD-001
+      product_name: Single Origin Ethiopia Yirgacheffe 250g
+      category: Specialty Coffee
+      retail_price: 12.90
+      unit_cost: 4.50
+      base_weight: 1.30
+      tags: [repeat_staple]
+    - product_id: PROD-002
+      product_name: Single Origin Colombia Huila 250g
+      category: Specialty Coffee
+      retail_price: 11.90
+      unit_cost: 4.20
+      base_weight: 1.00
+      tags: [repeat_staple]
+    - product_id: PROD-003
+      product_name: Single Origin Guatemala Antigua 250g
+      category: Specialty Coffee
+      retail_price: 13.50
+      unit_cost: 5.10
+      base_weight: 0.90
+      tags: [repeat_staple]
+    - product_id: PROD-004
+      product_name: House Blend Morgenrot 500g
+      category: Specialty Coffee
+      retail_price: 18.90
+      unit_cost: 7.20
+      base_weight: 1.50
+      tags: [repeat_staple]
+    - product_id: PROD-005
+      product_name: House Blend Nachtschicht 500g
+      category: Specialty Coffee
+      retail_price: 18.90
+      unit_cost: 7.20
+      base_weight: 1.20
+      tags: [repeat_staple]
+    - product_id: PROD-006
+      product_name: Espresso Blend Berliner Mischung 1kg
+      category: Specialty Coffee
+      retail_price: 29.90
+      unit_cost: 11.50
+      base_weight: 0.90
+      tags: [repeat_staple, premium]
+    - product_id: PROD-007
+      product_name: Decaf Swiss Water Process 250g
+      category: Specialty Coffee
+      retail_price: 14.50
+      unit_cost: 6.10
+      base_weight: 0.70
+      tags: [repeat_staple]
+    - product_id: PROD-008
+      product_name: Cold Brew Concentrate 500ml
+      category: Specialty Coffee
+      retail_price: 9.90
+      unit_cost: 3.20
+      base_weight: 0.45
+      tags: [summer_peak]
+    - product_id: PROD-009
+      product_name: Coffee Advent Calendar 24 Varieties
+      category: Specialty Coffee
+      retail_price: 59.90
+      unit_cost: 22.00
+      base_weight: 0.20
+      tags: [gift_season, advent]
+    - product_id: PROD-010
+      product_name: Coffee Starter Discovery Box 6x100g
+      category: Specialty Coffee
+      retail_price: 34.90
+      unit_cost: 13.50
+      base_weight: 0.50
+      tags: [gift_season, discovery]
+    - product_id: PROD-011
+      product_name: Japanese Sencha Organic 100g
+      category: Premium Teas
+      retail_price: 14.90
+      unit_cost: 4.80
+      base_weight: 1.00
+      tags: [repeat_staple]
+    - product_id: PROD-012
+      product_name: Darjeeling First Flush FTGFOP 100g
+      category: Premium Teas
+      retail_price: 18.50
+      unit_cost: 6.20
+      base_weight: 0.75
+      tags: [spring_peak, premium]
+    - product_id: PROD-013
+      product_name: Earl Grey Berliner Nebel 200g
+      category: Premium Teas
+      retail_price: 11.90
+      unit_cost: 3.90
+      base_weight: 1.05
+      tags: [repeat_staple]
+    - product_id: PROD-014
+      product_name: Rooibos Vanilla Organic 150g
+      category: Premium Teas
+      retail_price: 9.90
+      unit_cost: 3.10
+      base_weight: 0.90
+      tags: [repeat_staple]
+    - product_id: PROD-015
+      product_name: Matcha Ceremonial Grade 30g
+      category: Premium Teas
+      retail_price: 24.90
+      unit_cost: 9.50
+      base_weight: 0.55
+      tags: [premium]
+    - product_id: PROD-016
+      product_name: Herbal Blend Alpenkraeuter 150g
+      category: Premium Teas
+      retail_price: 8.90
+      unit_cost: 2.80
+      base_weight: 0.85
+      tags: [january_health]
+    - product_id: PROD-017
+      product_name: Chai Masala Loose Leaf 200g
+      category: Premium Teas
+      retail_price: 12.50
+      unit_cost: 4.10
+      base_weight: 0.80
+      tags: [winter_peak]
+    - product_id: PROD-018
+      product_name: Tea Advent Calendar 24 Varieties
+      category: Premium Teas
+      retail_price: 49.90
+      unit_cost: 18.00
+      base_weight: 0.20
+      tags: [gift_season, advent]
+    - product_id: PROD-019
+      product_name: Tea Starter Discovery Box 8x50g
+      category: Premium Teas
+      retail_price: 28.90
+      unit_cost: 10.50
+      base_weight: 0.50
+      tags: [gift_season, discovery]
+    - product_id: PROD-020
+      product_name: Kampot Pepper Black 80g
+      category: Artisan Spices & Oils
+      retail_price: 8.90
+      unit_cost: 3.60
+      base_weight: 1.00
+      tags: []
+    - product_id: PROD-021
+      product_name: Kampot Pepper Red 50g
+      category: Artisan Spices & Oils
+      retail_price: 12.50
+      unit_cost: 5.50
+      base_weight: 0.85
+      tags: [premium]
+    - product_id: PROD-022
+      product_name: Fleur de Sel Guerande 250g
+      category: Artisan Spices & Oils
+      retail_price: 7.90
+      unit_cost: 3.20
+      base_weight: 0.95
+      tags: []
+    - product_id: PROD-023
+      product_name: Smoked Paprika La Vera DO 100g
+      category: Artisan Spices & Oils
+      retail_price: 6.50
+      unit_cost: 2.80
+      base_weight: 0.95
+      tags: []
+    - product_id: PROD-024
+      product_name: Zaatar Blend Organic 100g
+      category: Artisan Spices & Oils
+      retail_price: 7.90
+      unit_cost: 3.10
+      base_weight: 0.85
+      tags: []
+    - product_id: PROD-025
+      product_name: Saffron Threads Iranian 2g
+      category: Artisan Spices & Oils
+      retail_price: 14.90
+      unit_cost: 7.80
+      base_weight: 0.45
+      tags: [premium]
+    - product_id: PROD-026
+      product_name: Truffle Salt Black 100g
+      category: Artisan Spices & Oils
+      retail_price: 11.90
+      unit_cost: 5.20
+      base_weight: 0.70
+      tags: [premium]
+    - product_id: PROD-027
+      product_name: Extra Virgin Olive Oil Koroneiki 500ml
+      category: Artisan Spices & Oils
+      retail_price: 16.90
+      unit_cost: 7.50
+      base_weight: 1.00
+      tags: []
+    - product_id: PROD-028
+      product_name: Pumpkin Seed Oil Styrian 250ml
+      category: Artisan Spices & Oils
+      retail_price: 13.50
+      unit_cost: 6.10
+      base_weight: 0.85
+      tags: []
+    - product_id: PROD-029
+      product_name: Balsamic Vinegar Aged 12yr 250ml
+      category: Artisan Spices & Oils
+      retail_price: 19.90
+      unit_cost: 8.80
+      base_weight: 0.65
+      tags: [premium]
+    - product_id: PROD-030
+      product_name: Spice Gift Box Weltreise 8 Spices
+      category: Artisan Spices & Oils
+      retail_price: 39.90
+      unit_cost: 17.50
+      base_weight: 0.55
+      tags: [gift_season]
+    - product_id: PROD-031
+      product_name: Cooking Oil Trio Gift Set
+      category: Artisan Spices & Oils
+      retail_price: 42.50
+      unit_cost: 19.00
+      base_weight: 0.45
+      tags: [gift_season]
+    - product_id: PROD-032
+      product_name: Raw Forest Honey Carpathian 500g
+      category: Specialty Pantry
+      retail_price: 14.90
+      unit_cost: 7.00
+      base_weight: 0.95
+      tags: [repeat_staple]
+    - product_id: PROD-033
+      product_name: Manuka Honey MGO 400+ 250g
+      category: Specialty Pantry
+      retail_price: 34.90
+      unit_cost: 18.50
+      base_weight: 0.45
+      tags: [premium]
+    - product_id: PROD-034
+      product_name: Artisan Chocolate Bar 72% Ecuador 100g
+      category: Specialty Pantry
+      retail_price: 6.90
+      unit_cost: 3.20
+      base_weight: 1.25
+      tags: [impulse_addon]
+    - product_id: PROD-035
+      product_name: Artisan Chocolate Bar 85% Madagascar 100g
+      category: Specialty Pantry
+      retail_price: 7.50
+      unit_cost: 3.60
+      base_weight: 1.10
+      tags: [impulse_addon]
+    - product_id: PROD-036
+      product_name: Hazelnut Spread Nussknacker 250g
+      category: Specialty Pantry
+      retail_price: 8.90
+      unit_cost: 4.10
+      base_weight: 0.95
+      tags: []
+    - product_id: PROD-037
+      product_name: Fig Jam Dalmatian 220g
+      category: Specialty Pantry
+      retail_price: 7.50
+      unit_cost: 3.50
+      base_weight: 0.80
+      tags: []
+    - product_id: PROD-038
+      product_name: Sourdough Crackers Organic 200g
+      category: Specialty Pantry
+      retail_price: 5.90
+      unit_cost: 2.80
+      base_weight: 0.90
+      tags: [impulse_addon]
+    - product_id: PROD-039
+      product_name: Dried Mango Organic 200g
+      category: Specialty Pantry
+      retail_price: 6.50
+      unit_cost: 2.90
+      base_weight: 0.80
+      tags: []
+    - product_id: PROD-040
+      product_name: Mixed Nuts Roasted and Salted 400g
+      category: Specialty Pantry
+      retail_price: 11.90
+      unit_cost: 5.40
+      base_weight: 0.95
+      tags: [impulse_addon]
+    - product_id: PROD-041
+      product_name: Granola Kupferkanne Crunch 500g
+      category: Specialty Pantry
+      retail_price: 9.90
+      unit_cost: 4.20
+      base_weight: 1.15
+      tags: [repeat_staple, january_health]
+    - product_id: PROD-042
+      product_name: Pantry Essentials Gift Box
+      category: Specialty Pantry
+      retail_price: 54.90
+      unit_cost: 26.00
+      base_weight: 0.45
+      tags: [gift_season]
+    - product_id: PROD-043
+      product_name: Christmas Hamper Festtagskorb
+      category: Specialty Pantry
+      retail_price: 89.90
+      unit_cost: 38.00
+      base_weight: 0.20
+      tags: [gift_season, advent, premium]
+    - product_id: PROD-044
+      product_name: Hario V60 Pour Over Dripper
+      category: Kitchen Accessories
+      retail_price: 24.90
+      unit_cost: 14.50
+      base_weight: 1.00
+      tags: [accessory]
+    - product_id: PROD-045
+      product_name: Chemex Classic 6-Cup
+      category: Kitchen Accessories
+      retail_price: 42.90
+      unit_cost: 25.80
+      base_weight: 0.70
+      tags: [accessory, premium]
+    - product_id: PROD-046
+      product_name: Fellow Stagg EKG Kettle
+      category: Kitchen Accessories
+      retail_price: 149.00
+      unit_cost: 92.00
+      base_weight: 0.25
+      tags: [accessory, premium]
+    - product_id: PROD-047
+      product_name: Porlex Mini Hand Grinder
+      category: Kitchen Accessories
+      retail_price: 64.90
+      unit_cost: 38.50
+      base_weight: 0.55
+      tags: [accessory, premium]
+    - product_id: PROD-048
+      product_name: Copper Turkish Cezve
+      category: Kitchen Accessories
+      retail_price: 34.90
+      unit_cost: 19.80
+      base_weight: 0.60
+      tags: [accessory, premium]
+    - product_id: PROD-049
+      product_name: Cast Iron Teapot 800ml
+      category: Kitchen Accessories
+      retail_price: 49.90
+      unit_cost: 28.50
+      base_weight: 0.60
+      tags: [accessory, premium]
+    - product_id: PROD-050
+      product_name: Olive Wood Pepper Mill
+      category: Kitchen Accessories
+      retail_price: 39.90
+      unit_cost: 22.00
+      base_weight: 0.70
+      tags: [accessory]
+    - product_id: PROD-051
+      product_name: Linen Tea Towel Set 3pc
+      category: Kitchen Accessories
+      retail_price: 22.90
+      unit_cost: 12.80
+      base_weight: 0.70
+      tags: [accessory]
+    - product_id: PROD-052
+      product_name: Ceramic Spice Jar Set 6pc
+      category: Kitchen Accessories
+      retail_price: 29.90
+      unit_cost: 16.50
+      base_weight: 0.70
+      tags: [accessory]
+    - product_id: PROD-053
+      product_name: Bamboo Cutting Board XL
+      category: Kitchen Accessories
+      retail_price: 34.90
+      unit_cost: 19.00
+      base_weight: 0.70
+      tags: [accessory]
+    - product_id: PROD-054
+      product_name: Kaffeepause Gift Box
+      category: Curated Gift Boxes
+      retail_price: 44.90
+      unit_cost: 21.00
+      base_weight: 0.70
+      tags: [gift_season]
+    - product_id: PROD-055
+      product_name: Teezeit Gift Box
+      category: Curated Gift Boxes
+      retail_price: 54.90
+      unit_cost: 26.50
+      base_weight: 0.60
+      tags: [gift_season]
+    - product_id: PROD-056
+      product_name: Geniesser Premium Box
+      category: Curated Gift Boxes
+      retail_price: 79.90
+      unit_cost: 36.00
+      base_weight: 0.50
+      tags: [gift_season, premium]
+    - product_id: PROD-057
+      product_name: Firmengeschenk Corporate Gift Box 10-pack
+      category: Curated Gift Boxes
+      retail_price: 399.00
+      unit_cost: 185.00
+      base_weight: 0.08
+      tags: [gift_season, premium, corporate]
+    - product_id: PROD-058
+      product_name: Willkommen New Customer Welcome Box
+      category: Curated Gift Boxes
+      retail_price: 29.90
+      unit_cost: 14.00
+      base_weight: 0.45
+      tags: [gift_season, discovery]
+    - product_id: PROD-059
+      product_name: Valentinstag Gift Box
+      category: Curated Gift Boxes
+      retail_price: 39.90
+      unit_cost: 18.50
+      base_weight: 0.35
+      tags: [gift_season, feb_peak]
+    - product_id: PROD-060
+      product_name: Sommerpause Cold Brew Kit
+      category: Curated Gift Boxes
+      retail_price: 34.90
+      unit_cost: 15.00
+      base_weight: 0.30
+      tags: [summer_peak, gift_season]
+
+customers:
+  target_total_customers: 15000
+  prelaunch_seed_customers: 0
+  acquisition_phases:
+    - start_month: 2023-01
+      end_month: 2023-03
+      monthly_new_customers: 400
+    - start_month: 2023-04
+      end_month: 2023-12
+      monthly_new_customers: 350
+    - start_month: 2024-01
+      end_month: 2024-12
+      monthly_new_customers: 300
+    - start_month: 2025-01
+      end_month: 2025-12
+      monthly_new_customers: 250
+    - start_month: 2026-01
+      end_month: 2026-03
+      monthly_new_customers: 200
+
+archetypes:
+  - name: Coffee Regulars
+    share: 0.25
+    existing_order_weight: 1.35
+    same_month_repeat_weight: 0.60
+    max_orders_per_month: 3
+    holiday_multiplier: 1.10
+    q1_multiplier: 1.05
+    summer_multiplier: 0.92
+    category_affinity:
+      Specialty Coffee: 3.00
+      Premium Teas: 0.75
+      Artisan Spices & Oils: 0.60
+      Specialty Pantry: 1.00
+      Kitchen Accessories: 0.35
+      Curated Gift Boxes: 0.35
+  - name: Occasional Explorers
+    share: 0.20
+    existing_order_weight: 0.70
+    same_month_repeat_weight: 0.28
+    max_orders_per_month: 2
+    holiday_multiplier: 1.10
+    q1_multiplier: 1.00
+    summer_multiplier: 0.95
+    category_affinity:
+      Specialty Coffee: 1.00
+      Premium Teas: 1.00
+      Artisan Spices & Oils: 1.20
+      Specialty Pantry: 1.10
+      Kitchen Accessories: 0.80
+      Curated Gift Boxes: 0.70
+  - name: Gift Buyers
+    share: 0.15
+    existing_order_weight: 0.18
+    same_month_repeat_weight: 0.12
+    max_orders_per_month: 2
+    holiday_multiplier: 7.50
+    q1_multiplier: 0.70
+    summer_multiplier: 0.60
+    category_affinity:
+      Specialty Coffee: 0.75
+      Premium Teas: 0.90
+      Artisan Spices & Oils: 0.90
+      Specialty Pantry: 1.10
+      Kitchen Accessories: 0.75
+      Curated Gift Boxes: 4.50
+  - name: One-Time Buyers
+    share: 0.15
+    existing_order_weight: 0.02
+    same_month_repeat_weight: 0.00
+    max_orders_per_month: 1
+    holiday_multiplier: 1.00
+    q1_multiplier: 1.00
+    summer_multiplier: 1.00
+    active_months_after_signup: 1
+    category_affinity:
+      Specialty Coffee: 1.00
+      Premium Teas: 0.90
+      Artisan Spices & Oils: 1.00
+      Specialty Pantry: 1.10
+      Kitchen Accessories: 0.70
+      Curated Gift Boxes: 0.60
+  - name: Premium Enthusiasts
+    share: 0.10
+    existing_order_weight: 0.42
+    same_month_repeat_weight: 0.22
+    max_orders_per_month: 2
+    holiday_multiplier: 1.20
+    q1_multiplier: 0.95
+    summer_multiplier: 0.90
+    category_affinity:
+      Specialty Coffee: 0.90
+      Premium Teas: 1.00
+      Artisan Spices & Oils: 1.10
+      Specialty Pantry: 1.00
+      Kitchen Accessories: 2.80
+      Curated Gift Boxes: 1.60
+  - name: Churned Loyals
+    share: 0.08
+    existing_order_weight: 1.00
+    same_month_repeat_weight: 0.38
+    max_orders_per_month: 3
+    holiday_multiplier: 1.00
+    q1_multiplier: 1.00
+    summer_multiplier: 0.90
+    churn_after_months_min: 6
+    churn_after_months_max: 18
+    category_affinity:
+      Specialty Coffee: 1.80
+      Premium Teas: 1.10
+      Artisan Spices & Oils: 0.80
+      Specialty Pantry: 1.00
+      Kitchen Accessories: 0.50
+      Curated Gift Boxes: 0.40
+  - name: Power Buyers
+    share: 0.05
+    existing_order_weight: 2.00
+    same_month_repeat_weight: 1.10
+    max_orders_per_month: 6
+    holiday_multiplier: 1.20
+    q1_multiplier: 1.05
+    summer_multiplier: 0.95
+    category_affinity:
+      Specialty Coffee: 2.50
+      Premium Teas: 1.30
+      Artisan Spices & Oils: 1.10
+      Specialty Pantry: 1.40
+      Kitchen Accessories: 0.90
+      Curated Gift Boxes: 0.70
+  - name: New Arrivals
+    share: 0.02
+    existing_order_weight: 0.30
+    same_month_repeat_weight: 0.10
+    max_orders_per_month: 2
+    holiday_multiplier: 1.00
+    q1_multiplier: 1.00
+    summer_multiplier: 1.00
+    active_months_after_signup: 2
+    category_affinity:
+      Specialty Coffee: 1.00
+      Premium Teas: 1.00
+      Artisan Spices & Oils: 0.80
+      Specialty Pantry: 1.00
+      Kitchen Accessories: 0.50
+      Curated Gift Boxes: 0.90
+
+basketing:
+  max_distinct_products_per_order: 5
+  initial_size_distribution:
+    1: 0.58
+    2: 0.24
+    3: 0.11
+    4: 0.05
+    5: 0.02
+  affinity_rules:
+    Specialty Coffee:
+      product_weights:
+        PROD-034: 3.00
+        PROD-035: 2.80
+        PROD-047: 1.80
+        PROD-044: 1.70
+        PROD-041: 2.00
+      category_weights:
+        Specialty Pantry: 1.60
+        Kitchen Accessories: 1.35
+        Premium Teas: 1.15
+    Premium Teas:
+      product_weights:
+        PROD-032: 2.20
+        PROD-049: 1.60
+        PROD-038: 1.80
+      category_weights:
+        Specialty Pantry: 1.60
+        Kitchen Accessories: 1.25
+        Specialty Coffee: 1.10
+    Artisan Spices & Oils:
+      product_weights:
+        PROD-027: 2.20
+        PROD-028: 1.80
+        PROD-022: 1.70
+        PROD-026: 1.70
+        PROD-030: 1.60
+      category_weights:
+        Specialty Pantry: 1.30
+        Artisan Spices & Oils: 1.40
+    Specialty Pantry:
+      product_weights:
+        PROD-034: 2.50
+        PROD-035: 2.10
+        PROD-040: 1.90
+        PROD-032: 2.00
+      category_weights:
+        Specialty Pantry: 1.25
+        Specialty Coffee: 1.20
+        Premium Teas: 1.10
+    Kitchen Accessories:
+      category_weights:
+        Specialty Coffee: 1.70
+        Premium Teas: 1.35
+        Specialty Pantry: 1.15
+        Kitchen Accessories: 0.35
+      max_distinct_cap: 3
+    Curated Gift Boxes:
+      category_weights:
+        Specialty Coffee: 1.30
+        Premium Teas: 1.30
+        Specialty Pantry: 1.30
+      single_item_override_probability: 0.70
+      max_distinct_cap: 3
+
+seasonality:
+  monthly_order_baseline:
+    1: 4500
+    2: 4200
+    3: 4300
+    4: 4100
+    5: 4000
+    6: 3800
+    7: 3500
+    8: 3600
+    9: 4200
+    10: 4500
+    11: 6500
+    12: 8000
+  random_variance_pct: 0.10
+  product_tag_multipliers:
+    summer_peak:
+      6: 2.5
+      7: 5.0
+      8: 4.0
+    spring_peak:
+      3: 1.3
+      4: 1.3
+    gift_season:
+      2: 1.3
+      11: 3.5
+      12: 5.5
+    advent:
+      1: 0.0
+      2: 0.0
+      3: 0.0
+      4: 0.0
+      5: 0.0
+      6: 0.0
+      7: 0.0
+      8: 0.0
+      9: 0.0
+      10: 0.0
+      11: 0.3
+      12: 8.0
+    winter_peak:
+      1: 1.4
+      2: 1.2
+      12: 1.4
+    january_health:
+      1: 1.6
+      2: 1.2
+    feb_peak:
+      2: 4.0
+    repeat_staple:
+      9: 1.1
+      10: 1.1
+    premium:
+      11: 1.2
+      12: 1.3
+
+growth:
+  year_multipliers:
+    2023: 1.00
+    2024: 1.15
+    2025: 1.265
+    2026: 1.32825
+
+discounts:
+  scenarios:
+    - name: No discount
+      share: 0.75
+      discount_min: 0.00
+      discount_max: 0.00
+    - name: Welcome offer
+      share: 0.08
+      discount_min: 0.10
+      discount_max: 0.10
+    - name: Seasonal promo
+      share: 0.07
+      discount_min: 0.15
+      discount_max: 0.20
+    - name: Loyalty discount
+      share: 0.06
+      discount_min: 0.05
+      discount_max: 0.05
+    - name: Clearance
+      share: 0.03
+      discount_min: 0.20
+      discount_max: 0.25
+    - name: Corporate bulk
+      share: 0.01
+      discount_min: 0.10
+      discount_max: 0.15
+  seasonal_windows:
+    - start: 11-20
+      end: 11-30
+    - start: 06-15
+      end: 06-30
+  clearance_months: [1, 7]
+  loyalty_min_prior_orders: 5
+
+countries:
+  - code: DE
+    share: 0.56
+  - code: AT
+    share: 0.12
+  - code: CH
+    share: 0.07
+  - code: PL
+    share: 0.08
+  - code: NL
+    share: 0.07
+  - code: BE
+    share: 0.04
+  - code: UK
+    share: 0.03
+  - code: SE
+    share: 0.01
+  - code: DK
+    share: 0.02
+
+data_quality:
+  enabled: true
+  null_customer_id_rate: 0.0015
+  null_order_date_rate: 0.0008
+  malformed_date_rate: 0.0005
+  future_date_rate: 0.0002
+  negative_line_net_amount_rate: 0.0012
+  zero_line_net_amount_rate: 0.0005
+  cents_line_net_amount_rate: 0.0008
+  whitespace_id_rate: 0.0015
+  duplicate_row_rate: 0.0012
+  null_line_net_amount_rate: 0.0008
+  cents_window_start: 2024-03-14
+  cents_window_end: 2024-03-15
+  malformed_date_month: 2024-02
+  future_date_anchor_years: [2024, 2025, 2026]
+  duplicate_boundary_days: 2
+
+validation_targets:
+  target_total_orders: 175000
+  unique_orders_min: 170000
+  unique_orders_max: 185000
+  total_rows_min: 250000
+  total_rows_max: 280000
+  unique_customers_target: 15000
+  unique_customers_tolerance: 700
+  avg_lines_per_order_min: 1.45
+  avg_lines_per_order_max: 1.65
+  single_item_share_target: 0.58
+  single_item_share_tolerance: 0.05
+  five_plus_max_share: 0.03
+  dirty_rate_target: 0.009
+  dirty_rate_tolerance: 0.002
+  corporate_order_share_max: 0.005

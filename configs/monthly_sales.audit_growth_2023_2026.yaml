@@ -1,0 +1,27 @@
+period:
+  start_date: 2023-01-01
+  end_date: 2026-03-31
+
+volume:
+  max_orders_per_month: 5000
+  trend_mode: growth
+  start_ratio: 0.38
+  seasonality_strength: 0.14
+  volatility_strength: 0.08
+
+bad_data:
+  enabled: true
+  normalized:
+    null_required_rate: 0.0093
+    negative_numeric_rate: 0.0093
+    monetary_outlier_rate: 0.0093
+  flat:
+    duplicate_orderid_rate: 0.0093
+    bad_orderdate_rate: 0.0093
+    mixed_ordervalue_format_rate: 0.0093
+    null_required_rate: 0.0093
+    negative_ordervalue_rate: 0.0093
+
+output:
+  layout: both
+  include_flat: true

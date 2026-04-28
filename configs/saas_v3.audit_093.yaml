@@ -1,0 +1,324 @@
+run:
+  name: saas_customer_success_v3_audit_093
+  seed: 42
+  schema_version: saas_v3
+
+history:
+  as_of_date: 2026-03-31
+  lookback_years: 3.0
+
+row_targets:
+  accounts: 300
+  users: 2000
+  subscriptions: 1000
+  product_events: 100000
+  invoices: 4000
+  support_tickets: 1500
+  nps_responses: 500
+
+plans:
+  - name: Starter
+    monthly_price: 49
+    probability: 0.48
+    usage_multiplier: 0.85
+    support_complexity: 0.90
+    min_feature_depth: 0.55
+  - name: Professional
+    monthly_price: 149
+    probability: 0.34
+    usage_multiplier: 1.10
+    support_complexity: 1.10
+    min_feature_depth: 0.80
+  - name: Enterprise
+    monthly_price: 399
+    probability: 0.18
+    usage_multiplier: 1.45
+    support_complexity: 1.35
+    min_feature_depth: 1.00
+
+company_sizes:
+  - name: SMB
+    weight: 0.58
+    user_count_min: 2
+    user_count_max: 14
+    event_multiplier: 0.70
+    support_multiplier: 0.80
+    plan_bias:
+      Starter: 1.45
+      Professional: 0.85
+      Enterprise: 0.25
+  - name: Mid-Market
+    weight: 0.29
+    user_count_min: 8
+    user_count_max: 45
+    event_multiplier: 1.00
+    support_multiplier: 1.00
+    plan_bias:
+      Starter: 0.75
+      Professional: 1.25
+      Enterprise: 0.85
+  - name: Enterprise
+    weight: 0.13
+    user_count_min: 30
+    user_count_max: 140
+    event_multiplier: 1.45
+    support_multiplier: 1.30
+    plan_bias:
+      Starter: 0.20
+      Professional: 0.95
+      Enterprise: 1.75
+
+countries:
+  - name: Germany
+    weight: 0.18
+    currency: EUR
+    timezone: Europe/Berlin
+    utc_offset_hours: 1
+    company_suffixes: [GmbH, AG, UG]
+    domain_tlds: [de, com]
+  - name: United Kingdom
+    weight: 0.16
+    currency: GBP
+    timezone: Europe/London
+    utc_offset_hours: 0
+    company_suffixes: [Ltd, PLC]
+    domain_tlds: [co.uk, com]
+  - name: United States
+    weight: 0.27
+    currency: USD
+    timezone: America/New_York
+    utc_offset_hours: -5
+    company_suffixes: [Inc, LLC, Corp]
+    domain_tlds: [com, io]
+  - name: Netherlands
+    weight: 0.12
+    currency: EUR
+    timezone: Europe/Amsterdam
+    utc_offset_hours: 1
+    company_suffixes: [BV, NV]
+    domain_tlds: [nl, com]
+  - name: France
+    weight: 0.11
+    currency: EUR
+    timezone: Europe/Paris
+    utc_offset_hours: 1
+    company_suffixes: [SAS, SARL]
+    domain_tlds: [fr, com]
+  - name: Canada
+    weight: 0.16
+    currency: CAD
+    timezone: America/Toronto
+    utc_offset_hours: -5
+    company_suffixes: [Inc, Ltd]
+    domain_tlds: [ca, com]
+
+industries:
+  - name: Technology
+    weight: 0.24
+    adoption_factor: 1.18
+    support_factor: 0.95
+    plan_bias:
+      Professional: 1.10
+      Enterprise: 1.05
+    nps_bias: 0.04
+  - name: Financial Services
+    weight: 0.15
+    adoption_factor: 0.98
+    support_factor: 1.18
+    plan_bias:
+      Professional: 1.08
+      Enterprise: 1.18
+    nps_bias: -0.02
+  - name: Healthcare
+    weight: 0.12
+    adoption_factor: 0.88
+    support_factor: 1.22
+    plan_bias:
+      Professional: 1.02
+      Enterprise: 1.08
+    nps_bias: -0.03
+  - name: Retail
+    weight: 0.15
+    adoption_factor: 1.05
+    support_factor: 1.02
+    plan_bias:
+      Starter: 1.08
+      Professional: 0.95
+    nps_bias: 0.00
+  - name: Manufacturing
+    weight: 0.12
+    adoption_factor: 0.92
+    support_factor: 1.05
+    plan_bias:
+      Professional: 1.05
+      Enterprise: 1.10
+    nps_bias: -0.01
+  - name: Education
+    weight: 0.10
+    adoption_factor: 0.96
+    support_factor: 0.90
+    plan_bias:
+      Starter: 1.12
+    nps_bias: 0.02
+  - name: Logistics
+    weight: 0.12
+    adoption_factor: 1.00
+    support_factor: 1.08
+    plan_bias:
+      Professional: 1.07
+      Enterprise: 1.04
+    nps_bias: 0.00
+
+acquisition_channels:
+  - name: organic
+    weight: 0.30
+    retention_adjustment: 0.08
+    expansion_adjustment: 0.03
+    nps_adjustment: 0.03
+  - name: partner
+    weight: 0.18
+    retention_adjustment: 0.10
+    expansion_adjustment: 0.07
+    nps_adjustment: 0.02
+  - name: paid_search
+    weight: 0.17
+    retention_adjustment: -0.06
+    expansion_adjustment: -0.02
+    nps_adjustment: -0.03
+  - name: outbound_sales
+    weight: 0.21
+    retention_adjustment: -0.01
+    expansion_adjustment: 0.10
+    nps_adjustment: -0.01
+  - name: webinar
+    weight: 0.14
+    retention_adjustment: 0.04
+    expansion_adjustment: 0.02
+    nps_adjustment: 0.01
+
+role_mix:
+  - name: admin
+    weight: 0.24
+    activity_multiplier: 1.15
+    login_half_life_days: 10
+  - name: manager
+    weight: 0.20
+    activity_multiplier: 1.05
+    login_half_life_days: 14
+  - name: analyst
+    weight: 0.22
+    activity_multiplier: 1.10
+    login_half_life_days: 12
+  - name: agent
+    weight: 0.14
+    activity_multiplier: 1.00
+    login_half_life_days: 11
+  - name: integration_engineer
+    weight: 0.08
+    activity_multiplier: 1.30
+    login_half_life_days: 9
+  - name: billing_contact
+    weight: 0.07
+    activity_multiplier: 0.70
+    login_half_life_days: 24
+  - name: executive_sponsor
+    weight: 0.05
+    activity_multiplier: 0.45
+    login_half_life_days: 35
+
+event_taxonomy:
+  - name: login
+    weight: 0.18
+    feature_category: core
+    platform_weights: {web: 0.72, mobile: 0.23, api: 0.05}
+    min_plan: Starter
+  - name: dashboard_view
+    weight: 0.16
+    feature_category: core
+    platform_weights: {web: 0.82, mobile: 0.18}
+    min_plan: Starter
+  - name: report_run
+    weight: 0.11
+    feature_category: advanced
+    platform_weights: {web: 0.88, api: 0.12}
+    min_plan: Professional
+  - name: workflow_created
+    weight: 0.09
+    feature_category: advanced
+    platform_weights: {web: 0.78, api: 0.22}
+    min_plan: Professional
+  - name: user_invited
+    weight: 0.08
+    feature_category: admin
+    platform_weights: {web: 0.90, mobile: 0.10}
+    min_plan: Starter
+  - name: permission_updated
+    weight: 0.07
+    feature_category: admin
+    platform_weights: {web: 0.94, api: 0.06}
+    min_plan: Professional
+  - name: integration_connected
+    weight: 0.07
+    feature_category: integration
+    platform_weights: {web: 0.55, api: 0.45}
+    min_plan: Professional
+  - name: api_call
+    weight: 0.10
+    feature_category: integration
+    platform_weights: {api: 0.92, web: 0.08}
+    min_plan: Professional
+  - name: export_requested
+    weight: 0.08
+    feature_category: advanced
+    platform_weights: {web: 0.84, api: 0.16}
+    min_plan: Starter
+  - name: audit_log_viewed
+    weight: 0.06
+    feature_category: admin
+    platform_weights: {web: 0.96, api: 0.04}
+    min_plan: Enterprise
+
+lifecycle:
+  new_account_months: 2
+  minimum_tenure_days_before_churn: 90
+  churn_base_probability: 0.16
+  expansion_base_probability: 0.34
+  contraction_base_probability: 0.12
+  incident_burst_probability: 0.08
+  seasonal_strength: 0.12
+
+billing:
+  billing_period_weights:
+    monthly: 0.63
+    quarterly: 0.12
+    annual: 0.25
+  paid_probability: 0.84
+  partial_payment_probability: 0.07
+  overdue_probability: 0.07
+  void_probability: 0.02
+
+defects:
+  null_company_names: {enabled: true, rate: 0.0093}
+  case_duplicate_emails: {enabled: true, rate: 0.0093}
+  pre_signup_logins: {enabled: true, rate: 0.0093}
+  plan_name_typos: {enabled: true, rate: 0.0093}
+  negative_monthly_amounts: {enabled: true, rate: 0.0093}
+  reversed_subscription_dates: {enabled: true, rate: 0.0093}
+  orphaned_product_events: {enabled: true, rate: 0.0093}
+  future_timestamps: {enabled: true, rate: 0.0093}
+  bad_date_formats: {enabled: true, rate: 0.0093}
+  mixed_invoice_amount_formats: {enabled: true, rate: 0.0093}
+  out_of_range_nps_scores: {enabled: true, rate: 0.0093}
+
+output:
+  root_dir: ./out/saas_v3_audit_093
+  formats: [csv]
+  chunk_rows: 100000
+  write_effective_config: true
+
+validation:
+  row_count_tolerance:
+    invoices: 0.35
+  defect_tolerance: 0.30
+  local_hour_min: 6
+  local_hour_max: 22

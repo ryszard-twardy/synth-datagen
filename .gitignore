@@ -1,0 +1,93 @@
+# ==========================================
+# Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ==========================================
+# Virtual environments
+# ==========================================
+.venv/
+venv/
+env/
+
+# ==========================================
+# Environment variables / secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Testing & coverage
+# ==========================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.hypothesis/
+
+# ==========================================
+# Linting & type checking
+# ==========================================
+.ruff_cache/
+.mypy_cache/
+
+# ==========================================
+# IDE / Editor
+# ==========================================
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Jupyter
+# ==========================================
+.ipynb_checkpoints/
+
+# ==========================================
+# Agent configs (legacy, set on previous system)
+# ==========================================
+.claude/
+.codex/
+.agent/
+
+# ==========================================
+# Generated synthetic datasets
+# All outputs are regeneratable from configs
+# ==========================================
+output/
+outputs/
+*.csv
+*.parquet
+*.xlsx
+*.feather
+
+# Exception: keep test fixtures if any
+!tests/fixtures/*.csv
+!tests/fixtures/*.parquet
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
+logs/
+
+# ==========================================
+# OS / sync artifacts
+# ==========================================
+*.tmp
+~$*
+desktop.ini

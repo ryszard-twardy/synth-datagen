@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synthetic_data"
+version = "3.0.0"
+description = "Synthetic dataset generator with production-style IDs, realistic cross-table rules, and audit-grade validations"
+requires-python = ">=3.11"
+authors = [{ name = "Data Engineer" }]
+readme = "README.md"
+keywords = ["synthetic-data", "data-engineering", "sql", "power-bi", "faker"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "faker>=24.0.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "pydantic>=2.6.0",
+    "pyarrow>=15.0.0",
+    "PyYAML>=6.0.0",
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+]
+
+[project.scripts]
+synthetic-data = "src.main:app"
+synthetic-monthly-sales = "src.monthly_sales_cli:app"
+synthetic-saas = "src.saas_v3.cli:app"
+synthetic-rfm-kupferkanne = "src.kupferkanne_rfm_cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
