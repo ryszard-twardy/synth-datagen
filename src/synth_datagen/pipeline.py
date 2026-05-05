@@ -36,7 +36,9 @@ def _get_generator(
     from .generators.retail import RetailGenerator
     from .generators.saas import SaasGenerator
 
-    mapping = {
+    # Audit P1-9: explicit type[BaseScenarioGenerator] keeps mypy from
+    # inferring the abstract base and complaining at the call site.
+    mapping: dict[Scenario, type[BaseScenarioGenerator]] = {
         Scenario.RETAIL: RetailGenerator,
         Scenario.SAAS: SaasGenerator,
         Scenario.FINTECH: FintechGenerator,
