@@ -27,8 +27,6 @@ class Scenario(str, Enum):
 
 class SchemaType(str, Enum):
     STAR = "star"
-    NF3 = "3nf"
-    MIXED = "mixed"
 
 
 class Dialect(str, Enum):
@@ -251,11 +249,6 @@ class GeneratorConfig(StrictModel):
             raise ValueError(f"cols_min ({self.cols_min}) must be <= cols_max ({self.cols_max})")
         if self.simulation_start and self.simulation_end and self.simulation_start > self.simulation_end:
             raise ValueError("simulation_start must be <= simulation_end")
-        if self.schema_type is not SchemaType.STAR:
-            raise ValueError(
-                "Only schema_type='star' is currently implemented in synthetic_data. "
-                f"Received '{self.schema_type.value}'."
-            )
         defaults = _DEFAULT_ROW_COUNTS[self.scenario]
         resolved = {name: self.row_overrides.get(name, default) for name, default in defaults.items()}
         if self.scenario is Scenario.RETAIL:

@@ -366,3 +366,13 @@ def test_retail_dim_date_respects_row_override(tmp_path: Path) -> None:
     chunks = list(gen.generate_table(table, graph, fk_pools={}))
     df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
     assert len(df) == 10
+
+
+def test_schema_type_only_exposes_star() -> None:
+    """SchemaType must only expose 'star'. Audit P2-9: 3nf and mixed are dead values
+    rejected at runtime by the GeneratorConfig validator — a foot-gun, since users
+    discover non-support only at construction time. Removing them makes the type
+    system the single source of truth.
+    """
+    assert set(SchemaType.__members__) == {"STAR"}
+    assert [m.value for m in SchemaType] == ["star"]
