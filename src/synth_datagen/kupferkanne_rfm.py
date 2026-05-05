@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from .discounts import build_discount_rng, sample_discount, sample_discount_propensity
+from .rng import make_rng
 from .kupferkanne_rfm_config import (
     KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS,
     KupferkanneArchetypeConfig,
@@ -746,7 +747,11 @@ def build_clean_kupferkanne_frames(
     seed: int = 42,
     discount_variation: bool = True,
 ) -> dict[str, object]:
-    rng = np.random.default_rng(seed)
+    # Audit P1-11: route through the rng factory. salt=0 ('master') keeps
+    # the byte stream identical to the legacy default_rng(seed). A future
+    # version-bump can promote this to a dedicated salt for stronger
+    # isolation between clean-frame generation and dirty-data injection.
+    rng = make_rng(seed, "master")
     discount_rng = build_discount_rng(seed) if discount_variation else None
     month_plans = build_month_plans(config, rng)
     dim_products = build_product_dimension(config, discount_variation=discount_variation)
@@ -987,7 +992,8 @@ def inject_kupferkanne_dirty_data(
 ) -> tuple[dict[str, pd.DataFrame], dict[str, pd.DataFrame], dict[str, object]]:
     orders_files = _split_monthly_orders_files(config, clean_orders, month_plans)
     items_files = _split_monthly_items_files(config, clean_items, month_plans)
-    rng = np.random.default_rng(seed)
+    # Audit P1-11: route through the rng factory (salt=0). See note above.
+    rng = make_rng(seed, "master")
     summary: dict[str, object] = {}
 
     clean_order_total = int(sum(len(df) for df in orders_files.values()))

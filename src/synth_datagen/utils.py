@@ -17,11 +17,15 @@ from faker import Faker
 
 from .config import ColumnConfig, DataQualityConfig, SemanticType, TableConfig
 from .id_utils import is_identifier_column, next_ids
+from .rng import make_rng
 
 
 def seed_everything(seed: int) -> tuple[random.Random, np.random.Generator, Faker]:
     rng_stdlib = random.Random(seed)
-    rng_numpy = np.random.default_rng(seed)
+    # Audit P0-3: route master numpy RNG through the factory. salt=0
+    # ('master') is bit-identical to the legacy default_rng(seed), so
+    # every classic generator's byte stream is preserved.
+    rng_numpy = make_rng(seed, "master")
     faker = Faker()
     Faker.seed(seed)
     return rng_stdlib, rng_numpy, faker

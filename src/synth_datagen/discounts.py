@@ -8,10 +8,14 @@ from collections.abc import Mapping
 
 import numpy as np
 
+from .rng import SALT_REGISTRY, make_rng
+
 
 DISCOUNT_ALPHA = 2.0
 DISCOUNT_CAP = 0.55
-DISCOUNT_RNG_XOR_MASK = int.from_bytes(b"D15C0UNT", "big", signed=False)
+# Kept as a public alias for any historical caller that imported the mask
+# directly. The authoritative value lives in synth_datagen.rng.SALT_REGISTRY.
+DISCOUNT_RNG_XOR_MASK = SALT_REGISTRY["discounts"]
 
 DISCOUNT_PROPENSITY_BANDS: dict[str, tuple[float, float]] = {
     "high": (0.02, 0.15),
@@ -21,7 +25,7 @@ DISCOUNT_PROPENSITY_BANDS: dict[str, tuple[float, float]] = {
 
 
 def build_discount_rng(base_seed: int) -> np.random.Generator:
-    return np.random.default_rng(seed=int(base_seed) ^ DISCOUNT_RNG_XOR_MASK)
+    return make_rng(int(base_seed), "discounts")
 
 
 def beta_parameters_for_propensity(propensity: float) -> tuple[float, float]:
