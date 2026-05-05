@@ -799,9 +799,9 @@ The workflow is complete when ALL of the below are ✅:
 # UPDATE THIS BLOCK AFTER EACH SESSION
 project_state:
   last_updated: "2026-05-05 [your time]"
-  current_phase: "phase-1-ready"
+  current_phase: "phase-2-ready"
   current_branch: "main"
-  current_commit_hash: "d954b50d66d5d72cc8157084ac206394760bba11"
+  current_commit_hash: "eedaa1d"
   repo_local_path: "X:\\Python\\projects\\synth-datagen"
   
 tags_created:
@@ -813,11 +813,11 @@ tags_created:
   v0_3_0: ""
 
 audit_findings:
-  total_p0: 0
-  total_p1: 0
-  total_p2: 0
-  total_p3: 0
-  addressed_in_phase2: []
+  total_p0: 3
+  total_p1: 12
+  total_p2: 14
+  total_p3: 9
+  addressed_in_phase2: ["P0-1", "P0-2", "P0-3", "P1-1", "P1-2", "P1-9", "P1-11", "P2-4", "P2-9"]
 
 decisions_made:
   - "2026-05-05: Repo name confirmed as `synth-datagen`. Reason: kebab-case PyPI standard, semantic, tool-grade."
@@ -831,10 +831,12 @@ decisions_made:
   - "2026-05-05: Filename convention adopted: prompts/{00_master, audit/01_handoff, audit/02_workflow, saas/03_extension, pharma/04_integration_notes, pharma/05_implementation}.md"
   - "2026-05-05: Pre-flight complete. Skills installed (Superpowers full + ECC selective: python-patterns, python-testing, search-first, agentshield). Tag v0.1.0-preaudit pushed. Commit d954b50 includes prompts/ folder."
   - "2026-05-05: includeCoAuthoredBy set to false in user-level Claude Code settings. Verified clean author trailer in commit d954b50."
+  - "2026-05-05: Phase 1 audit complete. Health score 6.5/10. 38 findings (3 P0, 12 P1, 14 P2, 9 P3). All 4 classic scenarios (retail/saas/fintech/logistics) reproduce empty diff with seed=42. Test coverage 91%, ruff lint clean, security scan zero real bugs. Architectural blocker: P0-3 shared self.rng across generators — mandatory fix as first commit in Phase 2."
+  - "2026-05-05: Phase 2 scope decided: 9 [ADDRESS] findings (P0-1 LICENSE, P0-2 package rename, P0-3 RNG factory, P1-1 src layout, P1-2 single CLI, P1-9 mypy errors, P1-11 kupferkanne RNG, P2-4 distribute_counts seed, P2-9 SchemaType dead values). 29 findings [DEFER] to Phase 3/4 or post-v0.2.0."
 
 known_blockers: []
-last_action: "2026-05-05: Pre-flight Step 0 complete. Tag v0.1.0-preaudit pushed. prompts/ folder committed (d954b50)."
-next_action: "Phase 1 — Audit. Open fresh Claude Code session at X:\\Python\\projects\\synth-datagen, paste universal session-start prompt + Phase 1 task block (from prior message). Agent extracts §Phase 1 from prompts/audit/02_workflow.md to prompts/audit/phase1_audit.md, then runs read-only audit. Output: audit_report.md."
+last_action: "2026-05-05: Phase 1 complete. audit_report.md committed at eedaa1d (next commit). 9 findings tagged [ADDRESS], 29 [DEFER]. GO for Phase 2."
+next_action: "Phase 2 — branch feat/refactor-from-audit. Start with P0-3 RNG factory (architectural foundation, must precede other refactors). Salt convention: existing streams salt=0 for math-identical output, new streams use registered salts (0xD15C0UNT, 0x5AA50000, 0x5DDA50000). Then proceed with P0-1, P0-2, P1-1, P1-2, P1-9, P1-11, P2-4, P2-9."
 
 repo_state:
   is_public: false
