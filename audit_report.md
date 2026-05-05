@@ -14,6 +14,7 @@
   Solid statistical core, fully reproducible classic scenarios, 91% test coverage, zero ruff lint warnings. But: package metadata mismatched with planned public name, no LICENSE, structural RNG-isolation pattern is fragile (only `discounts` is salted), four parallel CLI entry points instead of one, and no CI/CHANGELOG/CONTRIBUTING. The codebase is *almost* ready to publish — the gap is hygiene + structure, not correctness.
 
 - **Findings:** **P0 = 3**, **P1 = 12**, **P2 = 14**, **P3 = 9** (total 38)
+- **Phase 2 scope:** 9 findings tagged **[ADDRESS]** (P0-1, P0-2, P0-3, P1-1, P1-2, P1-9, P1-11, P2-4, P2-9). Remaining 29 tagged **[DEFER]** to Phase 3/4 or post-v0.2.0.
 
 - **LOC:** 12,187 Python (38 source files in `src/`, 26 test files in `tests/`, 1 in `scripts/`)
 
@@ -40,12 +41,12 @@
 
 ### P0 — Critical (block release)
 
-#### P0-1  No LICENSE file in the repo
+#### P0-1 [ADDRESS]  No LICENSE file in the repo
 - **Evidence:** `ls LICENSE*` → no match. Master plan §10 lists `LICENSE` as DoD; pyproject.toml has no `license` field.
 - **Why P0:** Without an explicit license the default is "all rights reserved" — nobody can legally fork, install, or use this.
 - **Fix:** Add `LICENSE` (MIT recommended for portfolio use) and set `[project] license = {text = "MIT"}` in `pyproject.toml`.
 
-#### P0-2  Package identity mismatch (`synthetic_data` v3.0.0 vs `synth-datagen` v0.2.0)
+#### P0-2 [ADDRESS]  Package identity mismatch (`synthetic_data` v3.0.0 vs `synth-datagen` v0.2.0)
 - **Evidence:**
   - `pyproject.toml:6-7` → `name = "synthetic_data"`, `version = "3.0.0"`
   - Repo dir: `X:\Python\projects\synth-datagen`
@@ -55,7 +56,7 @@
 - **Why P0:** PyPI registers names globally. Publishing today would (a) take the wrong name, (b) collide with anything already at `synthetic_data`, (c) break the portfolio-narrative "I built `synth-datagen`."
 - **Fix:** Single rename pass: `name = "synth-datagen"`, package import `synth_datagen`, version `0.2.0` (Phase 4 will tag this), unify console scripts under one `synth-datagen` entry point (cf. P1-2).
 
-#### P0-3  Single shared `self.rng` consumes for all generation concerns → backward-compat break risk on any future addition
+#### P0-3 [ADDRESS]  Single shared `self.rng` consumes for all generation concerns → backward-compat break risk on any future addition
 - **Evidence:**
   - `src/utils.py:22-27` `seed_everything(seed)` returns one `np.random.default_rng(seed)`.
   - `src/pipeline.py:59-60` passes that single `rng` to every generator.
@@ -69,7 +70,7 @@
 
 ### P1 — High (must fix before public release)
 
-#### P1-1  No `src/<package>/` layout — package is the literal `src/` directory
+#### P1-1 [ADDRESS]  No `src/<package>/` layout — package is the literal `src/` directory
 - **Evidence:**
   - `pyproject.toml:43-45` `where = ["."], include = ["src*"]`; console script `synthetic-data = "src.main:app"`
   - `conftest.py:5` does `sys.path.insert(0, str(Path(__file__).parent))` to make this importable in tests.
@@ -78,27 +79,27 @@
 - **Why P1:** Publishable Python packages use the **src layout**: `src/synth_datagen/__init__.py` and `import synth_datagen`. The current layout makes `import src` the public API, which is hostile to consumers and breaks the moment two such packages live in one site-packages.
 - **Fix:** Phase 2: rename `src/` → `src/synth_datagen/`, drop the root `conftest.py` sys.path hack, update all imports, add `__version__ = "0.2.0"` and `__all__` to `src/synth_datagen/__init__.py`.
 
-#### P1-2  Four parallel console scripts instead of one CLI
+#### P1-2 [ADDRESS]  Four parallel console scripts instead of one CLI
 - **Evidence:** `pyproject.toml:37-41` declares `synthetic-data`, `synthetic-monthly-sales`, `synthetic-saas`, `synthetic-rfm-kupferkanne`.
 - **Why P1:** Master plan + SaaS extension prompt assume one CLI with sub-commands per scenario (`synth-datagen retail …`, `synth-datagen saas --sub-mode plg-usage-based …`, `synth-datagen pharma --sub-mode acute-care …`). Four binaries fragments the UX, doubles documentation surface, and makes the `--sub-mode` SaaS extension awkward.
 - **Fix:** Phase 2: keep one `synth-datagen` Typer app, expose `retail|saas|fintech|logistics|monthly-sales|kupferkanne-rfm` as sub-commands. Keep the current entry-point names as transitional aliases (deprecation note in CHANGELOG).
 
-#### P1-3  No CHANGELOG.md, CONTRIBUTING.md, SECURITY.md
+#### P1-3 [DEFER]  No CHANGELOG.md, CONTRIBUTING.md, SECURITY.md
 - **Evidence:** `ls CHANGELOG* CONTRIBUTING* SECURITY*` → no match.
 - **Why P1:** Master plan §10 DoD requires all three. Keep-a-Changelog is the table of contents for the v0.2.0 release; CONTRIBUTING/SECURITY are baseline OSS hygiene.
 - **Fix:** Phase 4 deliverables (already in master plan).
 
-#### P1-4  No CI workflow
+#### P1-4 [DEFER]  No CI workflow
 - **Evidence:** `ls .github/workflows/` → directory does not exist.
 - **Why P1:** Master plan §10: *"CI passes on Python 3.11/3.12/3.13."* Without CI there's no way to keep the repo green after the public release.
 - **Fix:** Phase 3 deliverable (already in master plan §6).
 
-#### P1-5  No pre-commit configuration
+#### P1-5 [DEFER]  No pre-commit configuration
 - **Evidence:** `ls .pre-commit-config.yaml` → no match.
 - **Why P1:** Phase 2 prompt §"Code quality gates" expects pre-commit hooks for ruff/mypy/bandit. Without it, format drift returns the day after Phase 2 ends.
 - **Fix:** Add `.pre-commit-config.yaml` in Phase 2 (ruff lint+format, mypy, bandit).
 
-#### P1-6  pyproject metadata anonymized / under-specified
+#### P1-6 [DEFER]  pyproject metadata anonymized / under-specified
 - **Evidence:**
   - `pyproject.toml:9` `authors = [{ name = "Data Engineer" }]` (placeholder)
   - No `[project.urls]` (Homepage / Issues / Changelog / Documentation)
@@ -107,17 +108,17 @@
 - **Why P1:** PyPI listing will be unattributed and unlinked. Recruiter searching `pip show synth-datagen` sees no author and no project URL.
 - **Fix:** Phase 4: full PEP 621 metadata (real name + email, `[project.urls]`, license, classifiers, refined description). Master plan already has the template.
 
-#### P1-7  AGENTS.md is generic Codex/ECC content unrelated to this project
+#### P1-7 [DEFER]  AGENTS.md is generic Codex/ECC content unrelated to this project
 - **Evidence:** `AGENTS.md:1-97` is "ECC for Codex CLI" with mentions of `frontend-patterns`, `x-api`, `fal-ai-media`, `dmux-workflows`, etc. — none of which apply to synth-datagen.
 - **Why P1:** Once the repo is public this is a confusing artifact. It also leaks "this was bootstrapped from a template" — fine, but only if intentional. Currently it's just noise.
 - **Fix:** Phase 4: either delete or replace with a tight project-specific AGENTS.md (instructions for human + agent contributors). Suggest delete; CONTRIBUTING.md covers the same ground better.
 
-#### P1-8  MEMORY.md is an internal scratchpad committed to git
+#### P1-8 [DEFER]  MEMORY.md is an internal scratchpad committed to git
 - **Evidence:** `MEMORY.md:1-218` is a self-narrative covering "Recent Changes", "Guardrails For Future Changes", `LineNumber` rollout details. Looks like an auto-memory artifact from a previous session.
 - **Why P1:** Internal artifact; ships to public repo. Either the auto-memory directory should be `.gitignore`d (it already is — `.claude/` line 63), or this file should be moved under `.claude/` and removed from git tracking.
 - **Fix:** Phase 4: remove from git tracking (`git rm --cached MEMORY.md`) and add `MEMORY.md` to `.gitignore`, OR fold whatever is genuinely useful into CONTRIBUTING.md.
 
-#### P1-9  `mypy --ignore-missing-imports` reports 19 errors in 10 files
+#### P1-9 [ADDRESS]  `mypy --ignore-missing-imports` reports 19 errors in 10 files
 - **Evidence:** Tool run from temp venv. Examples:
   - `src/pipeline.py:45` `Cannot instantiate abstract class "BaseScenarioGenerator"` (`mapping[scenario](...)` confuses the resolver — likely fixable with a `Protocol` or `Type[BaseScenarioGenerator]`)
   - `src/utils.py:256` `Incompatible types: list[int] vs list[str]` in `inject_duplicates` PK rebuild — real-looking type bug for non-identifier PK columns
@@ -128,17 +129,17 @@
 - **Why P1:** Master plan §6 DoD: *"mypy: 0 errors on `--strict`."* Today even `--no-strict-optional` finds 19. The redefined-name issue and the int-vs-str list assignment are real correctness smells.
 - **Fix:** Phase 2 (per finding) + Phase 3 strictness pass. Add `types-PyYAML` to dev deps.
 
-#### P1-10  60 of 68 Python files would be reformatted by ruff
+#### P1-10 [DEFER]  60 of 68 Python files would be reformatted by ruff
 - **Evidence:** `ruff format --check src tests scripts` → "60 files would be reformatted, 8 files already formatted."
 - **Why P1:** Ruff lint is clean (0 warnings). Format drift is mechanical, but until pre-commit lands, every commit will keep churning.
 - **Fix:** One `ruff format .` commit at the start of Phase 2 (zero behavior change), then enforce via pre-commit.
 
-#### P1-11  `kupferkanne_rfm.py` instantiates two un-salted master RNGs
+#### P1-11 [ADDRESS]  `kupferkanne_rfm.py` instantiates two un-salted master RNGs
 - **Evidence:** `src/kupferkanne_rfm.py:749` `np.random.default_rng(seed)` and `:990` `np.random.default_rng(seed)` — both seeded with the same base, neither salted.
 - **Why P1:** If the order of these instantiations is reordered (or one is added between them), reproducibility collapses silently. Two RNGs sharing one seed is also strictly equivalent to one — confusing intent.
 - **Fix:** Migrate to the new `make_rng(base_seed, concern=…)` factory with explicit salts (`KUPFER_CUSTOMERS`, `KUPFER_ORDERS`, etc.) as part of P0-3.
 
-#### P1-12  Test runtime ~6 minutes, dominated by two slow tests
+#### P1-12 [DEFER]  Test runtime ~6 minutes, dominated by two slow tests
 - **Evidence:** `pytest --durations=10`:
   - `test_kupferkanne_v3_generation_writes_star_schema_outputs` setup: **215.18 s** (3m 35s)
   - `test_retail_dim_date_respects_row_override` call: **81.38 s** (1m 21s)
@@ -150,7 +151,7 @@
 
 ### P2 — Medium (post-release improvements)
 
-#### P2-1  Magic-number business benchmarks across all generators (50+ unsourced)
+#### P2-1 [DEFER]  Magic-number business benchmarks across all generators (50+ unsourced)
 - **Evidence (sample):**
   - `retail_builder.py:418` `self.rng.beta(2.4, 2.4)` (margin) — no comment
   - `retail_builder.py:582-590` qty distribution `[0.44, 0.27, 0.16, 0.08, 0.05]` — no source
@@ -161,7 +162,7 @@
 - **Why P2:** Phase 1 prompt §"Distribution correctness" wants Beta/log-normal/Pareto parameters cited. Today a reviewer cannot tell whether 0.16 monthly churn is a SaaS benchmark or a guess.
 - **Fix:** Phase 2/3: extract to `src/synth_datagen/benchmarks/<scenario>.py` with named constants and source comments (Recurly 2023, KeyBanc 2024, FICO public bands, etc.). Master plan SaaS prompt already calls for this pattern.
 
-#### P2-2  Long methods with high cyclomatic complexity
+#### P2-2 [DEFER]  Long methods with high cyclomatic complexity
 - **Evidence (radon `cc -a -nb`):**
   - `retail_builder._build_orders_and_related` 187 lines, complexity rank **D** (CC ≈ 21+)
   - `saas_v3/engine._build_account_month_state` complexity rank **D**
@@ -171,59 +172,59 @@
   - Average complexity overall **C (10.92)** — not a disaster, but the top tier is fat.
 - **Fix:** Phase 2: split each `D` function into 3-4 helpers. TDD-ed extraction.
 
-#### P2-3  No shared distribution / RNG factory module
+#### P2-3 [DEFER]  No shared distribution / RNG factory module
 - **Evidence:** `bounded_lognormal`, `weighted_choice`, `date_range_samples` exist in `src/utils.py` but each generator still calls `self.rng.beta`/`.normal`/`.lognormal` directly with hardcoded params (no source).
 - **Fix:** `src/synth_datagen/distributions.py` with citation comments per parameter, used everywhere.
 
-#### P2-4  `distribute_counts` silently falls back to `default_rng(42)`
+#### P2-4 [ADDRESS]  `distribute_counts` silently falls back to `default_rng(42)`
 - **Evidence:** `src/utils.py:112-113` `if rng is None: rng = np.random.default_rng(42)`.
 - **Why P2:** Reproducibility hazard: any caller that forgets to pass `rng` gets a constant 42 stream regardless of the requested seed. Currently no caller hits this path (every call site passes `rng`), but the fallback is a foot-gun.
 - **Fix:** Make `rng` required; raise on `None`. Add a unit test.
 
-#### P2-5  Duplicated helpers between subsystems
+#### P2-5 [DEFER]  Duplicated helpers between subsystems
 - **Evidence:**
   - `_seed_from_label` defined in both `saas_v3/engine.py:73-75` and `saas_v3/defects.py:18-20`
   - `_allocate_counts` defined in both `saas_v3/engine.py:85-100` and `kupferkanne_rfm.py:127-141`
   - Local `COUNTRY_LOCALES`, `COUNTRY_REGIONS` in `kupferkanne_rfm.py` overlap with `COUNTRIES_WEIGHTED` in `utils.py:359-376`.
 - **Fix:** Single `src/synth_datagen/_seed.py` and `src/synth_datagen/_allocations.py`.
 
-#### P2-6  No Hypothesis property tests
+#### P2-6 [DEFER]  No Hypothesis property tests
 - **Evidence:** Grep for `from hypothesis` / `@given` → 0 matches. Master plan Phase 3 requires ≥5 property tests per scenario.
 - **Fix:** Phase 3 scope.
 
-#### P2-7  No reproducibility tests for fintech / logistics
+#### P2-7 [DEFER]  No reproducibility tests for fintech / logistics
 - **Evidence:** `tests/test_determinism.py:54,61,79` only covers retail. SaaS v3 has `test_saas_v3_deterministic_core_tables`. `test_fintech_realism.py` and `test_logistics_realism.py` do **not** assert seed→identical output.
 - **Fix:** Phase 3: add `test_fintech_reproducibility`, `test_logistics_reproducibility`, `test_kupferkanne_reproducibility` mirroring `test_determinism.py`.
 
-#### P2-8  No CSV roundtrip / byte-equality tests
+#### P2-8 [DEFER]  No CSV roundtrip / byte-equality tests
 - **Evidence:** Determinism tests use `pd.testing.assert_frame_equal()` on in-memory DataFrames. No test re-reads exported CSV/Parquet/SQLite and asserts equality.
 - **Why P2:** Floating-point formatting / dtype coercion / UTF-8 BOM issues hide here. Master plan baseline-diff procedure (`diff -r baseline_before/ baseline_after/`) operates on file bytes; tests should mirror that contract.
 - **Fix:** Phase 3: one test per scenario that runs end-to-end, hashes each output file, and asserts hash equality across runs.
 
-#### P2-9  `SchemaType` enum has dead values (`3nf`, `mixed`)
+#### P2-9 [ADDRESS]  `SchemaType` enum has dead values (`3nf`, `mixed`)
 - **Evidence:** `src/config.py:28-31` declares `NF3 = "3nf"` and `MIXED = "mixed"`, but `src/config.py:254-258` rejects anything other than `STAR` with a runtime ValueError.
 - **Fix:** Phase 2: drop the dead enum values + delete the validator branch, OR implement them. README says "Only `--schema star` is supported. `3nf` and `mixed` are rejected explicitly" — so just delete.
 
-#### P2-10  Two `conftest.py` files, root one is a sys.path hack
+#### P2-10 [DEFER]  Two `conftest.py` files, root one is a sys.path hack
 - **Evidence:** `conftest.py:5` `sys.path.insert(0, str(Path(__file__).parent))`; `tests/conftest.py` then imports `from src.config ...`.
 - **Why P2:** Will become unnecessary once src layout is fixed (P1-1). Leaving both during transition is OK.
 - **Fix:** Delete root `conftest.py` after `src/synth_datagen/` rename.
 
-#### P2-11  No `examples/` directory but README mentions one
+#### P2-11 [DEFER]  No `examples/` directory but README mentions one
 - **Evidence:** README §"Quick Start" links to module-form invocations; `quick_guide_README.md` references `python run_demo.py`. There is a `run_demo.py` at repo root but no `examples/`.
 - **Fix:** Phase 4: create `examples/retail_quickstart.py`, `examples/saas_v3_promptforge.py`, etc. Move (or thin-wrap) `run_demo.py` into `examples/`.
 
-#### P2-12  Bandit B608 — SQL string interpolation in `sql_exporter._sql_val`
+#### P2-12 [DEFER]  Bandit B608 — SQL string interpolation in `sql_exporter._sql_val`
 - **Evidence:** `src/exporters/sql_exporter.py:157` (Medium severity, Low confidence). Hand inspection shows `_sql_val` does single-quote escaping (`'` → `''`) and never interpolates non-stringified values. Effectively safe **for synthetic data only**.
 - **Why P2 (not P0):** No untrusted input ever reaches this codepath; the tool generates DDL/DML for self-owned databases. But the construct is fragile — anyone porting `_sql_val` elsewhere is one mistake away from injection.
 - **Fix:** Add `# nosec B608` with rationale comment, OR switch to dialect-aware quoting via `sqlalchemy.text` / parametrized inserts.
 
-#### P2-13  Inconsistent column naming convention across exports
+#### P2-13 [DEFER]  Inconsistent column naming convention across exports
 - **Evidence:** Classic scenarios export `customer_id`, `order_id` (snake_case). Kupferkanne RFM exports `CustomerID`, `OrderID`, `LineNumber` (PascalCase) per `MEMORY.md` and `kupferkanne_rfm.py`.
 - **Why P2:** Mixed conventions surprise downstream consumers. Choose one and document the rationale (Kupferkanne deliberately uses BigQuery `_TABLE_SUFFIX`-friendly names, so this may be intentional).
 - **Fix:** Phase 4 README: explicitly document why Kupferkanne diverges. Or normalize.
 
-#### P2-14  Lowest-coverage modules: `parquet_exporter` 27%, `saas_v3/cli` 41%, `main` 66%, `sql_exporter` 72%, `schema_builder` 74%
+#### P2-14 [DEFER]  Lowest-coverage modules: `parquet_exporter` 27%, `saas_v3/cli` 41%, `main` 66%, `sql_exporter` 72%, `schema_builder` 74%
 - **Evidence:** `pytest --cov=src --cov-report=term`.
 - **Why P2:** Aggregate is 91% so the project is comfortably above target. But `parquet_exporter.py` at 27% is essentially uncovered; if anyone enables `--export-parquet` they're flying blind.
 - **Fix:** Phase 3: add round-trip tests targeting these modules.
@@ -232,41 +233,41 @@
 
 ### P3 — Low (nice to have)
 
-#### P3-1  `run_demo.py` lives at repo root
+#### P3-1 [DEFER]  `run_demo.py` lives at repo root
 - **Evidence:** `./run_demo.py` (94 lines).
 - **Fix:** Move to `examples/run_demo.py`. Update README + quick guide links.
 
-#### P3-2  `quick_guide_README.md` largely duplicates README.md
+#### P3-2 [DEFER]  `quick_guide_README.md` largely duplicates README.md
 - **Evidence:** ~80% command overlap.
 - **Fix:** Phase 4: fold useful bits into the new MkDocs site (`docs/quickstart.md`); delete this file.
 
-#### P3-3  Bandit B311 — `random.Random(seed)` flagged as not crypto-safe
+#### P3-3 [DEFER]  Bandit B311 — `random.Random(seed)` flagged as not crypto-safe
 - **Evidence:** `src/utils.py:23`. Severity Low. False positive (synthetic-data RNG, never used for crypto).
 - **Fix:** `# nosec B311` with comment OR add `bandit` config to skip B311 globally for `src/utils.py`.
 
-#### P3-4  Vulture: unused parameter `unique_cols` in `apply_data_quality`
+#### P3-4 [DEFER]  Vulture: unused parameter `unique_cols` in `apply_data_quality`
 - **Evidence:** `src/utils.py:337` declared but never read inside the function.
 - **Fix:** Either drop the kwarg or wire it through to `inject_duplicates`.
 
-#### P3-5  `Faker.seed(seed)` is called as a classmethod after `Faker()` is instantiated
+#### P3-5 [DEFER]  `Faker.seed(seed)` is called as a classmethod after `Faker()` is instantiated
 - **Evidence:** `src/utils.py:25-26`. Works in practice (Faker.seed reseeds the shared `_random_state`), but the pattern is confusing — would be clearer as `faker.seed_instance(seed)`.
 - **Fix:** Switch to `faker.seed_instance(seed)`.
 
-#### P3-6  `pyproject.toml` requires-python = `>=3.11` but state tracker says project venv is 3.12
+#### P3-6 [DEFER]  `pyproject.toml` requires-python = `>=3.11` but state tracker says project venv is 3.12
 - **Evidence:** `pyproject.toml:9`; master plan §0 §"Pre-flight" note "Python 3.12 via uv-managed venv".
 - **Fix:** Decision — either drop 3.11 from CI matrix or bump min to 3.12 to match what's actually tested. Master plan says CI 3.11/3.12/3.13.
 
-#### P3-7  Project `.venv` was empty (no pip, no packages) at audit time
+#### P3-7 [DEFER]  Project `.venv` was empty (no pip, no packages) at audit time
 - **Evidence:** `./.venv/Scripts/python.exe -m pip list` → "No module named pip".
 - **Why P3:** Doesn't affect the code, but means devs can't run anything until they `pip install -e ".[dev]"`. README documents this; just noting because it cost the auditor a step.
 - **Fix:** None required; mention in CONTRIBUTING.md.
 
-#### P3-8  AgentShield baseline scan is config-only (`.claude/`), not source
+#### P3-8 [DEFER]  AgentShield baseline scan is config-only (`.claude/`), not source
 - **Evidence:** `npx ecc-agentshield scan` scans the `.claude/` directory (Grade A, 2 medium findings about settings.json permission/hook scopes — irrelevant for repo security).
 - **Why P3:** Step 5 of audit prompt expected agentshield to surface code-level secrets/credential issues. This tool doesn't actually scan source. Manual `grep` of `src/` for `eval/exec/pickle/yaml.load/shell=True/subprocess` came back **clean**; YAML reads use `yaml.safe_load`/`safe_dump` only.
 - **Fix:** None for the code. Optionally add `gitleaks` or `trufflehog` to the CI step in Phase 3 for actual secret scanning.
 
-#### P3-9  Empty `src/__init__.py` and `src/generators/__init__.py`
+#### P3-9 [DEFER]  Empty `src/__init__.py` and `src/generators/__init__.py`
 - **Evidence:** Both files are 1 line / empty.
 - **Fix:** After P1-1 rename, populate `src/synth_datagen/__init__.py` with `__version__` and the public `__all__` (Generator/Config/CLI re-exports).
 
