@@ -43,6 +43,20 @@ def test_unified_cli_scenario_help_runs() -> None:
         assert "--output" in result.output
 
 
+def test_license_file_present_and_declared() -> None:
+    """Audit P0-1: repo must ship a LICENSE file and pyproject must declare
+    the matching license — otherwise default copyright blocks any reuse."""
+    license_path = REPO_ROOT / "LICENSE"
+    assert license_path.exists(), "LICENSE file is missing"
+    text = license_path.read_text(encoding="utf-8")
+    assert "MIT License" in text
+    assert "Permission is hereby granted" in text
+
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert pyproject["project"]["license"] == {"text": "MIT"}
+    assert "License :: OSI Approved :: MIT License" in pyproject["project"]["classifiers"]
+
+
 def test_legacy_aliases_still_declared() -> None:
     """Old entry-point names must remain so existing scripts keep working."""
     pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
