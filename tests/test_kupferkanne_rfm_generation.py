@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 import yaml
 
-from src.kupferkanne_rfm import (
+from synth_datagen.kupferkanne_rfm import (
     DIM_CUSTOMERS_EXPORT_COLUMNS,
     DIM_PRODUCTS_EXPORT_COLUMNS,
     ITEMS_COLUMNS,
@@ -16,7 +16,7 @@ from src.kupferkanne_rfm import (
     build_clean_kupferkanne_frames,
     generate_kupferkanne_rfm,
 )
-from src.kupferkanne_rfm_config import load_kupferkanne_rfm_config
+from synth_datagen.kupferkanne_rfm_config import load_kupferkanne_rfm_config
 
 
 @pytest.fixture(scope="module")

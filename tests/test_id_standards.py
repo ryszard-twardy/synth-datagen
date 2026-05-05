@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.config import DataQuality, Scenario
+from synth_datagen.config import DataQuality, Scenario
 from tests.helpers import generate_exported_csvs
 
 

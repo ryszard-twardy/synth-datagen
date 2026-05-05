@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.config import Scenario
+from synth_datagen.config import Scenario
 from tests.helpers import DEFAULT_SMALL_OVERRIDES, generate_scenario_dfs
 
 

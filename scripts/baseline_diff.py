@@ -59,7 +59,7 @@ def capture(out_root: Path) -> None:
         print(f"[capture] {scenario} -> {target}")
         subprocess.run(
             [
-                PYTHON, "-m", "src.main", "generate",
+                PYTHON, "-m", "synth_datagen.main", "generate",
                 "--scenario", scenario,
                 "--seed", "42",
                 "--output", str(target),

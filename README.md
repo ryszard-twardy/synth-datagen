@@ -40,8 +40,8 @@ py -3.11 -m pip install -e ".[dev]"
 Classic scenario entrypoints in the v3 repo:
 
 ```bash
-python -m src.main generate --scenario retail --output ./out/retail --seed 42
-python -m src.main generate --scenario saas --output ./out/saas --seed 42
+python -m synth_datagen.main generate --scenario retail --output ./out/retail --seed 42
+python -m synth_datagen.main generate --scenario saas --output ./out/saas --seed 42
 ```
 
 Installed console entry points:
@@ -79,7 +79,7 @@ synthetic-saas generate --config configs/saas_v3.audit_093.yaml --mode both --ou
 Equivalent module form:
 
 ```bash
-python -m src.saas_v3.cli generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
+python -m synth_datagen.saas_v3.cli generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
 ```
 
 Important: the dirty CSV in this profile is intended for staging and audit before BigQuery load. It intentionally contains malformed dates and other data issues, so it is not meant to be loaded directly into strict typed `DATE` or `TIMESTAMP` columns without a staging step.
@@ -232,7 +232,7 @@ synthetic-rfm-kupferkanne generate --config configs/kupferkanne_rfm_v3.yaml --ou
 Module form:
 
 ```bash
-python -m src.kupferkanne_rfm_cli generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
+python -m synth_datagen.kupferkanne_rfm_cli generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
 ```
 
 The output directory contains `dimensions/`, `monthly/`, `manifest.json`, `effective_config.yaml`, and `kupferkanne_rfm_schema.md`.

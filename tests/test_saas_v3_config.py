@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.saas_v3.config import load_config
+from synth_datagen.saas_v3.config import load_config
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

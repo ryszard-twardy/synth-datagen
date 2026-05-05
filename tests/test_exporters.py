@@ -9,13 +9,13 @@ import sqlite3
 import pandas as pd
 import pytest
 
-from src.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.exporters.csv_exporter import CsvExporter
-from src.exporters.sql_exporter import SqlExporter
-from src.exporters.sqlite_exporter import SqliteExporter
-from src.generators.retail import RetailGenerator
-from src.schema_builder import SchemaBuilder
-from src.utils import seed_everything
+from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.exporters.csv_exporter import CsvExporter
+from synth_datagen.exporters.sql_exporter import SqlExporter
+from synth_datagen.exporters.sqlite_exporter import SqliteExporter
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.utils import seed_everything
 
 _SMALL_OVERRIDES = {
     "dim_customers": 50, "dim_products": 30, "dim_stores": 10,

@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.config import (
+from synth_datagen.config import (
     DataQuality,
     DataQualityConfig,
     Dialect,
@@ -13,7 +13,7 @@ from src.config import (
     Scenario,
     SchemaType,
 )
-from src.runtime_support import is_missing_runtime_dependency, missing_dependency_message
+from synth_datagen.runtime_support import is_missing_runtime_dependency, missing_dependency_message
 
 SMALL = {
     # retail
@@ -53,7 +53,7 @@ SMALL = {
 
 
 def _load_pipeline():
-    from src.pipeline import run_pipeline
+    from synth_datagen.pipeline import run_pipeline
 
     return run_pipeline
 

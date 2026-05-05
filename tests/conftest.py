@@ -5,14 +5,23 @@ Uses small row counts for fast test execution.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Make the unpackaged top-level module run_demo (repo-root smoke script)
+# importable for tests that exercise it directly.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 import pandas as pd
 import pytest
 
-from src.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.generators.retail import RetailGenerator
-from src.schema_builder import SchemaBuilder
-from src.schema_builder import SchemaGraph
-from src.utils import seed_everything
+from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.schema_builder import SchemaGraph
+from synth_datagen.utils import seed_everything
 
 
 @pytest.fixture(scope="session")
@@ -60,7 +69,7 @@ def generated_dfs(retail_config, retail_graph) -> dict[str, "pd.DataFrame"]:
     Cached at session scope so tests share the same generated data.
     """
     import pandas as pd
-    from src.utils import seed_everything
+    from synth_datagen.utils import seed_everything
 
     _, rng, faker = seed_everything(retail_config.seed)
     gen = RetailGenerator(retail_config, rng, faker)

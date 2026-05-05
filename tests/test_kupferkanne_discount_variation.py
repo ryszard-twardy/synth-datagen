@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from src.kupferkanne_rfm import build_clean_kupferkanne_frames
-from src.kupferkanne_rfm_config import KupferkanneRfmConfig
+from synth_datagen.kupferkanne_rfm import build_clean_kupferkanne_frames
+from synth_datagen.kupferkanne_rfm_config import KupferkanneRfmConfig
 
 
 def _small_config() -> KupferkanneRfmConfig:

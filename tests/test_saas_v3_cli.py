@@ -4,7 +4,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from src.saas_v3.cli import app
+from synth_datagen.saas_v3.cli import app
 
 
 runner = CliRunner()

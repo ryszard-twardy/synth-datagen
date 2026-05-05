@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "synthetic_data"
-version = "3.0.0"
+name = "synth-datagen"
+version = "0.2.0-dev"
 description = "Synthetic dataset generator with production-style IDs, realistic cross-table rules, and audit-grade validations"
 requires-python = ">=3.11"
 authors = [{ name = "Data Engineer" }]
@@ -35,14 +35,14 @@ dev = [
 ]
 
 [project.scripts]
-synthetic-data = "src.main:app"
-synthetic-monthly-sales = "src.monthly_sales_cli:app"
-synthetic-saas = "src.saas_v3.cli:app"
-synthetic-rfm-kupferkanne = "src.kupferkanne_rfm_cli:app"
+synthetic-data = "synth_datagen.main:app"
+synthetic-monthly-sales = "synth_datagen.monthly_sales_cli:app"
+synthetic-saas = "synth_datagen.saas_v3.cli:app"
+synthetic-rfm-kupferkanne = "synth_datagen.kupferkanne_rfm_cli:app"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+where = ["src"]
+include = ["synth_datagen*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

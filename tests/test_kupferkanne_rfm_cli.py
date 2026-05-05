@@ -6,7 +6,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 import yaml
 
-from src import kupferkanne_rfm_cli
+from synth_datagen import kupferkanne_rfm_cli
 
 
 runner = CliRunner()

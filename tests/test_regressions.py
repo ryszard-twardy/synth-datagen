@@ -14,14 +14,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.generators.fintech import FintechGenerator
-from src.generators.logistics import LogisticsGenerator
-from src.generators.retail import RetailGenerator
-from src.generators.saas import SaasGenerator
-from src.pipeline import run_pipeline
-from src.schema_builder import SchemaBuilder
-from src.utils import apply_data_quality, seed_everything
+from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.generators.fintech import FintechGenerator
+from synth_datagen.generators.logistics import LogisticsGenerator
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.generators.saas import SaasGenerator
+from synth_datagen.pipeline import run_pipeline
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.utils import apply_data_quality, seed_everything
 
 
 def _generate_scenario_dfs(
@@ -186,7 +186,7 @@ def test_cli_generate_is_safe_under_cp1252(tmp_path: Path) -> None:
     cmd = [
         sys.executable,
         "-m",
-        "src.main",
+        "synth_datagen.main",
         "generate",
         "--scenario",
         "retail",
@@ -373,7 +373,7 @@ def test_distribute_counts_requires_rng() -> None:
     np.random.default_rng(42) when called with rng=None — a reproducibility
     foot-gun. Now it raises so callers cannot accidentally bypass the seed.
     """
-    from src.utils import distribute_counts
+    from synth_datagen.utils import distribute_counts
 
     with pytest.raises(TypeError, match="rng is required"):
         distribute_counts(total=10, bins=3, rng=None)
