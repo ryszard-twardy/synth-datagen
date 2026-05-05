@@ -35,6 +35,9 @@ dev = [
 ]
 
 [project.scripts]
+synth-datagen = "synth_datagen.cli:app"
+# Transitional aliases — kept until the next major version bump so existing
+# scripts and CI jobs keep working. Prefer `synth-datagen <subcommand>`.
 synthetic-data = "synth_datagen.main:app"
 synthetic-monthly-sales = "synth_datagen.monthly_sales_cli:app"
 synthetic-saas = "synth_datagen.saas_v3.cli:app"
