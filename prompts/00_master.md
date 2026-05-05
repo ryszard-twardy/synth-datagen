@@ -798,39 +798,47 @@ The workflow is complete when ALL of the below are ✅:
 ```yaml
 # UPDATE THIS BLOCK AFTER EACH SESSION
 project_state:
-  last_updated: "YYYY-MM-DD HH:MM"
-  current_phase: "pre-flight"  # pre-flight | phase-1 | phase-2 | phase-3 | phase-4 | saas-extension | pharma-scenario | done
+  last_updated: "2026-05-05 [your time]"
+  current_phase: "phase-1-ready"
   current_branch: "main"
-  current_commit_hash: ""
+  current_commit_hash: "d954b50d66d5d72cc8157084ac206394760bba11"
   repo_local_path: "X:\\Python\\projects\\synth-datagen"
   
 tags_created:
-  v0_1_0_preaudit: ""          # YYYY-MM-DD when tagged
+  v0_1_0_preaudit: "2026-05-05"
   v0_2_0_rc1: ""
   v0_2_0_rc2: ""
-  v0_2_0: ""                    # ← public release date
-  v0_2_1: ""                    # ← post SaaS extension
-  v0_3_0: ""                    # ← post Pharma scenario
+  v0_2_0: ""
+  v0_2_1: ""
+  v0_3_0: ""
 
 audit_findings:
   total_p0: 0
   total_p1: 0
   total_p2: 0
   total_p3: 0
-  addressed_in_phase2: []       # list of finding IDs
+  addressed_in_phase2: []
 
 decisions_made:
-  - "(template) On YYYY-MM-DD: chose Option B for OSM fetch (snapshot in P7 repo, not internal to synth-datagen)"
-  - "(template) On YYYY-MM-DD: chose Pharma sub-mode (b) two-modes (acute-care + specialty-care)"
-  - "(template) On YYYY-MM-DD: chose research benchmark sources from DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse"
-  
-known_blockers: []              # what's stopping progress
-last_action: ""                 # last thing you did
-next_action: ""                 # next planned action
+  - "2026-05-05: Repo name confirmed as `synth-datagen`. Reason: kebab-case PyPI standard, semantic, tool-grade."
+  - "2026-05-05: Repo relocated from D:\\OneDrive\\AI_coding\\synthetic_data\\ to X:\\Python\\projects\\synth-datagen\\. Reason: OneDrive sync conflicts with venv path resolution on Win11."
+  - "2026-05-05: Python 3.12 via uv-managed venv (system has 3.13.13 but project uses 3.12 for stability)."
+  - "2026-05-05: Pharma sub-modes = TWO (acute-care + specialty-care), mirrors SaaS pattern."
+  - "2026-05-05: OSM hospital data = Option B (snapshot CSV in P7 GIS repo, --hospitals-csv parameter)."
+  - "2026-05-05: Administrative boundaries = TWO levels (16 Bundesländer + ~401 Landkreise via BKG VG250, dl-de/by-2-0)."
+  - "2026-05-05: RNG salts: 0xD15C0UNT (existing), 0x5AA50000 (SaaS), 0x5DDA50000 (Pharma)."
+  - "2026-05-05: Pharma benchmarks: DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse."
+  - "2026-05-05: Filename convention adopted: prompts/{00_master, audit/01_handoff, audit/02_workflow, saas/03_extension, pharma/04_integration_notes, pharma/05_implementation}.md"
+  - "2026-05-05: Pre-flight complete. Skills installed (Superpowers full + ECC selective: python-patterns, python-testing, search-first, agentshield). Tag v0.1.0-preaudit pushed. Commit d954b50 includes prompts/ folder."
+  - "2026-05-05: includeCoAuthoredBy set to false in user-level Claude Code settings. Verified clean author trailer in commit d954b50."
+
+known_blockers: []
+last_action: "2026-05-05: Pre-flight Step 0 complete. Tag v0.1.0-preaudit pushed. prompts/ folder committed (d954b50)."
+next_action: "Phase 1 — Audit. Open fresh Claude Code session at X:\\Python\\projects\\synth-datagen, paste universal session-start prompt + Phase 1 task block (from prior message). Agent extracts §Phase 1 from prompts/audit/02_workflow.md to prompts/audit/phase1_audit.md, then runs read-only audit. Output: audit_report.md."
 
 repo_state:
-  is_public: false              # change to true post v0.2.0
-  is_on_pypi: false             # change to true if you publish
+  is_public: false
+  is_on_pypi: false
 ```
 
 ---
