@@ -368,6 +368,17 @@ def test_retail_dim_date_respects_row_override(tmp_path: Path) -> None:
     assert len(df) == 10
 
 
+def test_distribute_counts_requires_rng() -> None:
+    """Audit P2-4: distribute_counts used to silently fall back to
+    np.random.default_rng(42) when called with rng=None — a reproducibility
+    foot-gun. Now it raises so callers cannot accidentally bypass the seed.
+    """
+    from src.utils import distribute_counts
+
+    with pytest.raises(TypeError, match="rng is required"):
+        distribute_counts(total=10, bins=3, rng=None)
+
+
 def test_schema_type_only_exposes_star() -> None:
     """SchemaType must only expose 'star'. Audit P2-9: 3nf and mixed are dead values
     rejected at runtime by the GeneratorConfig validator — a foot-gun, since users

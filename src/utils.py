@@ -105,12 +105,14 @@ def distribute_counts(
         raise ValueError("bins must be positive")
     if total < bins * minimum:
         raise ValueError("total is too small for requested minimum allocation")
+    if rng is None:
+        # Audit P2-4: fall-through to default_rng(42) silently shadowed the
+        # caller's seed. Refuse instead of inventing one.
+        raise TypeError("rng is required: pass an explicit np.random.Generator")
     result = np.full(bins, minimum, dtype=np.int64)
     remaining = total - result.sum()
     if remaining == 0:
         return result
-    if rng is None:
-        rng = np.random.default_rng(42)
     if weights is None:
         weights = np.ones(bins, dtype=float)
     probs = np.array(weights, dtype=float)
