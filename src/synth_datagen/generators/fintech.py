@@ -56,6 +56,24 @@ _SIM_START = datetime(2020, 1, 1)
 _AS_OF = datetime(2025, 12, 31, 23, 59, 59)
 
 
+def _advance_years_safe(d: date, years: int) -> date:
+    """Return ``d`` plus ``years``, clamping Feb-29 to Feb-28 on non-leap targets.
+
+    ``date.replace(year=...)`` raises ``ValueError`` when the source date is
+    Feb 29 and the target year is not a leap year — the latent bug recorded
+    in audit_report.md L503-506 that crashed default-scale fintech generation.
+    Real card issuers handle the same edge case by issuing the expiry on Feb
+    28 of the target year, which is the behaviour reproduced here.
+
+    Any other date round-trips unchanged.
+    """
+    try:
+        return d.replace(year=d.year + years)
+    except ValueError:
+        # Only triggered by Feb 29 -> non-leap target. Re-issue on Feb 28.
+        return d.replace(year=d.year + years, day=28)
+
+
 class FintechGenerator(BaseScenarioGenerator):
     def __init__(
         self, config: GeneratorConfig, rng: np.random.Generator, faker: Faker
@@ -546,8 +564,8 @@ class FintechGenerator(BaseScenarioGenerator):
                 issue_start, issue_end, int(count), self.rng
             )
             for issue_date in issue_dates:
-                expiry_date = issue_date.replace(
-                    year=issue_date.year + int(self.rng.integers(3, 6))
+                expiry_date = _advance_years_safe(
+                    issue_date, int(self.rng.integers(3, 6))
                 )
                 is_active = bool(
                     expiry_date >= _AS_OF.date()
