@@ -798,16 +798,16 @@ The workflow is complete when ALL of the below are ✅:
 ```yaml
 # UPDATE THIS BLOCK AFTER EACH SESSION
 project_state:
-  last_updated: "2026-05-05 [your time]"
-  current_phase: "phase-3-ready"
+  last_updated: "2026-05-06 15:03"
+  current_phase: "phase-4-ready"
   current_branch: "main"
-  current_commit_hash: "f6bdb8b"
+  current_commit_hash: "7e48fc6"
   repo_local_path: "X:\\Python\\projects\\synth-datagen"
-  
+
 tags_created:
   v0_1_0_preaudit: "2026-05-05"
   v0_2_0_rc1: "2026-05-05"
-  v0_2_0_rc2: ""
+  v0_2_0_rc2: "2026-05-06"
   v0_2_0: ""
   v0_2_1: ""
   v0_3_0: ""
@@ -838,10 +838,13 @@ decisions_made:
   - "2026-05-05: Phase 2 scope decided: 9 [ADDRESS] findings (P0-1 LICENSE, P0-2 package rename, P0-3 RNG factory, P1-1 src layout, P1-2 single CLI, P1-9 mypy errors, P1-11 kupferkanne RNG, P2-4 distribute_counts seed, P2-9 SchemaType dead values). 29 findings [DEFER] to Phase 3/4 or post-v0.2.0."
   - "2026-05-05: Phase 2 complete and merged (f6bdb8b). All 9 [ADDRESS] findings closed across 9 commits on feat/refactor-from-audit. RNG factory (src/synth_datagen/rng.py) established as architectural foundation. Baseline-diff harness (scripts/baseline_diff.py) added as reusable infrastructure for Phase 5/6. Tests 127 → 140 (+13 contract tests for RNG factory + unified CLI). Coverage 91% held. Pytest verified locally on Python 3.13 (5m41s) and 3.12 (6m06s) — both 140 passed. Tag v0.2.0-rc1 pushed."
   - "2026-05-05: Side-findings logged in audit_report.md L495-510 for Phase 3 fix queue: (a) Feb-29 leap-day crash in fintech default-scale (latent bug surfaced when capturing baseline; harness uses small row overrides to side-step); (b) CRLF/LF whole-file churn from VS Code editor normalization (cosmetic only, CSV bytes diff empty)."
+  - "2026-05-06: Phase 3 complete and merged (7e48fc6, tag v0.2.0-rc2). All 9 priorities + Final ✅. 246 fast tests + 48 slow tests = 294 total, all pass. Combined coverage 94% (target ≥80%; per-module: parquet 98%, schema_builder 100%, sql_exporter 100%, saas_v3.cli 99%). Pytest 5× consecutive runs 43-47s each, all green. ruff/format/bandit clean. Hypothesis property tests live in tests/property/ as slow lane."
+  - "2026-05-06: Phase 3 real bug found and fixed: parquet_exporter._sanitise_chunk used `dtype is object` (identity check, always False for numpy object dtype) — entire object-column branch was dead code. Object columns holding datetime.date/datetime.datetime/None silently bypassed sanitisation. Fixed to pd.api.types.is_object_dtype(dtype). Documented in CHANGELOG.md."
+  - "2026-05-06: Phase 3 documented spec deviations (CHANGELOG.md): (a) two-lane pytest in CI (fast + slow with --cov-append) instead of single invocation; (b) mypy continue-on-error: true (advisory) — pre-commit mirrors via stages: [manual]; (c) Bandit at -ll with single # nosec B608 annotation on SQL INSERT f-string."
 
 known_blockers: []
-last_action: "2026-05-05: Phase 2 merged to main (f6bdb8b), tagged v0.2.0-rc1, pushed to origin. Branch feat/refactor-from-audit closed."
-next_action: "Phase 3 — branch feat/test-hardening. Priority order: (1) .gitattributes + ruff format in single commit (CRLF cleanup, P1-10); (2) Fix Feb-29 leap-day fintech crash + regression test; (3) Hypothesis property tests 5+ per scenario (P2-6); (4) Reproducibility tests for fintech/logistics (P2-7); (5) CSV roundtrip / byte-equality tests (P2-8); (6) Slow-test trim < 60s (P1-12); (7) Coverage hardening for parquet_exporter / saas_v3/cli / sql_exporter (P2-14); (8) CI workflow .github/workflows/ci.yml on Python 3.11/3.12/3.13 (P1-4); (9) pre-commit config (P1-5). Skills to use explicitly: python-testing, test-driven-development, verification-before-completion, code-reviewer agent at session end."
+last_action: "2026-05-06 15:03: Phase 3 merged to main (7e48fc6), tagged v0.2.0-rc2, pushed. CI workflow + pre-commit live. Branch feat/test-hardening closed."
+next_action: "Phase 4 — branch feat/docs. README rewrite (≤300 lines), MkDocs Material site, CHANGELOG (extend for v0.2.0), CONTRIBUTING.md, SECURITY.md, pyproject.toml metadata for PyPI. Use 02_workflow.md §Phase 4. Final tag v0.2.0 = public release."
 
 repo_state:
   is_public: false
