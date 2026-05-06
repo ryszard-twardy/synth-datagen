@@ -43,6 +43,7 @@ test = [
     "hypothesis>=6.100.0",       # property-based tests (P3 of operator priority list)
     "ruff>=0.5.0",               # lint + format (P1, P8, P9)
     "bandit>=1.7.0",             # security scan in CI (P8)
+    "pre-commit>=3.5.0",         # local hook runner — see .pre-commit-config.yaml (P9)
 ]
 
 [project.scripts]

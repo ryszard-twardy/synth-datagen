@@ -1,0 +1,51 @@
+# Pre-commit hooks for the synth-datagen repo (Phase 3, P9).
+#
+# Install with:
+#     pip install pre-commit
+#     pre-commit install
+#
+# Run against the whole repo on demand:
+#     pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # ruff replaces black/isort/flake8. The official mirror tracks ruff
+  # versions and is the recommended pre-commit source.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # mypy runs against the source tree only — tests and scripts are
+  # excluded for parity with the CI matrix and to keep the hook fast.
+  # The hook is currently advisory (matches CI) by allowing failures via
+  # ``stages`` overrides; flip back to mandatory once the typing debt is
+  # paid down.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        files: ^src/
+        additional_dependencies:
+          - "types-PyYAML>=6.0.0"
+          - "pydantic>=2.0.0"
+        args: ["--ignore-missing-imports"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-r", "-ll"]
+        files: ^src/
