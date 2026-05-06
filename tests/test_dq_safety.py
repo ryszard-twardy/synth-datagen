@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.config import DataQuality, DType, Scenario
+from synth_datagen.config import DataQuality, DType, Scenario
 from tests.helpers import generate_exported_csvs
 
 

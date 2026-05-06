@@ -442,3 +442,69 @@ Limitation: tests **also** confirm in-memory determinism for retail and saas_v3 
 ---
 
 *End of audit report. Phase 1 read-only; no source files modified. Author: Claude Code (Opus 4.7). Next action: human reviewer reads this report, marks findings to address in Phase 2 in the addressed_in_phase2 list (master doc Section 11), and runs the Phase 2 prompt.*
+
+---
+
+## Phase 2 Resolution (2026-05-05)
+
+Branch: `feat/refactor-from-audit` (8 commits, all conventional, no co-author trailer).
+
+### Findings addressed
+
+| ID    | Title                                                | Commit    |
+|-------|------------------------------------------------------|-----------|
+| P0-1  | Add LICENSE + pyproject license                      | `48d59f6` |
+| P0-2  | Rename package to `synth-datagen`, version `0.2.0-dev` | `2f06c6d` |
+| P0-3  | Extract RNG factory; migrate all `default_rng` calls | `f35bd21` |
+| P1-1  | Migrate to src layout (`src/synth_datagen/`)         | `2f06c6d` |
+| P1-2  | Unified `synth-datagen` CLI with sub-commands        | `32e157c` |
+| P1-9  | Real mypy bugs (pipeline / monthly_sales / vocab)    | `b071575` |
+| P1-11 | Kupferkanne RNGs flow through factory (salt=0)       | `f35bd21` |
+| P2-4  | `distribute_counts` requires explicit rng            | `7fd1f74` |
+| P2-9  | Drop dead `SchemaType.NF3` / `MIXED`                 | `5435171` |
+
+**Total findings addressed: 9 of 9 [ADDRESS] (P0: 3/3, P1: 4/4, P2: 2/2).**
+29 [DEFER] findings remain for Phase 3 / Phase 4 per the original tagging.
+
+### Backward-compat verification
+
+`scripts/baseline_diff.py compare` against `v0.1.0-preaudit` capture: **empty**
+diff after every behavioural commit for retail / saas / fintech / logistics
+with seed=42 and shrunken row overrides (matching the audit's Step 7 setup).
+
+### Test & coverage delta
+
+| Metric                  | Before | After |
+|-------------------------|--------|-------|
+| Tests passing           | 127    | **140** |
+| Coverage `src/synth_datagen` | 91 %   | **91 %**  |
+| Conventional commits    | n/a    | 8 / 8 |
+
+New tests live in:
+- `tests/test_rng_factory.py` (6 tests — factory contract)
+- `tests/test_unified_cli.py` (5 tests — CLI surface + LICENSE)
+- `tests/test_regressions.py` (+2 tests — SchemaType, distribute_counts)
+
+### Deferred to Phase 3
+
+- P1-3 CHANGELOG / CONTRIBUTING / SECURITY (Phase 4 scope)
+- P1-4 CI workflow (Phase 3)
+- P1-5 pre-commit (Phase 2 stretch — deferred)
+- P1-6 pyproject metadata polish (Phase 4)
+- P1-7 / P1-8 AGENTS.md / MEMORY.md cleanup (Phase 4)
+- P1-10 ruff format pass (deferred — would churn CRLF / LF endings;
+  pair with pre-commit in Phase 3)
+- P1-12 slow-test trim (Phase 3)
+- All P2-* aside from P2-4 / P2-9 (Phase 3 / 4)
+- All P3-* (post-v0.2.0)
+
+### Outstanding risk
+
+- Default-scale fintech crashes on Feb-29 leap-day card expiry (latent bug
+  surfaced when capturing the first baseline). Out of Phase 2 scope; the
+  baseline-diff harness uses small row overrides to side-step it. Worth a
+  P3 ticket for Phase 3.
+- Whole-file CRLF / LF churn appeared on edited files because the editor
+  normalises line endings. Behaviour is unaffected (CSV bytes diff empty);
+  cosmetic-only. Phase 3's `ruff format` + `.gitattributes` will canonicalise.
+

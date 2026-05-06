@@ -3,9 +3,9 @@ from __future__ import annotations
 import run_demo
 from typer.testing import CliRunner
 
-from src import kupferkanne_rfm_cli
-from src import monthly_sales_cli
-from src.main import app as main_app
+from synth_datagen import kupferkanne_rfm_cli
+from synth_datagen import monthly_sales_cli
+from synth_datagen.main import app as main_app
 
 
 runner = CliRunner()
@@ -16,7 +16,7 @@ def _missing_faker() -> None:
 
 
 def test_main_generate_reports_missing_runtime_dependency(monkeypatch):
-    monkeypatch.setattr("src.main._load_pipeline", _missing_faker)
+    monkeypatch.setattr("synth_datagen.main._load_pipeline", _missing_faker)
 
     result = runner.invoke(main_app, ["generate"])
 

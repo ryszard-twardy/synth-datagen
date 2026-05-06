@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 import yaml
 
-from src.kupferkanne_rfm import build_month_plans
-from src.kupferkanne_rfm_config import KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS, load_kupferkanne_rfm_config
+from synth_datagen.kupferkanne_rfm import build_month_plans
+from synth_datagen.kupferkanne_rfm_config import KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS, load_kupferkanne_rfm_config
 
 
 def test_kupferkanne_v3_config_loads_full_catalog_and_sections() -> None:

@@ -64,7 +64,7 @@ def build_domain(company_name: str, domain_tlds: list[str], used_domains: set[st
     base = slugify(company_name)
     tld = str(rng.choice(domain_tlds or ["com"]))
     candidate = f"{base}.{tld}"
-    counter = defaultdict(int)
+    counter: defaultdict[str, int] = defaultdict(int)
     while candidate in used_domains:
         counter[base] += 1
         candidate = f"{base}-{counter[base]}.{tld}"

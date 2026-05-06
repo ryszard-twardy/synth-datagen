@@ -5,10 +5,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.saas_v3.config import OutputMode, load_config
-from src.saas_v3.engine import SaaSV3Engine
-from src.saas_v3.ids import pattern_for
-from src.saas_v3.validate import validate_generated_dataset
+from synth_datagen.saas_v3.config import OutputMode, load_config
+from synth_datagen.saas_v3.engine import SaaSV3Engine
+from synth_datagen.saas_v3.ids import pattern_for
+from synth_datagen.saas_v3.validate import validate_generated_dataset
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

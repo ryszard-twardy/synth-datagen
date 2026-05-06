@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.id_utils import numeric_suffix
-from src.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
+from synth_datagen.id_utils import numeric_suffix
+from synth_datagen.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
 
 
 TABLE_NAMES = [

@@ -14,14 +14,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.generators.fintech import FintechGenerator
-from src.generators.logistics import LogisticsGenerator
-from src.generators.retail import RetailGenerator
-from src.generators.saas import SaasGenerator
-from src.pipeline import run_pipeline
-from src.schema_builder import SchemaBuilder
-from src.utils import apply_data_quality, seed_everything
+from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.generators.fintech import FintechGenerator
+from synth_datagen.generators.logistics import LogisticsGenerator
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.generators.saas import SaasGenerator
+from synth_datagen.pipeline import run_pipeline
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.utils import apply_data_quality, seed_everything
 
 
 def _generate_scenario_dfs(
@@ -186,7 +186,7 @@ def test_cli_generate_is_safe_under_cp1252(tmp_path: Path) -> None:
     cmd = [
         sys.executable,
         "-m",
-        "src.main",
+        "synth_datagen.main",
         "generate",
         "--scenario",
         "retail",
@@ -366,3 +366,24 @@ def test_retail_dim_date_respects_row_override(tmp_path: Path) -> None:
     chunks = list(gen.generate_table(table, graph, fk_pools={}))
     df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
     assert len(df) == 10
+
+
+def test_distribute_counts_requires_rng() -> None:
+    """Audit P2-4: distribute_counts used to silently fall back to
+    np.random.default_rng(42) when called with rng=None — a reproducibility
+    foot-gun. Now it raises so callers cannot accidentally bypass the seed.
+    """
+    from synth_datagen.utils import distribute_counts
+
+    with pytest.raises(TypeError, match="rng is required"):
+        distribute_counts(total=10, bins=3, rng=None)
+
+
+def test_schema_type_only_exposes_star() -> None:
+    """SchemaType must only expose 'star'. Audit P2-9: 3nf and mixed are dead values
+    rejected at runtime by the GeneratorConfig validator — a foot-gun, since users
+    discover non-support only at construction time. Removing them makes the type
+    system the single source of truth.
+    """
+    assert set(SchemaType.__members__) == {"STAR"}
+    assert [m.value for m in SchemaType] == ["star"]

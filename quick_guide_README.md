@@ -27,7 +27,7 @@ synthetic-rfm-kupferkanne generate --config configs/kupferkanne_rfm_v3.yaml --ou
 Module form:
 
 ```bash
-python -m src.kupferkanne_rfm_cli generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
+python -m synth_datagen.kupferkanne_rfm_cli generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
 ```
 
 Important naming note for the repo default config:
@@ -73,7 +73,7 @@ synthetic-saas generate --config configs/saas_v3.audit_093.yaml --mode both --ou
 Module form:
 
 ```bash
-python -m src.saas_v3.cli generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
+python -m synth_datagen.saas_v3.cli generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
 ```
 
 ## SaaS Smoke
@@ -103,7 +103,7 @@ synthetic-saas validate --config configs/saas_v3.audit_093.yaml --mode dirty --r
 Classic v2 retail scenario:
 
 ```bash
-python -m src.main generate --scenario retail --output ./out/retail --seed 42
+python -m synth_datagen.main generate --scenario retail --output ./out/retail --seed 42
 ```
 
 ## Fintech

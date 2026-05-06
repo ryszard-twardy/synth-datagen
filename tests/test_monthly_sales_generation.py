@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.config import DataQuality
-from src.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
-from src.monthly_sales_profile import load_monthly_sales_profile
+from synth_datagen.config import DataQuality
+from synth_datagen.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
+from synth_datagen.monthly_sales_profile import load_monthly_sales_profile
 
 
 TABLE_NAMES = [

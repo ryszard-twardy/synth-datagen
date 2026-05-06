@@ -40,7 +40,7 @@ def generate(
     ),
     schema: SchemaType = typer.Option(
         SchemaType.STAR, "--schema",
-        help="Schema normalization. Only 'star' is currently supported; 3nf and mixed are rejected.",
+        help="Schema normalization. Only 'star' is currently supported.",
     ),
     dialect: Dialect = typer.Option(
         Dialect.POSTGRES, "--dialect", "-d",

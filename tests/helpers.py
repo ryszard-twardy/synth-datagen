@@ -5,14 +5,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.generators.fintech import FintechGenerator
-from src.generators.logistics import LogisticsGenerator
-from src.generators.retail import RetailGenerator
-from src.generators.saas import SaasGenerator
-from src.pipeline import run_pipeline
-from src.schema_builder import SchemaBuilder
-from src.utils import seed_everything
+from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.generators.fintech import FintechGenerator
+from synth_datagen.generators.logistics import LogisticsGenerator
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.generators.saas import SaasGenerator
+from synth_datagen.pipeline import run_pipeline
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.utils import seed_everything
 
 
 GENERATOR_BY_SCENARIO = {

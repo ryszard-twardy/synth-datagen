@@ -391,8 +391,10 @@ def load_sales_files_resume_state(path: Path | None) -> SalesFilesResumeState | 
             raise ValueError("resume_from must contain dimension CSVs or a combined snapshot")
         dimension_tables = {name: pd.read_csv(dimension_root / f"{name}.csv") for name in DIMENSION_TABLE_NAMES}
         existing_month_labels = _sales_file_labels(dimension_root)
-        order_ids: list[str] = []
-        item_ids: list[str] = []
+        # Audit P1-9: drop redundant annotations — mypy flagged the names
+        # as redefined when the if-branch above already bound them.
+        order_ids = []
+        item_ids = []
         for label in existing_month_labels:
             sales_path = dimension_root / month_label_to_sales_filename(label)
             sales_df = pd.read_csv(sales_path)
@@ -472,7 +474,7 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             if resume_tables is not None
             else None
         )
-    appended_tables = {
+    appended_tables: dict[str, list[pd.DataFrame]] = {
         "dim_date": [],
         "dim_promotions": [],
         "fact_orders": [],

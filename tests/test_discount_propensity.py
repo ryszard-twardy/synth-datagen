@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.discounts import (
+from synth_datagen.discounts import (
     DISCOUNT_CAP,
     DISCOUNT_PROPENSITY_BANDS,
     beta_parameters_for_propensity,

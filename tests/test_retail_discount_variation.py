@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.config import DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from src.generators.retail import RetailGenerator
-from src.schema_builder import SchemaBuilder
-from src.utils import seed_everything
+from synth_datagen.config import DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.generators.retail import RetailGenerator
+from synth_datagen.schema_builder import SchemaBuilder
+from synth_datagen.utils import seed_everything
 from tests.helpers import generate_scenario_dfs
 
 

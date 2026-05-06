@@ -17,11 +17,15 @@ from faker import Faker
 
 from .config import ColumnConfig, DataQualityConfig, SemanticType, TableConfig
 from .id_utils import is_identifier_column, next_ids
+from .rng import make_rng
 
 
 def seed_everything(seed: int) -> tuple[random.Random, np.random.Generator, Faker]:
     rng_stdlib = random.Random(seed)
-    rng_numpy = np.random.default_rng(seed)
+    # Audit P0-3: route master numpy RNG through the factory. salt=0
+    # ('master') is bit-identical to the legacy default_rng(seed), so
+    # every classic generator's byte stream is preserved.
+    rng_numpy = make_rng(seed, "master")
     faker = Faker()
     Faker.seed(seed)
     return rng_stdlib, rng_numpy, faker
@@ -105,12 +109,14 @@ def distribute_counts(
         raise ValueError("bins must be positive")
     if total < bins * minimum:
         raise ValueError("total is too small for requested minimum allocation")
+    if rng is None:
+        # Audit P2-4: fall-through to default_rng(42) silently shadowed the
+        # caller's seed. Refuse instead of inventing one.
+        raise TypeError("rng is required: pass an explicit np.random.Generator")
     result = np.full(bins, minimum, dtype=np.int64)
     remaining = total - result.sum()
     if remaining == 0:
         return result
-    if rng is None:
-        rng = np.random.default_rng(42)
     if weights is None:
         weights = np.ones(bins, dtype=float)
     probs = np.array(weights, dtype=float)

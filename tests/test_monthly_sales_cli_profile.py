@@ -4,7 +4,7 @@ import json
 
 from typer.testing import CliRunner
 
-from src import monthly_sales_cli
+from synth_datagen import monthly_sales_cli
 
 
 runner = CliRunner()
