@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -20,6 +21,25 @@ from synth_datagen.generators.saas import SaasGenerator
 from synth_datagen.pipeline import run_pipeline
 from synth_datagen.schema_builder import SchemaBuilder
 from synth_datagen.utils import seed_everything
+
+# CI's Ubuntu CliRunner emits Rich-formatted help with ANSI colour escapes
+# even when stdout isn't a TTY (Typer 0.16+ piped Rich's force_terminal
+# decision through to its own renderer). Local Windows CliRunner produces
+# clean text. Substring assertions like ``"--profile-config" in
+# result.output`` fail on CI because the flag is rendered as
+# ``\x1b[1;36m-\x1b[0m\x1b[1;36m-profile\x1b[0m\x1b[1;36m-config\x1b[0m``,
+# splitting the literal across colour-reset boundaries. Strip ANSI codes
+# before such assertions to make them environment-agnostic.
+_ANSI_RE = re.compile(r"\x1b\[[\d;]*m")
+
+
+def strip_ansi(s: str) -> str:
+    """Return ``s`` with ANSI SGR escape sequences removed.
+
+    No-op on output that has no ANSI codes (i.e. local Windows CliRunner),
+    so callers can wrap every assertion target unconditionally.
+    """
+    return _ANSI_RE.sub("", s)
 
 
 GENERATOR_BY_SCENARIO = {

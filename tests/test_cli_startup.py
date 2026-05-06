@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 from synth_datagen import kupferkanne_rfm_cli
 from synth_datagen import monthly_sales_cli
 from synth_datagen.main import app as main_app
+from tests.helpers import strip_ansi
 
 
 runner = CliRunner()
@@ -34,9 +35,10 @@ def test_monthly_generate_help_does_not_load_runtime(monkeypatch):
     result = runner.invoke(monthly_sales_cli.app, ["generate", "--help"])
 
     assert result.exit_code == 0
-    assert "--profile-config" in result.output
-    assert "--layout" in result.output
-    assert "discount-vari" in result.output
+    output = strip_ansi(result.output)
+    assert "--profile-config" in output
+    assert "--layout" in output
+    assert "discount-vari" in output
 
 
 def test_monthly_generate_rejects_invalid_layout_before_runtime_import(monkeypatch):
@@ -104,8 +106,9 @@ def test_monthly_generate_profile_rejects_conflicting_flags(monkeypatch, tmp_pat
     )
 
     assert result.exit_code == 2
-    assert "--profile-config" in result.output
-    assert "--month" in result.output
+    output = strip_ansi(result.output)
+    assert "--profile-config" in output
+    assert "--month" in output
 
 
 def test_run_demo_reports_missing_runtime_dependency(monkeypatch, capsys):
@@ -127,8 +130,9 @@ def test_kupferkanne_help_does_not_load_runtime(monkeypatch):
     result = runner.invoke(kupferkanne_rfm_cli.app, ["generate", "--help"])
 
     assert result.exit_code == 0
-    assert "--config" in result.output
-    assert "discount-varia" in result.output
+    output = strip_ansi(result.output)
+    assert "--config" in output
+    assert "discount-varia" in output
 
 
 def test_kupferkanne_reports_missing_runtime_dependency(monkeypatch):
