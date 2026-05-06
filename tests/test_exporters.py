@@ -9,7 +9,14 @@ import sqlite3
 import pandas as pd
 import pytest
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.exporters.csv_exporter import CsvExporter
 from synth_datagen.exporters.sql_exporter import SqlExporter
 from synth_datagen.exporters.sqlite_exporter import SqliteExporter
@@ -18,9 +25,14 @@ from synth_datagen.schema_builder import SchemaBuilder
 from synth_datagen.utils import seed_everything
 
 _SMALL_OVERRIDES = {
-    "dim_customers": 50, "dim_products": 30, "dim_stores": 10,
-    "dim_date": 365, "dim_promotions": 15, "fact_orders": 100,
-    "fact_order_items": 200, "fact_payments": 100,
+    "dim_customers": 50,
+    "dim_products": 30,
+    "dim_stores": 10,
+    "dim_date": 365,
+    "dim_promotions": 15,
+    "fact_orders": 100,
+    "fact_order_items": 200,
+    "fact_payments": 100,
     "bridge_order_promotions": 60,
 }
 
@@ -41,7 +53,7 @@ def export_setup(tmp_path_factory):
         export_sqlite=True,
     )
     _, rng, faker = seed_everything(42)
-    gen  = RetailGenerator(config, rng, faker)
+    gen = RetailGenerator(config, rng, faker)
     raw_tables, raw_relations = gen.get_raw_schema()
     graph = SchemaBuilder(config).build(raw_tables, raw_relations)
 
@@ -49,7 +61,7 @@ def export_setup(tmp_path_factory):
     dfs: dict[str, pd.DataFrame] = {}
     for table in graph.topological_order():
         chunks = list(gen.generate_table(table, graph, fk_pools))
-        df     = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
+        df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
         dfs[table.name] = df
         if table.pk_column in df.columns:
             fk_pools[f"{table.name}.{table.pk_column}"] = df[table.pk_column].to_numpy()
@@ -74,7 +86,6 @@ def export_setup(tmp_path_factory):
 
 
 class TestCsvExporter:
-
     def test_csv_files_created(self, export_setup):
         graph, dfs, out_dir = export_setup
         for table in graph.topological_order():
@@ -96,11 +107,12 @@ class TestCsvExporter:
         for table in graph.topological_order():
             csv_path = out_dir / f"{table.name}.csv"
             header = pd.read_csv(csv_path, nrows=0).columns.tolist()
-            assert table.pk_column in header, f"{table.name}: PK '{table.pk_column}' missing from CSV"
+            assert table.pk_column in header, (
+                f"{table.name}: PK '{table.pk_column}' missing from CSV"
+            )
 
 
 class TestSqlExporter:
-
     def test_schema_sql_created(self, export_setup):
         _, _, out_dir = export_setup
         sql_path = out_dir / "schema.sql"
@@ -110,7 +122,7 @@ class TestSqlExporter:
         graph, _, out_dir = export_setup
         content = (out_dir / "schema.sql").read_text()
         for table in graph.topological_order():
-            assert 'CREATE TABLE' in content
+            assert "CREATE TABLE" in content
             assert table.name in content, f"schema.sql missing table {table.name}"
 
     def test_schema_sql_contains_primary_key(self, export_setup):
@@ -125,7 +137,6 @@ class TestSqlExporter:
 
 
 class TestSqliteExporter:
-
     def test_sqlite_db_created(self, export_setup):
         _, _, out_dir = export_setup
         db_path = out_dir / "retail.db"

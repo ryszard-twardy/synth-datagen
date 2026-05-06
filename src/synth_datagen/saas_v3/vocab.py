@@ -11,13 +11,37 @@ import numpy as np
 
 
 COMPANY_ADJECTIVES = [
-    "Northstar", "BluePeak", "ClearPath", "Prime", "Signal", "Nimbus", "Trusted",
-    "Apex", "Vector", "Summit", "Bright", "Adaptive", "Cobalt", "Granite",
+    "Northstar",
+    "BluePeak",
+    "ClearPath",
+    "Prime",
+    "Signal",
+    "Nimbus",
+    "Trusted",
+    "Apex",
+    "Vector",
+    "Summit",
+    "Bright",
+    "Adaptive",
+    "Cobalt",
+    "Granite",
 ]
 
 COMPANY_NOUNS = [
-    "Cloud", "Systems", "Analytics", "Works", "Platform", "Labs", "Metrics",
-    "Solutions", "Logic", "Insights", "Stack", "Collective", "Flow", "Hub",
+    "Cloud",
+    "Systems",
+    "Analytics",
+    "Works",
+    "Platform",
+    "Labs",
+    "Metrics",
+    "Solutions",
+    "Logic",
+    "Insights",
+    "Stack",
+    "Collective",
+    "Flow",
+    "Hub",
 ]
 
 INDUSTRY_HINTS: dict[str, list[str]] = {
@@ -31,7 +55,13 @@ INDUSTRY_HINTS: dict[str, list[str]] = {
 }
 
 DEFAULT_TICKET_CATEGORIES = [
-    "onboarding", "billing", "bug", "integration", "permissions", "reporting", "feature_request",
+    "onboarding",
+    "billing",
+    "bug",
+    "integration",
+    "permissions",
+    "reporting",
+    "feature_request",
 ]
 
 DEFAULT_CANCELLATION_REASONS = [
@@ -51,16 +81,25 @@ def slugify(value: str) -> str:
     return slug or "company"
 
 
-def build_company_name(industry_name: str, company_suffixes: list[str], rng: np.random.Generator) -> str:
+def build_company_name(
+    industry_name: str, company_suffixes: list[str], rng: np.random.Generator
+) -> str:
     adjective = str(rng.choice(COMPANY_ADJECTIVES))
     noun = str(rng.choice(COMPANY_NOUNS))
-    hints = INDUSTRY_HINTS.get(industry_name.lower(), [industry_name.split()[0].title()])
+    hints = INDUSTRY_HINTS.get(
+        industry_name.lower(), [industry_name.split()[0].title()]
+    )
     hint = str(rng.choice(hints))
     suffix = str(rng.choice(company_suffixes or ["Ltd"]))
     return f"{adjective} {hint} {noun} {suffix}"
 
 
-def build_domain(company_name: str, domain_tlds: list[str], used_domains: set[str], rng: np.random.Generator) -> str:
+def build_domain(
+    company_name: str,
+    domain_tlds: list[str],
+    used_domains: set[str],
+    rng: np.random.Generator,
+) -> str:
     base = slugify(company_name)
     tld = str(rng.choice(domain_tlds or ["com"]))
     candidate = f"{base}.{tld}"

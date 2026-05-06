@@ -44,11 +44,11 @@ class TestPrimaryKeys:
     @staticmethod
     def _assert_pk_unique(table_name: str, dfs: dict, graph) -> None:
         table = graph.get_table(table_name)
-        df    = dfs[table_name]
-        pk    = table.pk_column
+        df = dfs[table_name]
+        pk = table.pk_column
         assert pk in df.columns, f"PK column '{pk}' missing from {table_name}"
-        assert df[pk].notna().all(),       f"{table_name}.{pk} has NULL values"
-        assert df[pk].is_unique,           f"{table_name}.{pk} has duplicate values"
+        assert df[pk].notna().all(), f"{table_name}.{pk} has NULL values"
+        assert df[pk].is_unique, f"{table_name}.{pk} has duplicate values"
 
 
 # ---------------------------------------------------------------------------
@@ -60,30 +60,58 @@ class TestForeignKeys:
     """Every FK value must reference an existing PK in the parent table."""
 
     def test_fk_orders_customer(self, generated_dfs):
-        self._assert_fk("fact_orders", "customer_id", "dim_customers", "customer_id", generated_dfs)
+        self._assert_fk(
+            "fact_orders", "customer_id", "dim_customers", "customer_id", generated_dfs
+        )
 
     def test_fk_orders_store(self, generated_dfs):
-        self._assert_fk("fact_orders", "store_id", "dim_stores", "store_id", generated_dfs)
+        self._assert_fk(
+            "fact_orders", "store_id", "dim_stores", "store_id", generated_dfs
+        )
 
     def test_fk_order_items_order(self, generated_dfs):
-        self._assert_fk("fact_order_items", "order_id", "fact_orders", "order_id", generated_dfs)
+        self._assert_fk(
+            "fact_order_items", "order_id", "fact_orders", "order_id", generated_dfs
+        )
 
     def test_fk_order_items_product(self, generated_dfs):
-        self._assert_fk("fact_order_items", "product_id", "dim_products", "product_id", generated_dfs)
+        self._assert_fk(
+            "fact_order_items",
+            "product_id",
+            "dim_products",
+            "product_id",
+            generated_dfs,
+        )
 
     def test_fk_payments_order(self, generated_dfs):
-        self._assert_fk("fact_payments", "order_id", "fact_orders", "order_id", generated_dfs)
+        self._assert_fk(
+            "fact_payments", "order_id", "fact_orders", "order_id", generated_dfs
+        )
 
     def test_fk_bridge_order(self, generated_dfs):
-        self._assert_fk("bridge_order_promotions", "order_id", "fact_orders", "order_id", generated_dfs)
+        self._assert_fk(
+            "bridge_order_promotions",
+            "order_id",
+            "fact_orders",
+            "order_id",
+            generated_dfs,
+        )
 
     def test_fk_bridge_promo(self, generated_dfs):
-        self._assert_fk("bridge_order_promotions", "promo_id", "dim_promotions", "promo_id", generated_dfs)
+        self._assert_fk(
+            "bridge_order_promotions",
+            "promo_id",
+            "dim_promotions",
+            "promo_id",
+            generated_dfs,
+        )
 
     @staticmethod
     def _assert_fk(
-        src_table: str, src_col: str,
-        tgt_table: str, tgt_col: str,
+        src_table: str,
+        src_col: str,
+        tgt_table: str,
+        tgt_col: str,
         dfs: dict,
     ) -> None:
         src_df = dfs[src_table]
@@ -93,8 +121,8 @@ class TestForeignKeys:
         assert tgt_col in tgt_df.columns, f"{tgt_table}.{tgt_col} missing"
 
         valid_pks = set(tgt_df[tgt_col].dropna().tolist())
-        fk_vals   = src_df[src_col].dropna()
-        orphans   = fk_vals[~fk_vals.isin(valid_pks)]
+        fk_vals = src_df[src_col].dropna()
+        orphans = fk_vals[~fk_vals.isin(valid_pks)]
         assert len(orphans) == 0, (
             f"Referential integrity violation: {src_table}.{src_col} → {tgt_table}.{tgt_col}: "
             f"{len(orphans)} orphaned value(s): {orphans.head(5).tolist()}"
@@ -113,7 +141,9 @@ class TestAmountSanity:
         df = generated_dfs["fact_order_items"]
         for col in ["qty", "unit_price", "line_total"]:
             neg = df[col] < 0
-            assert not neg.any(), f"fact_order_items.{col} has {neg.sum()} negative values"
+            assert not neg.any(), (
+                f"fact_order_items.{col} has {neg.sum()} negative values"
+            )
 
     def test_fact_orders_positive_totals(self, generated_dfs):
         df = generated_dfs["fact_orders"]
@@ -143,12 +173,18 @@ class TestDateOrdering:
     def test_promotions_valid_to_gte_valid_from(self, generated_dfs):
         df = generated_dfs["dim_promotions"]
         bad = pd.to_datetime(df["valid_to"]) < pd.to_datetime(df["valid_from"])
-        assert not bad.any(), f"dim_promotions: {bad.sum()} rows with valid_to < valid_from"
+        assert not bad.any(), (
+            f"dim_promotions: {bad.sum()} rows with valid_to < valid_from"
+        )
 
     def test_orders_delivered_gte_shipped(self, generated_dfs):
         df = generated_dfs["fact_orders"].copy()
         mask = df["shipped_at"].notna() & df["delivered_at"].notna()
         if mask.sum() == 0:
             pytest.skip("No rows with both shipped_at and delivered_at")
-        bad = pd.to_datetime(df.loc[mask, "delivered_at"]) < pd.to_datetime(df.loc[mask, "shipped_at"])
-        assert not bad.any(), f"fact_orders: {bad.sum()} rows with delivered_at < shipped_at"
+        bad = pd.to_datetime(df.loc[mask, "delivered_at"]) < pd.to_datetime(
+            df.loc[mask, "shipped_at"]
+        )
+        assert not bad.any(), (
+            f"fact_orders: {bad.sum()} rows with delivered_at < shipped_at"
+        )

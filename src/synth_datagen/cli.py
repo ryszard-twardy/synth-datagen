@@ -44,33 +44,49 @@ def _scenario_command(scenario: Scenario):
 
     def command(
         rows: Optional[str] = typer.Option(
-            None, "--rows", "-r",
+            None,
+            "--rows",
+            "-r",
             help='Row overrides per table, e.g. "fact_orders=200000,dim_customers=50000"',
         ),
         dialect: str = typer.Option(
-            "postgres", "--dialect", "-d",
+            "postgres",
+            "--dialect",
+            "-d",
             help="SQL dialect: postgres | sqlite | mysql | sqlserver",
         ),
         output: Path = typer.Option(
-            Path("./out"), "--output", "-o",
+            Path("./out"),
+            "--output",
+            "-o",
             help="Output directory for generated files.",
         ),
         seed: int = typer.Option(
-            42, "--seed",
+            42,
+            "--seed",
             help="Random seed for reproducibility.",
         ),
         discount_variation: bool = typer.Option(
-            True, "--discount-variation/--no-discount-variation",
+            True,
+            "--discount-variation/--no-discount-variation",
             help="Enable customer-segment-aware discount variation for retail workflows.",
         ),
         data_quality: DataQuality = typer.Option(
-            DataQuality.NONE, "--data-quality", "--dq",
+            DataQuality.NONE,
+            "--data-quality",
+            "--dq",
             help="Data quality issues to inject: none | light | medium | heavy",
         ),
-        cols_min: int = typer.Option(8, "--cols-min", help="Minimum columns per auto-table."),
-        cols_max: int = typer.Option(25, "--cols-max", help="Maximum columns per auto-table."),
+        cols_min: int = typer.Option(
+            8, "--cols-min", help="Minimum columns per auto-table."
+        ),
+        cols_max: int = typer.Option(
+            25, "--cols-max", help="Maximum columns per auto-table."
+        ),
         chunk_size: int = typer.Option(
-            50_000, "--chunk-size", help="Rows per generation chunk (memory control).",
+            50_000,
+            "--chunk-size",
+            help="Rows per generation chunk (memory control).",
         ),
         export_sqlite: bool = typer.Option(False, "--export-sqlite/--no-sqlite"),
         export_parquet: bool = typer.Option(False, "--export-parquet/--no-parquet"),

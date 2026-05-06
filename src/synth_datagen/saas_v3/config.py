@@ -235,27 +235,37 @@ class SaaSV3Config(StrictModel):
             raise ValueError("Country names must be unique")
         if len({industry.name for industry in self.industries}) != len(self.industries):
             raise ValueError("Industry names must be unique")
-        if len({channel.name for channel in self.acquisition_channels}) != len(self.acquisition_channels):
+        if len({channel.name for channel in self.acquisition_channels}) != len(
+            self.acquisition_channels
+        ):
             raise ValueError("Acquisition channel names must be unique")
         if len({role.name for role in self.role_mix}) != len(self.role_mix):
             raise ValueError("Role names must be unique")
-        if len({event.name for event in self.event_taxonomy}) != len(self.event_taxonomy):
+        if len({event.name for event in self.event_taxonomy}) != len(
+            self.event_taxonomy
+        ):
             raise ValueError("Event taxonomy names must be unique")
         plan_names = {plan.name for plan in self.plans}
         for segment in self.company_sizes:
             unknown = set(segment.plan_bias) - plan_names
             if unknown:
-                raise ValueError(f"Unknown plan names in company_sizes.plan_bias: {sorted(unknown)}")
+                raise ValueError(
+                    f"Unknown plan names in company_sizes.plan_bias: {sorted(unknown)}"
+                )
         for industry in self.industries:
             unknown = set(industry.plan_bias) - plan_names
             if unknown:
-                raise ValueError(f"Unknown plan names in industries.plan_bias: {sorted(unknown)}")
+                raise ValueError(
+                    f"Unknown plan names in industries.plan_bias: {sorted(unknown)}"
+                )
         for event in self.event_taxonomy:
             if event.min_plan and event.min_plan not in plan_names:
                 raise ValueError(f"Unknown event_taxonomy.min_plan '{event.min_plan}'")
         supported_periods = {"monthly", "quarterly", "annual"}
         if set(self.billing.billing_period_weights) - supported_periods:
-            raise ValueError("billing_period_weights only supports monthly, quarterly, and annual")
+            raise ValueError(
+                "billing_period_weights only supports monthly, quarterly, and annual"
+            )
         if self.row_targets.subscriptions < 1:
             raise ValueError("At least one subscription row is required")
         return self
@@ -273,7 +283,9 @@ class SaaSV3Config(StrictModel):
         return self.row_targets.as_dict()
 
     def config_hash(self) -> str:
-        payload = json.dumps(self.model_dump(mode="json"), sort_keys=True).encode("utf-8")
+        payload = json.dumps(self.model_dump(mode="json"), sort_keys=True).encode(
+            "utf-8"
+        )
         return hashlib.sha256(payload).hexdigest()[:16]
 
 

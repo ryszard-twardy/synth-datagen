@@ -47,7 +47,9 @@ def _sanitise_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
                 # Convert date objects to datetime (Arrow date32 via Timestamp)
                 chunk[col] = pd.to_datetime(
                     series.apply(
-                        lambda d: pd.Timestamp(d) if isinstance(d, datetime.date) else pd.NaT
+                        lambda d: (
+                            pd.Timestamp(d) if isinstance(d, datetime.date) else pd.NaT
+                        )
                     ),
                     errors="coerce",
                 )

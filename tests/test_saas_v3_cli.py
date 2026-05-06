@@ -14,7 +14,9 @@ SMOKE_CONFIG = REPO_ROOT / "configs" / "saas_v3.smoke.yaml"
 
 def test_saas_v3_cli_smoke_test_writes_outputs(tmp_path) -> None:
     output_dir = tmp_path / "smoke_run"
-    result = runner.invoke(app, ["smoke-test", "--config", str(SMOKE_CONFIG), "--output", str(output_dir)])
+    result = runner.invoke(
+        app, ["smoke-test", "--config", str(SMOKE_CONFIG), "--output", str(output_dir)]
+    )
 
     assert result.exit_code == 0, result.output
     assert (output_dir / "metadata" / "effective_config.yaml").exists()

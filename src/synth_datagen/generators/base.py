@@ -22,7 +22,9 @@ class BaseScenarioGenerator(ABC):
       - generate_table(...)                        [chunked data production]
     """
 
-    def __init__(self, config: GeneratorConfig, rng: np.random.Generator, faker: Faker) -> None:
+    def __init__(
+        self, config: GeneratorConfig, rng: np.random.Generator, faker: Faker
+    ) -> None:
         self.config = config
         self.rng = rng
         self.faker = faker

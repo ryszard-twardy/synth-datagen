@@ -31,11 +31,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
+# Single development/test extra. Renamed from `dev` to `test` in Phase 3 (P1-10)
+# so the install string `pip install -e ".[test]"` matches the canonical Phase 3
+# spec and the CI matrix in .github/workflows/ci.yml.
+test = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
     "mypy>=1.8.0",
     "types-PyYAML>=6.0.0",
+    # Phase 3 additions
+    "hypothesis>=6.100.0",       # property-based tests (P3 of operator priority list)
+    "ruff>=0.5.0",               # lint + format (P1, P8, P9)
+    "bandit>=1.7.0",             # security scan in CI (P8)
 ]
 
 [project.scripts]

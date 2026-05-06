@@ -53,7 +53,9 @@ class KupferkanneOutputConfig(StrictModel):
     manifest_filename: str = "manifest.json"
     dim_customers_filename: str = "dim_customers.csv"
     dim_products_filename: str = "dim_products.csv"
-    dim_customers_extra_columns: list[str] = Field(default_factory=lambda: KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS.copy())
+    dim_customers_extra_columns: list[str] = Field(
+        default_factory=lambda: KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS.copy()
+    )
 
     @field_validator("default_dir", mode="before")
     @classmethod
@@ -71,12 +73,25 @@ class KupferkanneOutputConfig(StrictModel):
 
     @model_validator(mode="after")
     def validate_dim_customer_columns(self) -> "KupferkanneOutputConfig":
-        duplicates = sorted({column for column in self.dim_customers_extra_columns if self.dim_customers_extra_columns.count(column) > 1})
+        duplicates = sorted(
+            {
+                column
+                for column in self.dim_customers_extra_columns
+                if self.dim_customers_extra_columns.count(column) > 1
+            }
+        )
         if duplicates:
-            raise ValueError(f"output.dim_customers_extra_columns contains duplicates: {duplicates}")
-        unknown = sorted(set(self.dim_customers_extra_columns) - set(KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS))
+            raise ValueError(
+                f"output.dim_customers_extra_columns contains duplicates: {duplicates}"
+            )
+        unknown = sorted(
+            set(self.dim_customers_extra_columns)
+            - set(KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS)
+        )
         if unknown:
-            raise ValueError(f"output.dim_customers_extra_columns contains unknown columns: {unknown}")
+            raise ValueError(
+                f"output.dim_customers_extra_columns contains unknown columns: {unknown}"
+            )
         return self
 
 
@@ -104,17 +119,25 @@ class KupferkanneCatalogConfig(StrictModel):
     @model_validator(mode="after")
     def validate_catalog(self) -> "KupferkanneCatalogConfig":
         if len(self.products) != 60:
-            raise ValueError(f"catalog.products must contain exactly 60 products, found {len(self.products)}")
+            raise ValueError(
+                f"catalog.products must contain exactly 60 products, found {len(self.products)}"
+            )
         total_share = sum(self.category_order_shares.values())
         if abs(total_share - 1.0) > 1e-6:
-            raise ValueError(f"catalog.category_order_shares must sum to 1.0, got {total_share:.6f}")
+            raise ValueError(
+                f"catalog.category_order_shares must sum to 1.0, got {total_share:.6f}"
+            )
         product_ids = [product.product_id for product in self.products]
         if len(product_ids) != len(set(product_ids)):
             raise ValueError("catalog.products must use unique product_id values")
         product_categories = {product.category for product in self.products}
-        unknown_categories = sorted(set(self.category_order_shares) - product_categories)
+        unknown_categories = sorted(
+            set(self.category_order_shares) - product_categories
+        )
         if unknown_categories:
-            raise ValueError(f"catalog.category_order_shares contains unknown categories: {unknown_categories}")
+            raise ValueError(
+                f"catalog.category_order_shares contains unknown categories: {unknown_categories}"
+            )
         return self
 
 
@@ -132,7 +155,9 @@ class KupferkanneCustomersConfig(StrictModel):
     @model_validator(mode="after")
     def validate_target(self) -> "KupferkanneCustomersConfig":
         if self.prelaunch_seed_customers >= self.target_total_customers:
-            raise ValueError("customers.prelaunch_seed_customers must be smaller than target_total_customers")
+            raise ValueError(
+                "customers.prelaunch_seed_customers must be smaller than target_total_customers"
+            )
         return self
 
 
@@ -152,16 +177,28 @@ class KupferkanneArchetypeConfig(StrictModel):
 
     @model_validator(mode="after")
     def validate_churn_window(self) -> "KupferkanneArchetypeConfig":
-        if self.churn_after_months_min is None and self.churn_after_months_max is not None:
-            raise ValueError(f"{self.name}: churn_after_months_min is required when churn_after_months_max is set")
-        if self.churn_after_months_min is not None and self.churn_after_months_max is None:
-            raise ValueError(f"{self.name}: churn_after_months_max is required when churn_after_months_min is set")
+        if (
+            self.churn_after_months_min is None
+            and self.churn_after_months_max is not None
+        ):
+            raise ValueError(
+                f"{self.name}: churn_after_months_min is required when churn_after_months_max is set"
+            )
+        if (
+            self.churn_after_months_min is not None
+            and self.churn_after_months_max is None
+        ):
+            raise ValueError(
+                f"{self.name}: churn_after_months_max is required when churn_after_months_min is set"
+            )
         if (
             self.churn_after_months_min is not None
             and self.churn_after_months_max is not None
             and self.churn_after_months_min > self.churn_after_months_max
         ):
-            raise ValueError(f"{self.name}: churn_after_months_min must be <= churn_after_months_max")
+            raise ValueError(
+                f"{self.name}: churn_after_months_min must be <= churn_after_months_max"
+            )
         return self
 
 
@@ -192,15 +229,23 @@ class KupferkanneSeasonalityConfig(StrictModel):
         normalized: dict[str, dict[int, float]] = {}
         for tag, months in value.items():
             if not isinstance(months, dict):
-                raise TypeError(f"seasonality.product_tag_multipliers.{tag} must be a mapping")
-            normalized[str(tag)] = {int(month): float(multiplier) for month, multiplier in months.items()}
+                raise TypeError(
+                    f"seasonality.product_tag_multipliers.{tag} must be a mapping"
+                )
+            normalized[str(tag)] = {
+                int(month): float(multiplier) for month, multiplier in months.items()
+            }
         return normalized
 
     @model_validator(mode="after")
     def validate_months(self) -> "KupferkanneSeasonalityConfig":
-        missing = [month for month in range(1, 13) if month not in self.monthly_order_baseline]
+        missing = [
+            month for month in range(1, 13) if month not in self.monthly_order_baseline
+        ]
         if missing:
-            raise ValueError(f"seasonality.monthly_order_baseline is missing months: {missing}")
+            raise ValueError(
+                f"seasonality.monthly_order_baseline is missing months: {missing}"
+            )
         return self
 
 
@@ -254,7 +299,9 @@ class KupferkanneBasketAffinityRuleConfig(StrictModel):
 class KupferkanneBasketingConfig(StrictModel):
     max_distinct_products_per_order: int = Field(default=5, ge=1)
     initial_size_distribution: dict[int, float]
-    affinity_rules: dict[str, KupferkanneBasketAffinityRuleConfig] = Field(default_factory=dict)
+    affinity_rules: dict[str, KupferkanneBasketAffinityRuleConfig] = Field(
+        default_factory=dict
+    )
 
     @field_validator("initial_size_distribution", mode="before")
     @classmethod
@@ -267,10 +314,18 @@ class KupferkanneBasketingConfig(StrictModel):
     def validate_distribution(self) -> "KupferkanneBasketingConfig":
         total = sum(self.initial_size_distribution.values())
         if abs(total - 1.0) > 1e-6:
-            raise ValueError(f"basketing.initial_size_distribution must sum to 1.0, got {total:.6f}")
-        invalid_counts = [count for count in self.initial_size_distribution if count < 1 or count > self.max_distinct_products_per_order]
+            raise ValueError(
+                f"basketing.initial_size_distribution must sum to 1.0, got {total:.6f}"
+            )
+        invalid_counts = [
+            count
+            for count in self.initial_size_distribution
+            if count < 1 or count > self.max_distinct_products_per_order
+        ]
         if invalid_counts:
-            raise ValueError(f"basketing.initial_size_distribution contains invalid counts: {sorted(invalid_counts)}")
+            raise ValueError(
+                f"basketing.initial_size_distribution contains invalid counts: {sorted(invalid_counts)}"
+            )
         return self
 
 
@@ -327,13 +382,23 @@ class KupferkanneValidationTargetsConfig(StrictModel):
     @model_validator(mode="after")
     def validate_ranges(self) -> "KupferkanneValidationTargetsConfig":
         if self.unique_orders_min > self.unique_orders_max:
-            raise ValueError("validation_targets.unique_orders_min must be <= unique_orders_max")
+            raise ValueError(
+                "validation_targets.unique_orders_min must be <= unique_orders_max"
+            )
         if self.total_rows_min > self.total_rows_max:
-            raise ValueError("validation_targets.total_rows_min must be <= total_rows_max")
+            raise ValueError(
+                "validation_targets.total_rows_min must be <= total_rows_max"
+            )
         if self.avg_lines_per_order_min > self.avg_lines_per_order_max:
-            raise ValueError("validation_targets.avg_lines_per_order_min must be <= avg_lines_per_order_max")
-        if not (self.unique_orders_min <= self.target_total_orders <= self.unique_orders_max):
-            raise ValueError("validation_targets.target_total_orders must sit inside unique_orders_min/max")
+            raise ValueError(
+                "validation_targets.avg_lines_per_order_min must be <= avg_lines_per_order_max"
+            )
+        if not (
+            self.unique_orders_min <= self.target_total_orders <= self.unique_orders_max
+        ):
+            raise ValueError(
+                "validation_targets.target_total_orders must sit inside unique_orders_min/max"
+            )
         return self
 
 
@@ -356,21 +421,33 @@ class KupferkanneRfmConfig(StrictModel):
     def validate_weights(self) -> "KupferkanneRfmConfig":
         archetype_share = sum(item.share for item in self.archetypes)
         if abs(archetype_share - 1.0) > 1e-6:
-            raise ValueError(f"archetypes shares must sum to 1.0, got {archetype_share:.6f}")
+            raise ValueError(
+                f"archetypes shares must sum to 1.0, got {archetype_share:.6f}"
+            )
         country_share = sum(item.share for item in self.countries)
         if abs(country_share - 1.0) > 1e-6:
-            raise ValueError(f"countries shares must sum to 1.0, got {country_share:.6f}")
+            raise ValueError(
+                f"countries shares must sum to 1.0, got {country_share:.6f}"
+            )
         discount_share = sum(item.share for item in self.discounts.scenarios)
         if abs(discount_share - 1.0) > 1e-6:
-            raise ValueError(f"discount scenario shares must sum to 1.0, got {discount_share:.6f}")
+            raise ValueError(
+                f"discount scenario shares must sum to 1.0, got {discount_share:.6f}"
+            )
         category_names = {product.category for product in self.catalog.products}
         for archetype in self.archetypes:
             unknown = sorted(set(archetype.category_affinity) - category_names)
             if unknown:
-                raise ValueError(f"{archetype.name}: unknown category_affinity keys: {unknown}")
-        unknown_affinity_sources = sorted(set(self.basketing.affinity_rules) - category_names)
+                raise ValueError(
+                    f"{archetype.name}: unknown category_affinity keys: {unknown}"
+                )
+        unknown_affinity_sources = sorted(
+            set(self.basketing.affinity_rules) - category_names
+        )
         if unknown_affinity_sources:
-            raise ValueError(f"basketing.affinity_rules contains unknown source categories: {unknown_affinity_sources}")
+            raise ValueError(
+                f"basketing.affinity_rules contains unknown source categories: {unknown_affinity_sources}"
+            )
         unknown_affinity_targets = sorted(
             {
                 category_name
@@ -380,7 +457,9 @@ class KupferkanneRfmConfig(StrictModel):
             }
         )
         if unknown_affinity_targets:
-            raise ValueError(f"basketing.affinity_rules contains unknown target categories: {unknown_affinity_targets}")
+            raise ValueError(
+                f"basketing.affinity_rules contains unknown target categories: {unknown_affinity_targets}"
+            )
         known_products = {product.product_id for product in self.catalog.products}
         unknown_product_ids = sorted(
             {
@@ -391,7 +470,9 @@ class KupferkanneRfmConfig(StrictModel):
             }
         )
         if unknown_product_ids:
-            raise ValueError(f"basketing.affinity_rules contains unknown product_ids: {unknown_product_ids}")
+            raise ValueError(
+                f"basketing.affinity_rules contains unknown product_ids: {unknown_product_ids}"
+            )
         return self
 
     def dump(self) -> dict[str, object]:
@@ -405,5 +486,10 @@ def load_kupferkanne_rfm_config(path: Path | str) -> KupferkanneRfmConfig:
     return KupferkanneRfmConfig.model_validate(data)
 
 
-def write_effective_kupferkanne_config(config: KupferkanneRfmConfig, path: Path) -> None:
-    path.write_text(yaml.safe_dump(config.dump(), sort_keys=False, allow_unicode=False), encoding="utf-8")
+def write_effective_kupferkanne_config(
+    config: KupferkanneRfmConfig, path: Path
+) -> None:
+    path.write_text(
+        yaml.safe_dump(config.dump(), sort_keys=False, allow_unicode=False),
+        encoding="utf-8",
+    )

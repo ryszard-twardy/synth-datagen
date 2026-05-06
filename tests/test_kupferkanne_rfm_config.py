@@ -7,7 +7,10 @@ import pytest
 import yaml
 
 from synth_datagen.kupferkanne_rfm import build_month_plans
-from synth_datagen.kupferkanne_rfm_config import KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS, load_kupferkanne_rfm_config
+from synth_datagen.kupferkanne_rfm_config import (
+    KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS,
+    load_kupferkanne_rfm_config,
+)
 
 
 def test_kupferkanne_v3_config_loads_full_catalog_and_sections() -> None:
@@ -23,7 +26,10 @@ def test_kupferkanne_v3_config_loads_full_catalog_and_sections() -> None:
     assert str(config.output.default_dir).replace("\\", "/") == "output"
     assert config.output.dim_customers_filename == "dim_customers.csv"
     assert config.output.dim_products_filename == "dim_products.csv"
-    assert config.output.dim_customers_extra_columns == KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS
+    assert (
+        config.output.dim_customers_extra_columns
+        == KUPFERKANNE_DIM_CUSTOMERS_EXTRA_COLUMNS
+    )
     assert abs(sum(item.share for item in config.countries) - 1.0) < 1e-9
     country_lookup = {item.code: item.share for item in config.countries}
     assert country_lookup["DE"] > country_lookup["AT"] > country_lookup["CH"]
@@ -39,17 +45,28 @@ def test_kupferkanne_v3_month_plans_cover_39_months_and_target_orders() -> None:
     assert len(plans) == 39
     assert plans[0].label == "2023-01"
     assert plans[-1].label == "2026-03"
-    assert sum(plan.order_target for plan in plans) == config.validation_targets.target_total_orders
+    assert (
+        sum(plan.order_target for plan in plans)
+        == config.validation_targets.target_total_orders
+    )
 
 
-def test_kupferkanne_v3_config_allows_subset_and_empty_customer_extra_columns(tmp_path) -> None:
-    base = yaml.safe_load(Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8"))
+def test_kupferkanne_v3_config_allows_subset_and_empty_customer_extra_columns(
+    tmp_path,
+) -> None:
+    base = yaml.safe_load(
+        Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8")
+    )
     subset_config = tmp_path / "kupferkanne_subset.yaml"
     base["output"]["dim_customers_extra_columns"] = ["first_name", "email", "city"]
     subset_config.write_text(yaml.safe_dump(base, sort_keys=False), encoding="utf-8")
 
     loaded_subset = load_kupferkanne_rfm_config(subset_config)
-    assert loaded_subset.output.dim_customers_extra_columns == ["first_name", "email", "city"]
+    assert loaded_subset.output.dim_customers_extra_columns == [
+        "first_name",
+        "email",
+        "city",
+    ]
 
     empty_config = tmp_path / "kupferkanne_empty.yaml"
     base["output"]["dim_customers_extra_columns"] = []
@@ -60,9 +77,16 @@ def test_kupferkanne_v3_config_allows_subset_and_empty_customer_extra_columns(tm
 
 
 def test_kupferkanne_v3_config_rejects_invalid_customer_extra_columns(tmp_path) -> None:
-    base = yaml.safe_load(Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8"))
+    base = yaml.safe_load(
+        Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8")
+    )
     invalid_config = tmp_path / "kupferkanne_invalid.yaml"
-    base["output"]["dim_customers_extra_columns"] = ["first_name", "email", "email", "postcode"]
+    base["output"]["dim_customers_extra_columns"] = [
+        "first_name",
+        "email",
+        "email",
+        "postcode",
+    ]
     invalid_config.write_text(yaml.safe_dump(base, sort_keys=False), encoding="utf-8")
 
     with pytest.raises(ValueError):

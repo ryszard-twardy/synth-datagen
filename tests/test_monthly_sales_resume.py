@@ -6,7 +6,11 @@ import pandas as pd
 import pytest
 
 from synth_datagen.id_utils import numeric_suffix
-from synth_datagen.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
+from synth_datagen.monthly_sales import (
+    MonthlyLayout,
+    MonthlySalesConfig,
+    generate_monthly_sales,
+)
 
 
 TABLE_NAMES = [
@@ -26,7 +30,9 @@ def _load_tables(root: Path) -> dict[str, pd.DataFrame]:
     return {name: pd.read_csv(root / f"{name}.csv") for name in TABLE_NAMES}
 
 
-def test_monthly_sales_resume_continues_ids_and_preserves_conformed_dimensions(tmp_path) -> None:
+def test_monthly_sales_resume_continues_ids_and_preserves_conformed_dimensions(
+    tmp_path,
+) -> None:
     run_a = tmp_path / "run_a"
     config_a = MonthlySalesConfig.from_inputs(
         month="2025-01",
@@ -55,19 +61,32 @@ def test_monthly_sales_resume_continues_ids_and_preserves_conformed_dimensions(t
     assert resumed["fact_orders"]["order_id"].is_unique
     assert resumed["fact_order_items"]["item_id"].is_unique
     assert resumed["fact_payments"]["payment_id"].is_unique
-    assert set(resumed["dim_customers"]["customer_id"]) == set(first["dim_customers"]["customer_id"])
-    assert set(resumed["dim_products"]["product_id"]) == set(first["dim_products"]["product_id"])
-    assert set(resumed["dim_stores"]["store_id"]) == set(first["dim_stores"]["store_id"])
+    assert set(resumed["dim_customers"]["customer_id"]) == set(
+        first["dim_customers"]["customer_id"]
+    )
+    assert set(resumed["dim_products"]["product_id"]) == set(
+        first["dim_products"]["product_id"]
+    )
+    assert set(resumed["dim_stores"]["store_id"]) == set(
+        first["dim_stores"]["store_id"]
+    )
 
-    previous_max_order = max(numeric_suffix(value, "order_id") for value in first["fact_orders"]["order_id"])
+    previous_max_order = max(
+        numeric_suffix(value, "order_id") for value in first["fact_orders"]["order_id"]
+    )
     new_orders = resumed["fact_orders"].loc[
         ~resumed["fact_orders"]["order_id"].isin(first["fact_orders"]["order_id"]),
         "order_id",
     ]
     assert not new_orders.empty
-    assert min(numeric_suffix(value, "order_id") for value in new_orders) > previous_max_order
+    assert (
+        min(numeric_suffix(value, "order_id") for value in new_orders)
+        > previous_max_order
+    )
 
-    month_dirs = sorted(path.name for path in outputs_b["months"].iterdir() if path.is_dir())
+    month_dirs = sorted(
+        path.name for path in outputs_b["months"].iterdir() if path.is_dir()
+    )
     assert month_dirs == ["2025-01", "2025-02"]
 
 

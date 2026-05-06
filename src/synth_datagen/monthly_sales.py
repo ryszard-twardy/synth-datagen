@@ -16,14 +16,26 @@ import numpy as np
 import pandas as pd
 from pydantic import Field, field_validator, model_validator
 
-from .config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType, StrictModel
+from .config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+    StrictModel,
+)
 from .exporters.csv_exporter import CsvExporter
 from .exporters.parquet_exporter import ParquetExporter
 from .exporters.sql_exporter import SqlExporter
 from .exporters.sqlite_exporter import SqliteExporter
 from .generators.retail_builder import RetailDataBuilder, build_retail_schema
 from .monthly_sales_audit import apply_flat_audit_bad_data, apply_monthly_audit_bad_data
-from .monthly_sales_profile import MonthlySalesBadDataProfile, MonthlySalesProfile, MonthlyTrendMode
+from .monthly_sales_profile import (
+    MonthlySalesBadDataProfile,
+    MonthlySalesProfile,
+    MonthlyTrendMode,
+)
 from .reporting import write_data_dictionary, write_erd
 from .schema_builder import SchemaBuilder, SchemaGraph
 from .utils import apply_data_quality, distribute_counts, seed_everything
@@ -94,7 +106,9 @@ class MonthlySalesConfig(StrictModel):
     start_ratio: float = 1.0
     seasonality_strength: float = 0.0
     volatility_strength: float = 0.0
-    audit_bad_data: MonthlySalesBadDataProfile = Field(default_factory=MonthlySalesBadDataProfile)
+    audit_bad_data: MonthlySalesBadDataProfile = Field(
+        default_factory=MonthlySalesBadDataProfile
+    )
 
     @classmethod
     def from_inputs(
@@ -110,7 +124,9 @@ class MonthlySalesConfig(StrictModel):
                 raise ValueError("Use either month or start_date/end_date, not both.")
             start_date, end_date = month_to_range(month)
         if start_date is None or end_date is None:
-            raise ValueError("start_date and end_date are required unless month is provided.")
+            raise ValueError(
+                "start_date and end_date are required unless month is provided."
+            )
         return cls(start_date=start_date, end_date=end_date, **kwargs)
 
     @classmethod
@@ -125,7 +141,9 @@ class MonthlySalesConfig(StrictModel):
         try:
             layout = MonthlyLayout(profile.output.layout.strip().lower())
         except ValueError as exc:
-            raise ValueError("output.layout must be one of: monthly, combined, both, sales-files.") from exc
+            raise ValueError(
+                "output.layout must be one of: monthly, combined, both, sales-files."
+            ) from exc
         return cls(
             start_date=profile.period.start_date,
             end_date=profile.period.end_date,
@@ -166,25 +184,41 @@ class MonthlySalesConfig(StrictModel):
         if self.trend_mode is not None and self.max_orders_per_month is None:
             raise ValueError("max_orders_per_month is required when trend_mode is set")
         if self.audit_bad_data.enabled and self.data_quality is not DataQuality.NONE:
-            raise ValueError("audit_bad_data cannot be combined with legacy data_quality modes")
+            raise ValueError(
+                "audit_bad_data cannot be combined with legacy data_quality modes"
+            )
         if self.audit_bad_data.has_flat_defects() and not self.include_flat:
-            raise ValueError("include_flat must be enabled when flat-level audit defects are configured")
+            raise ValueError(
+                "include_flat must be enabled when flat-level audit defects are configured"
+            )
         if self.layout is MonthlyLayout.SALES_FILES:
             if not self.include_flat:
                 raise ValueError("sales-files layout requires include_flat=True")
             if self.export_parquet or self.export_sqlite:
-                raise ValueError("sales-files layout does not support export_parquet or export_sqlite")
+                raise ValueError(
+                    "sales-files layout does not support export_parquet or export_sqlite"
+                )
             if self.audit_bad_data.has_normalized_defects():
-                raise ValueError("sales-files layout supports only flat-level audit defects")
+                raise ValueError(
+                    "sales-files layout supports only flat-level audit defects"
+                )
         elif self.audit_bad_data.enabled and self.resume_from is not None:
-            raise ValueError("audit_bad_data is not supported together with resume_from outside sales-files layout")
+            raise ValueError(
+                "audit_bad_data is not supported together with resume_from outside sales-files layout"
+            )
         if self.resume_from is not None:
             path = self.resume_from
             if self.layout is MonthlyLayout.SALES_FILES:
-                if path.name != "combined" and (path / "combined").exists() and not _has_dimension_snapshot(path):
+                if (
+                    path.name != "combined"
+                    and (path / "combined").exists()
+                    and not _has_dimension_snapshot(path)
+                ):
                     path = path / "combined"
                 if not _has_dimension_snapshot(path):
-                    raise ValueError("resume_from must contain dimension CSVs or a combined snapshot")
+                    raise ValueError(
+                        "resume_from must contain dimension CSVs or a combined snapshot"
+                    )
                 return self
             if path.name != "combined" and (path / "combined").exists():
                 path = path / "combined"
@@ -201,7 +235,9 @@ class MonthlySalesConfig(StrictModel):
             ]
             missing = [name for name in required if not (path / name).exists()]
             if missing:
-                raise ValueError(f"resume_from is missing retail combined tables: {missing}")
+                raise ValueError(
+                    f"resume_from is missing retail combined tables: {missing}"
+                )
         return self
 
 
@@ -246,7 +282,9 @@ def _month_label_end_date(label: str) -> date:
     return end
 
 
-def _growth_order_targets(config: MonthlySalesConfig, buckets: list[MonthBucket]) -> np.ndarray:
+def _growth_order_targets(
+    config: MonthlySalesConfig, buckets: list[MonthBucket]
+) -> np.ndarray:
     if not buckets:
         return np.array([], dtype=np.int64)
     max_orders = config.max_orders_per_month or config.orders_per_month
@@ -256,7 +294,9 @@ def _growth_order_targets(config: MonthlySalesConfig, buckets: list[MonthBucket]
     else:
         linear = np.linspace(start_orders, max_orders, num=len(buckets), dtype=float)
     month_offsets = np.arange(len(buckets), dtype=float)
-    seasonality = 1.0 + (config.seasonality_strength * np.sin((2.0 * np.pi * month_offsets) / 12.0))
+    seasonality = 1.0 + (
+        config.seasonality_strength * np.sin((2.0 * np.pi * month_offsets) / 12.0)
+    )
     rng = np.random.default_rng(config.seed + 77)
     volatility = 1.0 + rng.normal(0.0, config.volatility_strength, size=len(buckets))
     targets = np.rint(linear * seasonality * volatility).astype(np.int64)
@@ -298,7 +338,9 @@ def month_buckets(config: MonthlySalesConfig) -> list[MonthBucket]:
     for idx, bucket in enumerate(buckets):
         order_count = int(full_targets[idx])
         if config.prorate_partial_months and bucket.active_days < bucket.days_in_month:
-            order_count = max(1, int(round(order_count * bucket.active_days / bucket.days_in_month)))
+            order_count = max(
+                1, int(round(order_count * bucket.active_days / bucket.days_in_month))
+            )
         planned.append(
             MonthBucket(
                 label=bucket.label,
@@ -312,9 +354,12 @@ def month_buckets(config: MonthlySalesConfig) -> list[MonthBucket]:
     return planned
 
 
-def derive_dimension_counts(config: MonthlySalesConfig, total_orders: int, total_items: int, month_count: int) -> dict[str, int]:
+def derive_dimension_counts(
+    config: MonthlySalesConfig, total_orders: int, total_items: int, month_count: int
+) -> dict[str, int]:
     return {
-        "dim_customers": config.customers or max(ceil(total_orders / 1.8), month_count * 250),
+        "dim_customers": config.customers
+        or max(ceil(total_orders / 1.8), month_count * 250),
         "dim_products": config.products or max(250, min(5000, ceil(total_items / 40))),
         "dim_stores": config.stores or max(8, min(250, ceil(total_orders / 600))),
         "dim_promotions": config.promotions or max(12, min(300, month_count * 6)),
@@ -325,9 +370,13 @@ def build_month_plan(config: MonthlySalesConfig) -> list[MonthBucket]:
     base = month_buckets(config)
     order_counts = np.array([bucket.order_count for bucket in base], dtype=np.int64)
     total_orders = int(order_counts.sum())
-    total_items = max(total_orders, int(round(total_orders * config.avg_items_per_order)))
+    total_items = max(
+        total_orders, int(round(total_orders * config.avg_items_per_order))
+    )
     total_bridge = int(round(total_orders * 0.35))
-    dimension_counts = derive_dimension_counts(config, total_orders, total_items, len(base))
+    dimension_counts = derive_dimension_counts(
+        config, total_orders, total_items, len(base)
+    )
     minimum_promos = 1 if dimension_counts["dim_promotions"] >= len(base) else 0
     extra_item_counts = distribute_counts(
         total_items - total_orders,
@@ -373,14 +422,27 @@ def load_sales_files_resume_state(path: Path | None) -> SalesFilesResumeState | 
     if path is None:
         return None
     source_root = path
-    combined_path = path / "combined" if path.name != "combined" and (path / "combined").exists() else path
-    if (combined_path / "fact_orders.csv").exists() and _has_dimension_snapshot(combined_path):
+    combined_path = (
+        path / "combined"
+        if path.name != "combined" and (path / "combined").exists()
+        else path
+    )
+    if (combined_path / "fact_orders.csv").exists() and _has_dimension_snapshot(
+        combined_path
+    ):
         dimension_root = combined_path
-        dimension_tables = {name: pd.read_csv(dimension_root / f"{name}.csv") for name in DIMENSION_TABLE_NAMES}
+        dimension_tables = {
+            name: pd.read_csv(dimension_root / f"{name}.csv")
+            for name in DIMENSION_TABLE_NAMES
+        }
         fact_orders = pd.read_csv(dimension_root / "fact_orders.csv")
         fact_order_items = pd.read_csv(dimension_root / "fact_order_items.csv")
         existing_month_labels = sorted(
-            pd.to_datetime(fact_orders["created_at"], errors="coerce").dt.strftime("%Y-%m").dropna().unique().tolist()
+            pd.to_datetime(fact_orders["created_at"], errors="coerce")
+            .dt.strftime("%Y-%m")
+            .dropna()
+            .unique()
+            .tolist()
         )
         order_ids = fact_orders["order_id"].dropna().astype(str).tolist()
         item_ids = fact_order_items["item_id"].dropna().astype(str).tolist()
@@ -388,8 +450,13 @@ def load_sales_files_resume_state(path: Path | None) -> SalesFilesResumeState | 
     else:
         dimension_root = path
         if not _has_dimension_snapshot(dimension_root):
-            raise ValueError("resume_from must contain dimension CSVs or a combined snapshot")
-        dimension_tables = {name: pd.read_csv(dimension_root / f"{name}.csv") for name in DIMENSION_TABLE_NAMES}
+            raise ValueError(
+                "resume_from must contain dimension CSVs or a combined snapshot"
+            )
+        dimension_tables = {
+            name: pd.read_csv(dimension_root / f"{name}.csv")
+            for name in DIMENSION_TABLE_NAMES
+        }
         existing_month_labels = _sales_file_labels(dimension_root)
         # Audit P1-9: drop redundant annotations — mypy flagged the names
         # as redefined when the if-branch above already bound them.
@@ -401,10 +468,31 @@ def load_sales_files_resume_state(path: Path | None) -> SalesFilesResumeState | 
             order_ids.extend(sales_df["OrderID"].dropna().astype(str).tolist())
             item_ids.extend(sales_df["OrderItemID"].dropna().astype(str).tolist())
     id_starts = {
-        "customer_id": next_start("customer_id", dimension_tables["dim_customers"]["customer_id"].dropna().astype(str).tolist()),
-        "product_id": next_start("product_id", dimension_tables["dim_products"]["product_id"].dropna().astype(str).tolist()),
-        "store_id": next_start("store_id", dimension_tables["dim_stores"]["store_id"].dropna().astype(str).tolist()),
-        "promo_id": next_start("promo_id", dimension_tables["dim_promotions"]["promo_id"].dropna().astype(str).tolist()),
+        "customer_id": next_start(
+            "customer_id",
+            dimension_tables["dim_customers"]["customer_id"]
+            .dropna()
+            .astype(str)
+            .tolist(),
+        ),
+        "product_id": next_start(
+            "product_id",
+            dimension_tables["dim_products"]["product_id"]
+            .dropna()
+            .astype(str)
+            .tolist(),
+        ),
+        "store_id": next_start(
+            "store_id",
+            dimension_tables["dim_stores"]["store_id"].dropna().astype(str).tolist(),
+        ),
+        "promo_id": next_start(
+            "promo_id",
+            dimension_tables["dim_promotions"]["promo_id"]
+            .dropna()
+            .astype(str)
+            .tolist(),
+        ),
         "order_id": next_start("order_id", order_ids) if order_ids else 1,
         "item_id": next_start("item_id", item_ids) if item_ids else 1,
         "payment_id": 1,
@@ -423,7 +511,9 @@ def load_sales_files_resume_state(path: Path | None) -> SalesFilesResumeState | 
     )
 
 
-def validate_sales_files_resume_range(resume_state: SalesFilesResumeState, new_start_date: date) -> None:
+def validate_sales_files_resume_range(
+    resume_state: SalesFilesResumeState, new_start_date: date
+) -> None:
     if not resume_state.existing_month_labels:
         return
     latest_label = max(resume_state.existing_month_labels)
@@ -448,19 +538,31 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
     months_root = config.output_dir / "months"
     config.output_dir.mkdir(parents=True, exist_ok=True)
 
-    sales_resume_state = load_sales_files_resume_state(config.resume_from) if config.layout is MonthlyLayout.SALES_FILES else None
+    sales_resume_state = (
+        load_sales_files_resume_state(config.resume_from)
+        if config.layout is MonthlyLayout.SALES_FILES
+        else None
+    )
     if sales_resume_state is not None:
         validate_sales_files_resume_range(sales_resume_state, config.start_date)
 
-    resume_tables = load_resume_tables(config.resume_from) if config.resume_from and sales_resume_state is None else None
+    resume_tables = (
+        load_resume_tables(config.resume_from)
+        if config.resume_from and sales_resume_state is None
+        else None
+    )
     if resume_tables is not None:
         validate_resume_range(resume_tables, config.start_date)
 
     if sales_resume_state is not None:
         id_starts = sales_resume_state.id_starts.copy()
         base_dims = {
-            "dim_customers": sales_resume_state.builder_dims["dim_customers"].copy(deep=True),
-            "dim_products": sales_resume_state.builder_dims["dim_products"].copy(deep=True),
+            "dim_customers": sales_resume_state.builder_dims["dim_customers"].copy(
+                deep=True
+            ),
+            "dim_products": sales_resume_state.builder_dims["dim_products"].copy(
+                deep=True
+            ),
             "dim_stores": sales_resume_state.builder_dims["dim_stores"].copy(deep=True),
         }
     else:
@@ -485,9 +587,15 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
 
     for month_index, bucket in enumerate(plan):
         row_overrides = {
-            "dim_customers": len(base_dims["dim_customers"]) if base_dims is not None else dimension_counts["dim_customers"],
-            "dim_products": len(base_dims["dim_products"]) if base_dims is not None else dimension_counts["dim_products"],
-            "dim_stores": len(base_dims["dim_stores"]) if base_dims is not None else dimension_counts["dim_stores"],
+            "dim_customers": len(base_dims["dim_customers"])
+            if base_dims is not None
+            else dimension_counts["dim_customers"],
+            "dim_products": len(base_dims["dim_products"])
+            if base_dims is not None
+            else dimension_counts["dim_products"],
+            "dim_stores": len(base_dims["dim_stores"])
+            if base_dims is not None
+            else dimension_counts["dim_stores"],
             "dim_date": bucket.active_days,
             "dim_promotions": bucket.promo_count,
             "fact_orders": bucket.order_count,
@@ -529,8 +637,12 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             appended_tables[table_name].append(tables[table_name])
         id_starts = next_id_starts(id_starts, tables)
 
-    combined_canonical = build_combined_canonical_tables(base_dims, appended_tables, resume_tables, config.end_date)
-    graph = build_combined_graph(config, dimension_counts, plan, combined_path, combined_canonical)
+    combined_canonical = build_combined_canonical_tables(
+        base_dims, appended_tables, resume_tables, config.end_date
+    )
+    graph = build_combined_graph(
+        config, dimension_counts, plan, combined_path, combined_canonical
+    )
     defect_summary: dict[str, object] = {}
 
     if config.audit_bad_data.enabled:
@@ -553,9 +665,13 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             dq_config=monthly_dq_config(config.data_quality),
             rng=np.random.default_rng(config.seed + 500),
         )
-        flat_for_manifest = build_flat_extract(exported_tables) if config.include_flat else None
+        flat_for_manifest = (
+            build_flat_extract(exported_tables) if config.include_flat else None
+        )
     else:
-        new_canonical = build_combined_canonical_tables(base_dims, appended_tables, None, config.end_date)
+        new_canonical = build_combined_canonical_tables(
+            base_dims, appended_tables, None, config.end_date
+        )
         new_exported = apply_dq_to_tables(
             new_canonical,
             graph,
@@ -563,18 +679,27 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             rng=np.random.default_rng(config.seed + 500),
             tables_to_process=set(appended_tables.keys()),
         )
-        exported_tables = merge_resume_and_new_tables(resume_tables, new_exported, config.end_date)
-        flat_for_manifest = build_flat_extract(exported_tables) if config.include_flat else None
+        exported_tables = merge_resume_and_new_tables(
+            resume_tables, new_exported, config.end_date
+        )
+        flat_for_manifest = (
+            build_flat_extract(exported_tables) if config.include_flat else None
+        )
 
     outputs: dict[str, Path] = {}
     exported_dimension_tables = (
         sales_resume_state.dimension_tables
         if sales_resume_state is not None
-        else {name: exported_tables[name].copy(deep=True) for name in DIMENSION_TABLE_NAMES}
+        else {
+            name: exported_tables[name].copy(deep=True)
+            for name in DIMENSION_TABLE_NAMES
+        }
     )
     sales_file_counts: dict[str, int] = {}
     if config.layout in {MonthlyLayout.COMBINED, MonthlyLayout.BOTH}:
-        outputs["combined"] = write_combined_bundle(config, graph, exported_tables, combined_path, flat_df=flat_for_manifest)
+        outputs["combined"] = write_combined_bundle(
+            config, graph, exported_tables, combined_path, flat_df=flat_for_manifest
+        )
     if config.layout in {MonthlyLayout.MONTHLY, MonthlyLayout.BOTH}:
         months_root.mkdir(parents=True, exist_ok=True)
         write_monthly_bundles(
@@ -582,7 +707,9 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             exported_tables,
             graph,
             months_root,
-            audit_bad_data=config.audit_bad_data if config.audit_bad_data.enabled else None,
+            audit_bad_data=config.audit_bad_data
+            if config.audit_bad_data.enabled
+            else None,
         )
         outputs["months"] = months_root
     if config.layout is MonthlyLayout.SALES_FILES:
@@ -591,7 +718,9 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
             exported_tables,
             config.output_dir,
             dimension_tables=exported_dimension_tables,
-            audit_bad_data=config.audit_bad_data if config.audit_bad_data.enabled else None,
+            audit_bad_data=config.audit_bad_data
+            if config.audit_bad_data.enabled
+            else None,
         )
         outputs["sales_files"] = config.output_dir
 
@@ -604,7 +733,9 @@ def generate_monthly_sales(config: MonthlySalesConfig) -> dict[str, Path]:
         defect_summary=defect_summary,
         dimension_tables_for_manifest=exported_dimension_tables,
         sales_file_counts=sales_file_counts,
-        dimension_source=sales_resume_state.source_root if sales_resume_state is not None else None,
+        dimension_source=sales_resume_state.source_root
+        if sales_resume_state is not None
+        else None,
     )
     return outputs
 
@@ -626,26 +757,48 @@ def initial_id_starts(resume_tables: dict[str, pd.DataFrame] | None) -> dict[str
             "bridge_id": 1,
         }
     return {
-        "customer_id": next_start("customer_id", resume_tables["dim_customers"]["customer_id"].tolist()),
-        "product_id": next_start("product_id", resume_tables["dim_products"]["product_id"].tolist()),
-        "store_id": next_start("store_id", resume_tables["dim_stores"]["store_id"].tolist()),
-        "promo_id": next_start("promo_id", resume_tables["dim_promotions"]["promo_id"].tolist()),
-        "order_id": next_start("order_id", resume_tables["fact_orders"]["order_id"].tolist()),
-        "item_id": next_start("item_id", resume_tables["fact_order_items"]["item_id"].tolist()),
-        "payment_id": next_start("payment_id", resume_tables["fact_payments"]["payment_id"].tolist()),
-        "bridge_id": next_start("bridge_id", resume_tables["bridge_order_promotions"]["bridge_id"].tolist()),
+        "customer_id": next_start(
+            "customer_id", resume_tables["dim_customers"]["customer_id"].tolist()
+        ),
+        "product_id": next_start(
+            "product_id", resume_tables["dim_products"]["product_id"].tolist()
+        ),
+        "store_id": next_start(
+            "store_id", resume_tables["dim_stores"]["store_id"].tolist()
+        ),
+        "promo_id": next_start(
+            "promo_id", resume_tables["dim_promotions"]["promo_id"].tolist()
+        ),
+        "order_id": next_start(
+            "order_id", resume_tables["fact_orders"]["order_id"].tolist()
+        ),
+        "item_id": next_start(
+            "item_id", resume_tables["fact_order_items"]["item_id"].tolist()
+        ),
+        "payment_id": next_start(
+            "payment_id", resume_tables["fact_payments"]["payment_id"].tolist()
+        ),
+        "bridge_id": next_start(
+            "bridge_id", resume_tables["bridge_order_promotions"]["bridge_id"].tolist()
+        ),
     }
 
 
-def next_id_starts(current: dict[str, int], tables: dict[str, pd.DataFrame]) -> dict[str, int]:
+def next_id_starts(
+    current: dict[str, int], tables: dict[str, pd.DataFrame]
+) -> dict[str, int]:
     next_values = current.copy()
     next_values["promo_id"] = current["promo_id"] + len(tables["dim_promotions"])
     next_values["order_id"] = current["order_id"] + len(tables["fact_orders"])
     next_values["item_id"] = current["item_id"] + len(tables["fact_order_items"])
     next_values["payment_id"] = current["payment_id"] + len(tables["fact_payments"])
-    next_values["bridge_id"] = current["bridge_id"] + len(tables["bridge_order_promotions"])
+    next_values["bridge_id"] = current["bridge_id"] + len(
+        tables["bridge_order_promotions"]
+    )
     if "dim_customers" in tables and current["customer_id"] == 1:
-        next_values["customer_id"] = current["customer_id"] + len(tables["dim_customers"])
+        next_values["customer_id"] = current["customer_id"] + len(
+            tables["dim_customers"]
+        )
     if "dim_products" in tables and current["product_id"] == 1:
         next_values["product_id"] = current["product_id"] + len(tables["dim_products"])
     if "dim_stores" in tables and current["store_id"] == 1:
@@ -664,23 +817,38 @@ def build_combined_canonical_tables(
     dim_products = (base_dims or resume_tables)["dim_products"].copy(deep=True)
     dim_stores = (base_dims or resume_tables)["dim_stores"].copy(deep=True)
     fact_orders = concat_frames(
-        ([resume_tables["fact_orders"]] if resume_tables else []) + appended_tables["fact_orders"]
+        ([resume_tables["fact_orders"]] if resume_tables else [])
+        + appended_tables["fact_orders"]
     )
     fact_order_items = concat_frames(
-        ([resume_tables["fact_order_items"]] if resume_tables else []) + appended_tables["fact_order_items"]
+        ([resume_tables["fact_order_items"]] if resume_tables else [])
+        + appended_tables["fact_order_items"]
     )
     fact_payments = concat_frames(
-        ([resume_tables["fact_payments"]] if resume_tables else []) + appended_tables["fact_payments"]
+        ([resume_tables["fact_payments"]] if resume_tables else [])
+        + appended_tables["fact_payments"]
     )
     bridge = concat_frames(
-        ([resume_tables["bridge_order_promotions"]] if resume_tables else []) + appended_tables["bridge_order_promotions"]
+        ([resume_tables["bridge_order_promotions"]] if resume_tables else [])
+        + appended_tables["bridge_order_promotions"]
     )
-    dim_date = concat_frames(
-        ([resume_tables["dim_date"]] if resume_tables else []) + appended_tables["dim_date"]
-    ).drop_duplicates(subset=["date_id"]).sort_values("date_id").reset_index(drop=True)
-    dim_promotions = concat_frames(
-        ([resume_tables["dim_promotions"]] if resume_tables else []) + appended_tables["dim_promotions"]
-    ).drop_duplicates(subset=["promo_id"]).reset_index(drop=True)
+    dim_date = (
+        concat_frames(
+            ([resume_tables["dim_date"]] if resume_tables else [])
+            + appended_tables["dim_date"]
+        )
+        .drop_duplicates(subset=["date_id"])
+        .sort_values("date_id")
+        .reset_index(drop=True)
+    )
+    dim_promotions = (
+        concat_frames(
+            ([resume_tables["dim_promotions"]] if resume_tables else [])
+            + appended_tables["dim_promotions"]
+        )
+        .drop_duplicates(subset=["promo_id"])
+        .reset_index(drop=True)
+    )
     dim_customers = refresh_customer_metrics(
         (base_dims or resume_tables)["dim_customers"].copy(deep=True),
         fact_orders,
@@ -699,7 +867,9 @@ def build_combined_canonical_tables(
     }
 
 
-def refresh_customer_metrics(dim_customers: pd.DataFrame, fact_orders: pd.DataFrame, as_of_date: date) -> pd.DataFrame:
+def refresh_customer_metrics(
+    dim_customers: pd.DataFrame, fact_orders: pd.DataFrame, as_of_date: date
+) -> pd.DataFrame:
     dim_customers = dim_customers.copy(deep=True)
     customer_ltv = (
         fact_orders.loc[~fact_orders["status"].eq("cancelled")]
@@ -707,11 +877,20 @@ def refresh_customer_metrics(dim_customers: pd.DataFrame, fact_orders: pd.DataFr
         .sum()
         .round(2)
     )
-    customer_recent = pd.to_datetime(fact_orders["created_at"], errors="coerce").groupby(fact_orders["customer_id"]).max()
-    dim_customers["lifetime_value"] = dim_customers["customer_id"].map(customer_ltv).fillna(0.0).round(2)
+    customer_recent = (
+        pd.to_datetime(fact_orders["created_at"], errors="coerce")
+        .groupby(fact_orders["customer_id"])
+        .max()
+    )
+    dim_customers["lifetime_value"] = (
+        dim_customers["customer_id"].map(customer_ltv).fillna(0.0).round(2)
+    )
     cutoff = pd.Timestamp(as_of_date) - timedelta(days=365)
-    dim_customers["is_active"] = dim_customers["customer_id"].map(customer_recent).fillna(pd.to_datetime(dim_customers["created_at"], errors="coerce")).apply(
-        lambda ts: pd.Timestamp(ts) >= cutoff
+    dim_customers["is_active"] = (
+        dim_customers["customer_id"]
+        .map(customer_recent)
+        .fillna(pd.to_datetime(dim_customers["created_at"], errors="coerce"))
+        .apply(lambda ts: pd.Timestamp(ts) >= cutoff)
     )
     return dim_customers
 
@@ -728,7 +907,8 @@ def build_combined_graph(
         "dim_products": len(combined_tables["dim_products"]),
         "dim_stores": len(combined_tables["dim_stores"]),
         "dim_date": len(combined_tables["dim_date"]),
-        "dim_promotions": len(combined_tables["dim_promotions"]) or dimension_counts["dim_promotions"],
+        "dim_promotions": len(combined_tables["dim_promotions"])
+        or dimension_counts["dim_promotions"],
         "fact_orders": len(combined_tables["fact_orders"]),
         "fact_order_items": len(combined_tables["fact_order_items"]),
         "fact_payments": len(combined_tables["fact_payments"]),
@@ -773,7 +953,9 @@ def apply_dq_to_tables(
             for column in table.columns
             if column.unique or column.name == table.pk_column
         }
-        exported[table_name] = apply_data_quality(df, table, dq_config, rng, unique_state)
+        exported[table_name] = apply_data_quality(
+            df, table, dq_config, rng, unique_state
+        )
     return exported
 
 
@@ -785,12 +967,30 @@ def merge_resume_and_new_tables(
     combined = {
         "dim_products": resume_tables["dim_products"].copy(deep=True),
         "dim_stores": resume_tables["dim_stores"].copy(deep=True),
-        "dim_date": concat_frames([resume_tables["dim_date"], new_tables["dim_date"]]).drop_duplicates(subset=["date_id"]).sort_values("date_id").reset_index(drop=True),
-        "dim_promotions": concat_frames([resume_tables["dim_promotions"], new_tables["dim_promotions"]]).drop_duplicates(subset=["promo_id"]).reset_index(drop=True),
-        "fact_orders": concat_frames([resume_tables["fact_orders"], new_tables["fact_orders"]]).reset_index(drop=True),
-        "fact_order_items": concat_frames([resume_tables["fact_order_items"], new_tables["fact_order_items"]]).reset_index(drop=True),
-        "fact_payments": concat_frames([resume_tables["fact_payments"], new_tables["fact_payments"]]).reset_index(drop=True),
-        "bridge_order_promotions": concat_frames([resume_tables["bridge_order_promotions"], new_tables["bridge_order_promotions"]]).reset_index(drop=True),
+        "dim_date": concat_frames([resume_tables["dim_date"], new_tables["dim_date"]])
+        .drop_duplicates(subset=["date_id"])
+        .sort_values("date_id")
+        .reset_index(drop=True),
+        "dim_promotions": concat_frames(
+            [resume_tables["dim_promotions"], new_tables["dim_promotions"]]
+        )
+        .drop_duplicates(subset=["promo_id"])
+        .reset_index(drop=True),
+        "fact_orders": concat_frames(
+            [resume_tables["fact_orders"], new_tables["fact_orders"]]
+        ).reset_index(drop=True),
+        "fact_order_items": concat_frames(
+            [resume_tables["fact_order_items"], new_tables["fact_order_items"]]
+        ).reset_index(drop=True),
+        "fact_payments": concat_frames(
+            [resume_tables["fact_payments"], new_tables["fact_payments"]]
+        ).reset_index(drop=True),
+        "bridge_order_promotions": concat_frames(
+            [
+                resume_tables["bridge_order_promotions"],
+                new_tables["bridge_order_promotions"],
+            ]
+        ).reset_index(drop=True),
     }
     combined["dim_customers"] = refresh_customer_metrics(
         resume_tables["dim_customers"].copy(deep=True),
@@ -803,7 +1003,11 @@ def merge_resume_and_new_tables(
 def load_resume_tables(path: Path | None) -> dict[str, pd.DataFrame] | None:
     if path is None:
         return None
-    combined_path = path / "combined" if path.name != "combined" and (path / "combined").exists() else path
+    combined_path = (
+        path / "combined"
+        if path.name != "combined" and (path / "combined").exists()
+        else path
+    )
     table_names = [
         "dim_customers",
         "dim_products",
@@ -818,8 +1022,12 @@ def load_resume_tables(path: Path | None) -> dict[str, pd.DataFrame] | None:
     return {name: pd.read_csv(combined_path / f"{name}.csv") for name in table_names}
 
 
-def validate_resume_range(resume_tables: dict[str, pd.DataFrame], new_start_date: date) -> None:
-    existing_max = pd.to_datetime(resume_tables["fact_orders"]["created_at"], errors="coerce").max()
+def validate_resume_range(
+    resume_tables: dict[str, pd.DataFrame], new_start_date: date
+) -> None:
+    existing_max = pd.to_datetime(
+        resume_tables["fact_orders"]["created_at"], errors="coerce"
+    ).max()
     if pd.isna(existing_max):
         return
     if new_start_date <= existing_max.date():
@@ -866,7 +1074,14 @@ def write_combined_bundle(
     write_erd(graph, generator_config)
     if config.export_sqlite:
         sqlite_exporter = SqliteExporter(generator_config)
-        sqlite_exporter.export(graph, [(table, iter([tables[table.name]])) for table in graph.topological_order()], db_name="retail")
+        sqlite_exporter.export(
+            graph,
+            [
+                (table, iter([tables[table.name]]))
+                for table in graph.topological_order()
+            ],
+            db_name="retail",
+        )
     return output_dir
 
 
@@ -907,7 +1122,9 @@ def write_monthly_bundles(
             flat.to_csv(output_dir / "monthly_sales_flat.csv", index=False)
 
 
-def export_dimension_snapshot(dimension_tables: dict[str, pd.DataFrame], output_dir: Path) -> None:
+def export_dimension_snapshot(
+    dimension_tables: dict[str, pd.DataFrame], output_dir: Path
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     for table_name in DIMENSION_TABLE_NAMES:
         target = output_dir / f"{table_name}.csv"
@@ -946,26 +1163,52 @@ def write_sales_files_bundle(
     return sales_file_counts
 
 
-def subset_month_tables(tables: dict[str, pd.DataFrame], month_label: str) -> dict[str, pd.DataFrame]:
+def subset_month_tables(
+    tables: dict[str, pd.DataFrame], month_label: str
+) -> dict[str, pd.DataFrame]:
     orders = tables["fact_orders"].copy(deep=True)
-    order_month = pd.to_datetime(orders["created_at"], errors="coerce").dt.strftime("%Y-%m")
+    order_month = pd.to_datetime(orders["created_at"], errors="coerce").dt.strftime(
+        "%Y-%m"
+    )
     order_mask = order_month.eq(month_label)
     month_orders = orders.loc[order_mask].reset_index(drop=True)
     order_ids = set(month_orders["order_id"].tolist())
-    month_items = tables["fact_order_items"].loc[tables["fact_order_items"]["order_id"].isin(order_ids)].reset_index(drop=True)
-    month_payments = tables["fact_payments"].loc[tables["fact_payments"]["order_id"].isin(order_ids)].reset_index(drop=True)
-    month_bridge = tables["bridge_order_promotions"].loc[tables["bridge_order_promotions"]["order_id"].isin(order_ids)].reset_index(drop=True)
+    month_items = (
+        tables["fact_order_items"]
+        .loc[tables["fact_order_items"]["order_id"].isin(order_ids)]
+        .reset_index(drop=True)
+    )
+    month_payments = (
+        tables["fact_payments"]
+        .loc[tables["fact_payments"]["order_id"].isin(order_ids)]
+        .reset_index(drop=True)
+    )
+    month_bridge = (
+        tables["bridge_order_promotions"]
+        .loc[tables["bridge_order_promotions"]["order_id"].isin(order_ids)]
+        .reset_index(drop=True)
+    )
     customer_ids = set(month_orders["customer_id"].tolist())
     store_ids = set(month_orders["store_id"].tolist())
     product_ids = set(month_items["product_id"].tolist())
     promo_ids = set(month_bridge["promo_id"].tolist())
     date_ids = set(month_orders["date_id"].tolist())
     return {
-        "dim_customers": tables["dim_customers"].loc[tables["dim_customers"]["customer_id"].isin(customer_ids)].reset_index(drop=True),
-        "dim_products": tables["dim_products"].loc[tables["dim_products"]["product_id"].isin(product_ids)].reset_index(drop=True),
-        "dim_stores": tables["dim_stores"].loc[tables["dim_stores"]["store_id"].isin(store_ids)].reset_index(drop=True),
-        "dim_date": tables["dim_date"].loc[tables["dim_date"]["date_id"].isin(date_ids)].reset_index(drop=True),
-        "dim_promotions": tables["dim_promotions"].loc[tables["dim_promotions"]["promo_id"].isin(promo_ids)].reset_index(drop=True),
+        "dim_customers": tables["dim_customers"]
+        .loc[tables["dim_customers"]["customer_id"].isin(customer_ids)]
+        .reset_index(drop=True),
+        "dim_products": tables["dim_products"]
+        .loc[tables["dim_products"]["product_id"].isin(product_ids)]
+        .reset_index(drop=True),
+        "dim_stores": tables["dim_stores"]
+        .loc[tables["dim_stores"]["store_id"].isin(store_ids)]
+        .reset_index(drop=True),
+        "dim_date": tables["dim_date"]
+        .loc[tables["dim_date"]["date_id"].isin(date_ids)]
+        .reset_index(drop=True),
+        "dim_promotions": tables["dim_promotions"]
+        .loc[tables["dim_promotions"]["promo_id"].isin(promo_ids)]
+        .reset_index(drop=True),
         "fact_orders": month_orders,
         "fact_order_items": month_items,
         "fact_payments": month_payments,
@@ -974,16 +1217,37 @@ def subset_month_tables(tables: dict[str, pd.DataFrame], month_label: str) -> di
 
 
 def build_flat_extract(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    orders = tables["fact_orders"][["order_id", "customer_id", "created_at", "subtotal", "discount_amt", "shipping_amt", "order_total", "channel"]].copy()
+    orders = tables["fact_orders"][
+        [
+            "order_id",
+            "customer_id",
+            "created_at",
+            "subtotal",
+            "discount_amt",
+            "shipping_amt",
+            "order_total",
+            "channel",
+        ]
+    ].copy()
     items = tables["fact_order_items"].copy()
     products = tables["dim_products"][["product_id", "subcategory"]].copy()
-    merged = items.merge(orders, on="order_id", how="left").merge(products, on="product_id", how="left")
-    merged["share"] = np.where(merged["subtotal"] > 0, merged["line_total"] / merged["subtotal"], 0.0)
+    merged = items.merge(orders, on="order_id", how="left").merge(
+        products, on="product_id", how="left"
+    )
+    merged["share"] = np.where(
+        merged["subtotal"] > 0, merged["line_total"] / merged["subtotal"], 0.0
+    )
     merged["allocated_discount"] = merged["discount_amt"] * merged["share"]
     merged["allocated_shipping"] = merged["shipping_amt"] * merged["share"]
-    merged["OrderValue"] = (merged["line_total"] - merged["allocated_discount"] + merged["allocated_shipping"]).round(2)
+    merged["OrderValue"] = (
+        merged["line_total"]
+        - merged["allocated_discount"]
+        + merged["allocated_shipping"]
+    ).round(2)
     order_dates = pd.to_datetime(merged["created_at"], errors="coerce")
-    merged["OrderDate"] = order_dates.apply(lambda ts: f"{ts.month}/{ts.day}/{ts.year}" if pd.notna(ts) else "")
+    merged["OrderDate"] = order_dates.apply(
+        lambda ts: f"{ts.month}/{ts.day}/{ts.year}" if pd.notna(ts) else ""
+    )
     order_targets = orders.set_index("order_id")["order_total"].to_dict()
     flat = pd.DataFrame(
         {
@@ -1002,7 +1266,9 @@ def build_flat_extract(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
     return reconcile_flat_order_values(flat, order_targets)
 
 
-def reconcile_flat_order_values(flat: pd.DataFrame, order_targets: dict[str, float]) -> pd.DataFrame:
+def reconcile_flat_order_values(
+    flat: pd.DataFrame, order_targets: dict[str, float]
+) -> pd.DataFrame:
     if flat.empty:
         return flat
     reconciled = flat.copy(deep=True)
@@ -1012,7 +1278,9 @@ def reconcile_flat_order_values(flat: pd.DataFrame, order_targets: dict[str, flo
         difference = round(target - rows["OrderValue"].sum(), 2)
         if abs(difference) > 0 and not rows.empty:
             idx = rows.index[-1]
-            reconciled.at[idx, "OrderValue"] = round(float(reconciled.at[idx, "OrderValue"]) + difference, 2)
+            reconciled.at[idx, "OrderValue"] = round(
+                float(reconciled.at[idx, "OrderValue"]) + difference, 2
+            )
     return reconciled
 
 
@@ -1058,7 +1326,9 @@ def write_manifest(
         "seed": config.seed,
         "discount_variation": config.discount_variation,
         "data_quality": config.data_quality.value,
-        "trend_mode": config.trend_mode.value if config.trend_mode is not None else None,
+        "trend_mode": config.trend_mode.value
+        if config.trend_mode is not None
+        else None,
         "start_ratio": config.start_ratio,
         "seasonality_strength": config.seasonality_strength,
         "volatility_strength": config.volatility_strength,
@@ -1066,8 +1336,12 @@ def write_manifest(
         "row_counts": row_counts,
         "sales_files": list((sales_file_counts or {}).keys()),
         "sales_file_row_counts": sales_file_counts or {},
-        "dimension_source": str(dimension_source) if dimension_source is not None else None,
+        "dimension_source": str(dimension_source)
+        if dimension_source is not None
+        else None,
         "defect_summary": defect_summary or {},
         "outputs": {name: str(path) for name, path in outputs.items()},
     }
-    (config.output_dir / "manifest.json").write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    (config.output_dir / "manifest.json").write_text(
+        json.dumps(payload, indent=2, default=str), encoding="utf-8"
+    )

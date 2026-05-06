@@ -27,9 +27,21 @@ def test_propensity_lookup_stays_inside_value_tier_bands() -> None:
         },
         base_seed=42,
     )
-    assert DISCOUNT_PROPENSITY_BANDS["high"][0] <= lookup["CUST-001"] <= DISCOUNT_PROPENSITY_BANDS["high"][1]
-    assert DISCOUNT_PROPENSITY_BANDS["mid"][0] <= lookup["CUST-002"] <= DISCOUNT_PROPENSITY_BANDS["mid"][1]
-    assert DISCOUNT_PROPENSITY_BANDS["low"][0] <= lookup["CUST-003"] <= DISCOUNT_PROPENSITY_BANDS["low"][1]
+    assert (
+        DISCOUNT_PROPENSITY_BANDS["high"][0]
+        <= lookup["CUST-001"]
+        <= DISCOUNT_PROPENSITY_BANDS["high"][1]
+    )
+    assert (
+        DISCOUNT_PROPENSITY_BANDS["mid"][0]
+        <= lookup["CUST-002"]
+        <= DISCOUNT_PROPENSITY_BANDS["mid"][1]
+    )
+    assert (
+        DISCOUNT_PROPENSITY_BANDS["low"][0]
+        <= lookup["CUST-003"]
+        <= DISCOUNT_PROPENSITY_BANDS["low"][1]
+    )
 
 
 def test_discount_rng_is_deterministic_for_same_seed() -> None:

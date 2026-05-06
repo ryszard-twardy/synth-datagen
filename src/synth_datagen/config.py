@@ -11,7 +11,12 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .id_utils import id_length_for, id_pattern_for, is_date_key_column, is_identifier_column
+from .id_utils import (
+    id_length_for,
+    id_pattern_for,
+    is_date_key_column,
+    is_identifier_column,
+)
 
 
 class StrictModel(BaseModel):
@@ -116,10 +121,27 @@ class ColumnConfig(StrictModel):
             self.semantic_type = self.semantic_type or SemanticType.STATUS
             self.max_length = self.max_length or 32
         elif self.name in {
-            "currency", "country", "channel", "role", "network", "account_type",
-            "loan_type", "tx_type", "transport", "transport_mode", "incoterm",
-            "discount_type", "store_type", "segment", "plan", "plan_min",
-            "billing_cycle", "category", "subcategory", "event_type", "method",
+            "currency",
+            "country",
+            "channel",
+            "role",
+            "network",
+            "account_type",
+            "loan_type",
+            "tx_type",
+            "transport",
+            "transport_mode",
+            "incoterm",
+            "discount_type",
+            "store_type",
+            "segment",
+            "plan",
+            "plan_min",
+            "billing_cycle",
+            "category",
+            "subcategory",
+            "event_type",
+            "method",
             "kyc_status",
         }:
             self.semantic_type = self.semantic_type or SemanticType.ENUM
@@ -154,10 +176,30 @@ class TableConfig(StrictModel):
 
 
 _QUALITY_PRESETS: dict[DataQuality, dict[str, float]] = {
-    DataQuality.NONE: {"null_rate": 0.0, "dupe_rate": 0.0, "outlier_rate": 0.0, "typo_rate": 0.0},
-    DataQuality.LIGHT: {"null_rate": 0.02, "dupe_rate": 0.005, "outlier_rate": 0.01, "typo_rate": 0.01},
-    DataQuality.MEDIUM: {"null_rate": 0.05, "dupe_rate": 0.015, "outlier_rate": 0.03, "typo_rate": 0.03},
-    DataQuality.HEAVY: {"null_rate": 0.12, "dupe_rate": 0.04, "outlier_rate": 0.07, "typo_rate": 0.06},
+    DataQuality.NONE: {
+        "null_rate": 0.0,
+        "dupe_rate": 0.0,
+        "outlier_rate": 0.0,
+        "typo_rate": 0.0,
+    },
+    DataQuality.LIGHT: {
+        "null_rate": 0.02,
+        "dupe_rate": 0.005,
+        "outlier_rate": 0.01,
+        "typo_rate": 0.01,
+    },
+    DataQuality.MEDIUM: {
+        "null_rate": 0.05,
+        "dupe_rate": 0.015,
+        "outlier_rate": 0.03,
+        "typo_rate": 0.03,
+    },
+    DataQuality.HEAVY: {
+        "null_rate": 0.12,
+        "dupe_rate": 0.04,
+        "outlier_rate": 0.07,
+        "typo_rate": 0.06,
+    },
 }
 
 
@@ -246,17 +288,30 @@ class GeneratorConfig(StrictModel):
     @model_validator(mode="after")
     def validate_supported_options(self) -> "GeneratorConfig":
         if self.cols_min > self.cols_max:
-            raise ValueError(f"cols_min ({self.cols_min}) must be <= cols_max ({self.cols_max})")
-        if self.simulation_start and self.simulation_end and self.simulation_start > self.simulation_end:
+            raise ValueError(
+                f"cols_min ({self.cols_min}) must be <= cols_max ({self.cols_max})"
+            )
+        if (
+            self.simulation_start
+            and self.simulation_end
+            and self.simulation_start > self.simulation_end
+        ):
             raise ValueError("simulation_start must be <= simulation_end")
         defaults = _DEFAULT_ROW_COUNTS[self.scenario]
-        resolved = {name: self.row_overrides.get(name, default) for name, default in defaults.items()}
+        resolved = {
+            name: self.row_overrides.get(name, default)
+            for name, default in defaults.items()
+        }
         if self.scenario is Scenario.RETAIL:
             if resolved["fact_payments"] != resolved["fact_orders"]:
                 raise ValueError("Retail requires fact_payments to equal fact_orders.")
             if resolved["fact_order_items"] < resolved["fact_orders"]:
-                raise ValueError("Retail requires fact_order_items to be >= fact_orders.")
+                raise ValueError(
+                    "Retail requires fact_order_items to be >= fact_orders."
+                )
         if self.scenario is Scenario.LOGISTICS:
             if resolved["inventory"] > resolved["warehouses"] * resolved["products"]:
-                raise ValueError("Logistics inventory cannot exceed warehouses * products.")
+                raise ValueError(
+                    "Logistics inventory cannot exceed warehouses * products."
+                )
         return self

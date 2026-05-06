@@ -51,7 +51,9 @@ def build_propensity_lookup(
 ) -> dict[str, float]:
     discount_rng = build_discount_rng(base_seed)
     propensities: dict[str, float] = {}
-    for customer_id in sorted(str(customer_id) for customer_id in value_tier_by_customer_id):
+    for customer_id in sorted(
+        str(customer_id) for customer_id in value_tier_by_customer_id
+    ):
         tier = str(value_tier_by_customer_id[customer_id])
         propensities[customer_id] = sample_discount_propensity(tier, discount_rng)
     return propensities

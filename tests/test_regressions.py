@@ -14,7 +14,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.generators.fintech import FintechGenerator
 from synth_datagen.generators.logistics import LogisticsGenerator
 from synth_datagen.generators.retail import RetailGenerator
@@ -40,7 +47,9 @@ def _generate_scenario_dfs(
         df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
         dfs[table.name] = df
         if table.pk_column in df.columns:
-            fk_pools[f"{table.name}.{table.pk_column}"] = df[table.pk_column].dropna().to_numpy()
+            fk_pools[f"{table.name}.{table.pk_column}"] = (
+                df[table.pk_column].dropna().to_numpy()
+            )
     return dfs, graph
 
 
@@ -243,12 +252,14 @@ def test_retail_payments_align_with_orders(tmp_path: Path) -> None:
     dfs, _ = _generate_scenario_dfs(config, RetailGenerator)
     orders = dfs["fact_orders"][["order_id", "created_at", "order_total", "currency"]]
     payments = dfs["fact_payments"]
-    merged = payments.merge(orders, on="order_id", how="left", suffixes=("_pay", "_order"))
+    merged = payments.merge(
+        orders, on="order_id", how="left", suffixes=("_pay", "_order")
+    )
     paid_mask = merged["paid_at"].notna()
     if paid_mask.any():
         assert (
-            pd.to_datetime(merged.loc[paid_mask, "paid_at"]) >=
-            pd.to_datetime(merged.loc[paid_mask, "created_at"])
+            pd.to_datetime(merged.loc[paid_mask, "paid_at"])
+            >= pd.to_datetime(merged.loc[paid_mask, "created_at"])
         ).all()
     completed_mask = merged["status"].isin(["completed", "refunded", "pending"])
     assert np.allclose(
@@ -280,7 +291,9 @@ def test_saas_invoice_account_matches_subscription(tmp_path: Path) -> None:
     )
     dfs, _ = _generate_scenario_dfs(config, SaasGenerator)
     merged = dfs["invoices"].merge(
-        dfs["subscriptions"][["sub_id", "account_id"]].rename(columns={"account_id": "sub_account_id"}),
+        dfs["subscriptions"][["sub_id", "account_id"]].rename(
+            columns={"account_id": "sub_account_id"}
+        ),
         on="sub_id",
         how="left",
     )

@@ -28,7 +28,9 @@ def generated_dataset(tmp_path_factory):
     return output_dir, config, clean_frames
 
 
-def test_kupferkanne_v3_generation_writes_star_schema_outputs(generated_dataset) -> None:
+def test_kupferkanne_v3_generation_writes_star_schema_outputs(
+    generated_dataset,
+) -> None:
     output_dir, _config, _clean = generated_dataset
     dimensions_dir = output_dir / "dimensions"
     monthly_dir = output_dir / "monthly"
@@ -71,7 +73,9 @@ def test_kupferkanne_v3_generation_writes_star_schema_outputs(generated_dataset)
     assert manifest["validation_checks"]["dimensions_count_is_2"] is True
 
 
-def test_kupferkanne_v3_clean_frames_obey_line_item_formula_and_baskets(generated_dataset) -> None:
+def test_kupferkanne_v3_clean_frames_obey_line_item_formula_and_baskets(
+    generated_dataset,
+) -> None:
     _output_dir, _config, clean = generated_dataset
     clean_lines = clean["clean_lines"]
     dim_customers = clean["dim_customers"]
@@ -92,10 +96,32 @@ def test_kupferkanne_v3_clean_frames_obey_line_item_formula_and_baskets(generate
         "city",
         "address",
     ]
-    assert list(dim_products.columns)[:7] == ["ProductID", "ProductName", "ProductCategory", "Brand", "RetailPrice", "UnitCost", "MarginPct"]
-    assert list(fact_orders.columns) == ["OrderID", "CustomerID", "OrderDate", "Country", "OrderDiscountPct", "BasketItemCount"]
+    assert list(dim_products.columns)[:7] == [
+        "ProductID",
+        "ProductName",
+        "ProductCategory",
+        "Brand",
+        "RetailPrice",
+        "UnitCost",
+        "MarginPct",
+    ]
+    assert list(fact_orders.columns) == [
+        "OrderID",
+        "CustomerID",
+        "OrderDate",
+        "Country",
+        "OrderDiscountPct",
+        "BasketItemCount",
+    ]
     assert dim_customers["email"].is_unique
-    assert dim_customers[["first_name", "last_name", "email", "phone", "state", "city", "address"]].notna().all().all()
+    assert (
+        dim_customers[
+            ["first_name", "last_name", "email", "phone", "state", "city", "address"]
+        ]
+        .notna()
+        .all()
+        .all()
+    )
 
     expected = (
         pd.to_numeric(clean_lines["Quantity"], errors="coerce")
@@ -120,10 +146,17 @@ def test_kupferkanne_v3_clean_frames_obey_line_item_formula_and_baskets(generate
         .sum()
     )
     weighted_order_discount["expected_order_discount"] = (
-        weighted_order_discount["discount_value"] / weighted_order_discount["gross_line_amount"]
+        weighted_order_discount["discount_value"]
+        / weighted_order_discount["gross_line_amount"]
     ).round(4)
-    actual_order_discount = fact_orders.set_index("OrderID")["OrderDiscountPct"].round(4)
-    assert np.allclose(actual_order_discount.to_numpy(), weighted_order_discount["expected_order_discount"].to_numpy(), atol=1e-4)
+    actual_order_discount = fact_orders.set_index("OrderID")["OrderDiscountPct"].round(
+        4
+    )
+    assert np.allclose(
+        actual_order_discount.to_numpy(),
+        weighted_order_discount["expected_order_discount"].to_numpy(),
+        atol=1e-4,
+    )
 
     basket_counts = clean_lines.groupby("OrderID")["OrderLineNumber"].nunique()
     assert fact_orders.set_index("OrderID")["BasketItemCount"].eq(basket_counts).all()
@@ -138,7 +171,9 @@ def test_kupferkanne_v3_clean_frames_obey_line_item_formula_and_baskets(generate
     assert first_line_numbers.loc[basket_counts[basket_counts.eq(1)].index].eq(1).all()
 
 
-def test_kupferkanne_v3_generation_keeps_required_clusters_and_joins(generated_dataset) -> None:
+def test_kupferkanne_v3_generation_keeps_required_clusters_and_joins(
+    generated_dataset,
+) -> None:
     output_dir, _config, clean = generated_dataset
     monthly_dir = output_dir / "monthly"
     dimensions_dir = output_dir / "dimensions"
@@ -149,51 +184,95 @@ def test_kupferkanne_v3_generation_keeps_required_clusters_and_joins(generated_d
     dim_customers = pd.read_csv(dimensions_dir / "dim_customers.csv")
     dim_products = pd.read_csv(dimensions_dir / "dim_products.csv")
 
-    malformed = feb_2024_orders["OrderDate"].astype(str).str.contains(r"/|\\.|Feb", regex=True, na=False).sum()
-    cents = pd.to_numeric(mar_2024_items["LineNetAmount"], errors="coerce").fillna(0).gt(500).sum()
+    malformed = (
+        feb_2024_orders["OrderDate"]
+        .astype(str)
+        .str.contains(r"/|\\.|Feb", regex=True, na=False)
+        .sum()
+    )
+    cents = (
+        pd.to_numeric(mar_2024_items["LineNetAmount"], errors="coerce")
+        .fillna(0)
+        .gt(500)
+        .sum()
+    )
     future = jan_2024_orders["OrderDate"].astype(str).eq("2027-01-01").sum()
 
     assert malformed > 0
     assert cents > 0
     assert future > 0
 
-    all_item_frames = [pd.read_csv(path) for path in sorted(monthly_dir.glob("items20*.csv"))]
+    all_item_frames = [
+        pd.read_csv(path) for path in sorted(monthly_dir.glob("items20*.csv"))
+    ]
     all_items = pd.concat(all_item_frames, ignore_index=True)
     duplicate_rows = all_items.duplicated().sum()
     assert duplicate_rows > 0
 
     orders_lookup = pd.concat(
         [
-            pd.read_csv(path).assign(_shard=path.name.replace("orders", "").replace(".csv", ""))
+            pd.read_csv(path).assign(
+                _shard=path.name.replace("orders", "").replace(".csv", "")
+            )
             for path in sorted(monthly_dir.glob("orders20*.csv"))
         ],
         ignore_index=True,
     )
     items_lookup = pd.concat(
         [
-            pd.read_csv(path).assign(_shard=path.name.replace("items", "").replace(".csv", ""))
+            pd.read_csv(path).assign(
+                _shard=path.name.replace("items", "").replace(".csv", "")
+            )
             for path in sorted(monthly_dir.glob("items20*.csv"))
         ],
         ignore_index=True,
     )
-    assert set(orders_lookup["CustomerID"].dropna().astype(str).str.strip()) - set(dim_customers["CustomerID"]) == set()
-    assert set(items_lookup["ProductID"].dropna().astype(str).str.strip()) - set(dim_products["ProductID"]) == set()
-    assert set(items_lookup["OrderID"].dropna().astype(str).str.strip()) - set(orders_lookup["OrderID"].dropna().astype(str).str.strip()) == set()
+    assert (
+        set(orders_lookup["CustomerID"].dropna().astype(str).str.strip())
+        - set(dim_customers["CustomerID"])
+        == set()
+    )
+    assert (
+        set(items_lookup["ProductID"].dropna().astype(str).str.strip())
+        - set(dim_products["ProductID"])
+        == set()
+    )
+    assert (
+        set(items_lookup["OrderID"].dropna().astype(str).str.strip())
+        - set(orders_lookup["OrderID"].dropna().astype(str).str.strip())
+        == set()
+    )
 
     clean_lines = clean["clean_lines"]
-    advent_rows = clean_lines.loc[clean_lines["ProductID"].isin({"PROD-009", "PROD-018", "PROD-043"})]
+    advent_rows = clean_lines.loc[
+        clean_lines["ProductID"].isin({"PROD-009", "PROD-018", "PROD-043"})
+    ]
     advent_months = pd.to_datetime(advent_rows["OrderDate"]).dt.month.unique().tolist()
     assert sorted(advent_months) == [11, 12]
 
 
-def test_kupferkanne_v3_manifest_tracks_country_volume_and_brands(generated_dataset) -> None:
+def test_kupferkanne_v3_manifest_tracks_country_volume_and_brands(
+    generated_dataset,
+) -> None:
     output_dir, config, _clean = generated_dataset
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     dim_products = pd.read_csv(output_dir / "dimensions" / "dim_products.csv")
     country_targets = {item.code: item.share for item in config.countries}
 
-    assert abs(manifest["customer_summary"]["country_distribution"]["DE"] - country_targets["DE"]) <= 0.02
-    assert abs(manifest["customer_summary"]["country_distribution"]["AT"] - country_targets["AT"]) <= 0.02
+    assert (
+        abs(
+            manifest["customer_summary"]["country_distribution"]["DE"]
+            - country_targets["DE"]
+        )
+        <= 0.02
+    )
+    assert (
+        abs(
+            manifest["customer_summary"]["country_distribution"]["AT"]
+            - country_targets["AT"]
+        )
+        <= 0.02
+    )
     assert 250000 <= manifest["clean_metrics"]["total_item_rows"] <= 280000
     assert 170000 <= manifest["clean_metrics"]["unique_orders"] <= 185000
     assert 14300 <= manifest["clean_metrics"]["unique_customers"] <= 15700
@@ -207,8 +286,12 @@ def test_kupferkanne_v3_manifest_tracks_country_volume_and_brands(generated_data
     assert dim_products["MarginPct"].between(0.20, 0.70).all()
 
 
-def test_kupferkanne_v3_generation_honors_dim_customer_extra_column_subset(tmp_path) -> None:
-    base = yaml.safe_load(Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8"))
+def test_kupferkanne_v3_generation_honors_dim_customer_extra_column_subset(
+    tmp_path,
+) -> None:
+    base = yaml.safe_load(
+        Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8")
+    )
     base["period"]["end_date"] = "2023-01-31"
     base["customers"]["target_total_customers"] = 500
     base["validation_targets"]["target_total_orders"] = 700
@@ -226,4 +309,12 @@ def test_kupferkanne_v3_generation_honors_dim_customer_extra_column_subset(tmp_p
     generate_kupferkanne_rfm(config, output_dir, seed=42)
 
     dim_customers = pd.read_csv(output_dir / "dimensions" / "dim_customers.csv")
-    assert list(dim_customers.columns) == ["CustomerID", "SignupDate", "CustomerArchetype", "FirstName", "Email", "Country", "City"]
+    assert list(dim_customers.columns) == [
+        "CustomerID",
+        "SignupDate",
+        "CustomerArchetype",
+        "FirstName",
+        "Email",
+        "Country",
+        "City",
+    ]

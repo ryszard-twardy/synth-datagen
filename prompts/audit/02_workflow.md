@@ -856,7 +856,7 @@ See [examples/](examples/) for full quickstart scripts:
 ```bash
 git clone https://github.com/ryszard-twardy/synth-datagen
 cd synth-datagen
-pip install -e ".[dev]"
+pip install -e ".[test]"
 pre-commit install
 pytest
 ```

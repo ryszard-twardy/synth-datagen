@@ -17,7 +17,9 @@ from .retail_builder import RetailDataBuilder, build_retail_schema
 
 
 class RetailGenerator(BaseScenarioGenerator):
-    def __init__(self, config: GeneratorConfig, rng: np.random.Generator, faker: Faker) -> None:
+    def __init__(
+        self, config: GeneratorConfig, rng: np.random.Generator, faker: Faker
+    ) -> None:
         super().__init__(config, rng, faker)
         self._cache: dict[str, pd.DataFrame] | None = None
 

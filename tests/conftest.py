@@ -17,7 +17,14 @@ if str(_REPO_ROOT) not in sys.path:
 import pandas as pd
 import pytest
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.generators.retail import RetailGenerator
 from synth_datagen.schema_builder import SchemaBuilder
 from synth_datagen.schema_builder import SchemaGraph
@@ -36,15 +43,15 @@ def retail_config(tmp_path_factory) -> GeneratorConfig:
         output_dir=tmp,
         chunk_size=500,
         row_overrides={
-            "dim_customers":          200,
-            "dim_products":           100,
-            "dim_stores":             20,
-            "dim_date":               365,
-            "dim_promotions":         30,
-            "fact_orders":            500,
-            "fact_order_items":       1_000,
-            "fact_payments":          500,
-            "bridge_order_promotions":300,
+            "dim_customers": 200,
+            "dim_products": 100,
+            "dim_stores": 20,
+            "dim_date": 365,
+            "dim_promotions": 30,
+            "fact_orders": 500,
+            "fact_order_items": 1_000,
+            "fact_payments": 500,
+            "bridge_order_promotions": 300,
         },
         data_quality=DataQualityConfig(level=DataQuality.NONE),
         export_sqlite=False,

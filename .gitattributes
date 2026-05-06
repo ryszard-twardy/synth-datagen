@@ -1,0 +1,52 @@
+# Enforce LF line endings on commit and in the working tree on every platform.
+# This kills the CRLF/LF whole-file churn observed in Phase 2 (audit_report.md
+# L507-509) where editor normalisation rewrote line endings on touched files.
+#
+# - `text=auto eol=lf` is the project default: Git auto-detects text vs binary
+#   and normalises text files to LF.
+# - The explicit `text eol=lf` rules below are belt-and-braces for formats we
+#   touch frequently, so a misconfigured editor can't reintroduce CRLF.
+# - The `binary` rules declare formats Git must never normalise. None of these
+#   are tracked today, but declaring them up-front means future commits Just
+#   Work without re-rolling .gitattributes.
+
+* text=auto eol=lf
+
+# Source and config — explicit LF
+*.py        text eol=lf
+*.pyi       text eol=lf
+*.md        text eol=lf
+*.toml      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.cfg       text eol=lf
+*.ini       text eol=lf
+*.txt       text eol=lf
+*.sh        text eol=lf
+
+# Generator outputs — also text, also LF
+*.csv       text eol=lf
+*.sql       text eol=lf
+*.tsv       text eol=lf
+
+# Binary formats — never normalise
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       binary
+*.pdf       binary
+*.zip       binary
+*.gz        binary
+*.tar       binary
+*.parquet   binary
+*.feather   binary
+*.xlsx      binary
+*.xls       binary
+*.pbix      binary
+*.pbit      binary
+*.db        binary
+*.sqlite    binary
+*.sqlite3   binary

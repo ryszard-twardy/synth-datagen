@@ -24,14 +24,26 @@ def main() -> None:
 
 @app.command("generate")
 def generate(
-    config: Path = typer.Option(..., "--config", exists=True, dir_okay=False, help="Path to YAML config."),
-    mode: str = typer.Option("both", "--mode", help="Output mode: clean | dirty | both."),
-    output: Path | None = typer.Option(None, "--output", help="Optional output override."),
+    config: Path = typer.Option(
+        ..., "--config", exists=True, dir_okay=False, help="Path to YAML config."
+    ),
+    mode: str = typer.Option(
+        "both", "--mode", help="Output mode: clean | dirty | both."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", help="Optional output override."
+    ),
     seed: int | None = typer.Option(None, "--seed", help="Optional seed override."),
 ) -> None:
     normalized_mode = _normalize_mode(mode)
     try:
-        OutputMode, load_config, SaaSV3Engine, SaaSV3Exporter, validate_generated_dataset = _load_runtime()
+        (
+            OutputMode,
+            load_config,
+            SaaSV3Engine,
+            SaaSV3Exporter,
+            validate_generated_dataset,
+        ) = _load_runtime()
     except ModuleNotFoundError as exc:
         if is_missing_runtime_dependency(exc):
             typer.echo(missing_dependency_message(exc.name), err=True)
@@ -51,16 +63,22 @@ def generate(
         if not dirty_report.passed:
             raise typer.Exit(code=1)
     exporter = SaaSV3Exporter(engine.config)
-    paths = exporter.export_result(result, output_override=output, config_source_path=config)
+    paths = exporter.export_result(
+        result, output_override=output, config_source_path=config
+    )
     for name, path in paths.items():
         typer.echo(f"{name}: {path}")
 
 
 @app.command("validate")
 def validate(
-    config: Path = typer.Option(..., "--config", exists=True, dir_okay=False, help="Path to YAML config."),
+    config: Path = typer.Option(
+        ..., "--config", exists=True, dir_okay=False, help="Path to YAML config."
+    ),
     mode: str = typer.Option("clean", "--mode", help="Validation mode: clean | dirty."),
-    run_root: Path | None = typer.Option(None, "--run-root", help="Generated run root. Defaults to config-derived path."),
+    run_root: Path | None = typer.Option(
+        None, "--run-root", help="Generated run root. Defaults to config-derived path."
+    ),
 ) -> None:
     normalized_mode = _normalize_validate_mode(mode)
     try:
@@ -82,11 +100,21 @@ def validate(
 
 @app.command("smoke-test")
 def smoke_test(
-    config: Path = typer.Option(..., "--config", exists=True, dir_okay=False, help="Path to YAML config."),
-    output: Path | None = typer.Option(None, "--output", help="Optional output override."),
+    config: Path = typer.Option(
+        ..., "--config", exists=True, dir_okay=False, help="Path to YAML config."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", help="Optional output override."
+    ),
 ) -> None:
     try:
-        OutputMode, load_config, SaaSV3Engine, SaaSV3Exporter, validate_generated_dataset = _load_runtime()
+        (
+            OutputMode,
+            load_config,
+            SaaSV3Engine,
+            SaaSV3Exporter,
+            validate_generated_dataset,
+        ) = _load_runtime()
     except ModuleNotFoundError as exc:
         if is_missing_runtime_dependency(exc):
             typer.echo(missing_dependency_message(exc.name), err=True)
@@ -98,14 +126,22 @@ def smoke_test(
     engine = SaaSV3Engine(cfg)
     result = engine.generate(OutputMode.BOTH)
     clean_report = validate_generated_dataset(result.clean, engine.config, "clean")
-    dirty_report = validate_generated_dataset(result.dirty, engine.config, "dirty") if result.dirty is not None else None
+    dirty_report = (
+        validate_generated_dataset(result.dirty, engine.config, "dirty")
+        if result.dirty is not None
+        else None
+    )
     _echo_report(clean_report)
     if dirty_report is not None:
         _echo_report(dirty_report)
-    if not clean_report.passed or (dirty_report is not None and not dirty_report.passed):
+    if not clean_report.passed or (
+        dirty_report is not None and not dirty_report.passed
+    ):
         raise typer.Exit(code=1)
     exporter = SaaSV3Exporter(engine.config)
-    paths = exporter.export_result(result, output_override=smoke_root, config_source_path=config)
+    paths = exporter.export_result(
+        result, output_override=smoke_root, config_source_path=config
+    )
     typer.echo(f"smoke_run_root: {paths['run_root']}")
 
 
@@ -115,7 +151,13 @@ def _load_runtime():
     from .exporters import SaaSV3Exporter
     from .validate import validate_generated_dataset
 
-    return OutputMode, load_config, SaaSV3Engine, SaaSV3Exporter, validate_generated_dataset
+    return (
+        OutputMode,
+        load_config,
+        SaaSV3Engine,
+        SaaSV3Exporter,
+        validate_generated_dataset,
+    )
 
 
 def _load_validate_runtime():
@@ -129,14 +171,18 @@ def _load_validate_runtime():
 def _normalize_mode(value: str) -> str:
     normalized = value.strip().lower()
     if normalized not in {"clean", "dirty", "both"}:
-        raise typer.BadParameter("Mode must be one of: clean, dirty, both.", param_hint="--mode")
+        raise typer.BadParameter(
+            "Mode must be one of: clean, dirty, both.", param_hint="--mode"
+        )
     return normalized
 
 
 def _normalize_validate_mode(value: str) -> str:
     normalized = value.strip().lower()
     if normalized not in {"clean", "dirty"}:
-        raise typer.BadParameter("Mode must be one of: clean, dirty.", param_hint="--mode")
+        raise typer.BadParameter(
+            "Mode must be one of: clean, dirty.", param_hint="--mode"
+        )
     return normalized
 
 
