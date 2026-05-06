@@ -100,22 +100,33 @@ class TestEchoReport:
 
 
 class TestLoadRuntime:
-    def test_load_runtime_returns_5_tuple(self) -> None:
+    """Pin the *identity* of what ``_load_runtime`` returns, not just
+    callability. Classes are always callable, so a callable() check would
+    happily accept a non-equivalent stub swapped in by a refactor."""
+
+    def test_load_runtime_returns_canonical_5_tuple(self) -> None:
+        from synth_datagen.saas_v3.config import OutputMode, load_config
+        from synth_datagen.saas_v3.engine import SaaSV3Engine
+        from synth_datagen.saas_v3.exporters import SaaSV3Exporter
+        from synth_datagen.saas_v3.validate import validate_generated_dataset
+
         result = _load_runtime()
         assert len(result) == 5
-        OutputMode, load_config, Engine, Exporter, validate_dataset = result
-        # Spot-check expected names.
-        assert hasattr(OutputMode, "BOTH")
-        assert callable(load_config)
-        assert callable(Engine)
-        assert callable(Exporter)
-        assert callable(validate_dataset)
+        assert result == (
+            OutputMode,
+            load_config,
+            SaaSV3Engine,
+            SaaSV3Exporter,
+            validate_generated_dataset,
+        )
 
-    def test_load_validate_runtime_returns_3_tuple(self) -> None:
-        load_config, Exporter, validate_run = _load_validate_runtime()
-        assert callable(load_config)
-        assert callable(Exporter)
-        assert callable(validate_run)
+    def test_load_validate_runtime_returns_canonical_3_tuple(self) -> None:
+        from synth_datagen.saas_v3.config import load_config
+        from synth_datagen.saas_v3.exporters import SaaSV3Exporter
+        from synth_datagen.saas_v3.validate import validate_exported_run
+
+        result = _load_validate_runtime()
+        assert result == (load_config, SaaSV3Exporter, validate_exported_run)
 
 
 # --------------------------------------------------------------------------- #

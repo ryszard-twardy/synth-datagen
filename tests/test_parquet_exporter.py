@@ -94,11 +94,17 @@ class TestSanitiseChunk:
         assert out["s"].tolist() == ["alpha", "beta", "gamma"]
 
     def test_object_all_null_column_left_alone(self) -> None:
-        """Lines 40-41: empty sample after dropna -> early continue."""
+        """Lines 40-41: empty sample after dropna -> early continue.
+
+        The contract is "leave the column untouched", so assert dtype and
+        values are unchanged — not just that the column survived (which
+        would still pass if the function nuked and re-added it)."""
         df = pd.DataFrame({"x": [None, None, None]}, dtype=object)
         out = _sanitise_chunk(df)
-        # Column still present, no crash
         assert "x" in out.columns
+        assert out["x"].dtype == df["x"].dtype  # still object
+        assert out["x"].isna().all()
+        assert len(out["x"]) == 3
 
     def test_input_df_not_mutated(self) -> None:
         """``_sanitise_chunk`` must not mutate the caller's DataFrame."""

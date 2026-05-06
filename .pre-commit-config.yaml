@@ -30,13 +30,16 @@ repos:
 
   # mypy runs against the source tree only — tests and scripts are
   # excluded for parity with the CI matrix and to keep the hook fast.
-  # The hook is currently advisory (matches CI) by allowing failures via
-  # ``stages`` overrides; flip back to mandatory once the typing debt is
-  # paid down.
+  # ``stages: [manual]`` keeps it out of the default ``pre-commit run``
+  # path so the hook matches CI's advisory posture: contributors opt in
+  # with ``pre-commit run mypy --all-files --hook-stage manual`` (or run
+  # ``mypy src/`` directly). Flip back to default stages once the
+  # remaining 57 mypy errors in the wider codebase are fixed.
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
       - id: mypy
+        stages: [manual]
         files: ^src/
         additional_dependencies:
           - "types-PyYAML>=6.0.0"
@@ -47,5 +50,10 @@ repos:
     rev: 1.7.10
     hooks:
       - id: bandit
-        args: ["-r", "-ll"]
+        # Mirror the CI invocation exactly: ``bandit -r src/ -ll``.
+        # ``pass_filenames: false`` stops pre-commit from appending each
+        # changed file path; otherwise -r becomes a no-op per file and
+        # output diverges from CI.
+        entry: bandit -r src/ -ll
+        pass_filenames: false
         files: ^src/

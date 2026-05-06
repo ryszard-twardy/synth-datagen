@@ -193,6 +193,11 @@ class TestSqlValEncoder:
         assert _sql_val(float("nan")) == "NULL"
 
     def test_true_becomes_TRUE(self) -> None:
+        # Order-sensitive: ``isinstance(True, int)`` is True in Python, so
+        # the source must check ``bool`` *before* ``int`` for this to
+        # return "TRUE" instead of "1". This test (and ``test_false_*``)
+        # pin that ordering invariant — if a refactor swaps the branches,
+        # this fails first and names the regression.
         assert _sql_val(True) == "TRUE"
 
     def test_false_becomes_FALSE(self) -> None:

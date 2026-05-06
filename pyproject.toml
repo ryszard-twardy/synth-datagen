@@ -68,3 +68,20 @@ addopts = "-v -m 'not slow'"
 markers = [
     "slow: integration / property tests that take more than ~1s each. Run with `pytest -m slow` or include via `pytest -m 'slow or not slow'`.",
 ]
+
+# Coverage thresholds live here (single source of truth) so CI, pre-commit,
+# and local `coverage report` all see the same gate. CI explicitly invokes
+# ``coverage report --fail-under=80`` after the two pytest lanes append.
+[tool.coverage.run]
+source = ["src/synth_datagen"]
+branch = false
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

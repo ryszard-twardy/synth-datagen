@@ -28,6 +28,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[test]"
 
+      # Run pre-commit hooks once on the 3.12 leg to catch
+      # "I forgot to install pre-commit locally" PRs cheaply (whitespace,
+      # EOF, line endings). The individual tool steps below still run on
+      # every matrix leg so a Python-version-specific failure is still
+      # surfaced separately.
+      - name: pre-commit (3.12 only)
+        if: matrix.python-version == '3.12'
+        run: pre-commit run --all-files --show-diff-on-failure
+
       - name: ruff lint
         run: ruff check .
 
@@ -46,15 +55,30 @@ jobs:
       # Two-lane test run: fast lane keeps the developer feedback loop
       # under a minute; slow lane exercises the full saas_v3 pipeline and
       # the Hypothesis property suite. Coverage is appended across both
-      # lanes and the 80% gate is enforced on the combined total.
+      # lanes; the combined floor (80%, set in pyproject.toml) is enforced
+      # in a separate `coverage report` step that always runs even when
+      # an earlier step failed.
+      # ``--cov-fail-under=0`` disables pytest-cov's per-invocation gate
+      # so each lane can run independently — the real gate is the
+      # ``coverage report`` step below, which reads ``fail_under = 80``
+      # from ``[tool.coverage.report]`` in ``pyproject.toml``.
       - name: pytest fast lane (default markers)
-        run: pytest --cov=src/synth_datagen --cov-report=
+        run: pytest --cov=src/synth_datagen --cov-report= --cov-fail-under=0
 
       - name: pytest slow lane (full saas_v3 + property tests)
-        run: pytest -m slow --cov=src/synth_datagen --cov-append --cov-report=xml --cov-report=term --cov-fail-under=80
+        run: pytest -m slow --cov=src/synth_datagen --cov-append --cov-report= --cov-fail-under=0
 
+      - name: coverage gate (combined fast + slow, 80% floor)
+        if: always()
+        run: |
+          coverage report
+          coverage xml -o coverage.xml
+
+      # Public-repo tokenless upload — Codecov v4 supports this without
+      # CODECOV_TOKEN. Set fail_ci_if_error to false so a Codecov outage
+      # doesn't block merges; the coverage gate above is the real signal.
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.12'
+        if: matrix.python-version == '3.12' && always()
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
