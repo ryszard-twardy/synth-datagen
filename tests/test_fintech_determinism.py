@@ -76,8 +76,12 @@ class TestFintechDeterminism:
     def test_same_seed_produces_identical_transactions(self, tmp_path):
         a = _generate_fintech(42, _SMALL_OVERRIDES, tmp_path / "a")
         b = _generate_fintech(42, _SMALL_OVERRIDES, tmp_path / "b")
-        num_a = a["transactions"].select_dtypes(include=["number"]).reset_index(drop=True)
-        num_b = b["transactions"].select_dtypes(include=["number"]).reset_index(drop=True)
+        num_a = (
+            a["transactions"].select_dtypes(include=["number"]).reset_index(drop=True)
+        )
+        num_b = (
+            b["transactions"].select_dtypes(include=["number"]).reset_index(drop=True)
+        )
         pd.testing.assert_frame_equal(num_a, num_b, check_dtype=False)
 
     def test_same_seed_produces_identical_cards(self, tmp_path):

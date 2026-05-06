@@ -97,7 +97,9 @@ def test_retail_schema_columns_stable(seed: int) -> None:
 
 
 @pytest.mark.parametrize("seed_pair", [(42, 99), (0, 1), (12345, 67890)])
-def test_retail_different_seeds_produce_different_data(seed_pair: tuple[int, int]) -> None:
+def test_retail_different_seeds_produce_different_data(
+    seed_pair: tuple[int, int],
+) -> None:
     """Distinct seeds must produce distinct fact_orders subtotals."""
     s1, s2 = seed_pair
     with tempfile.TemporaryDirectory() as tmp:

@@ -111,9 +111,7 @@ def test_fintech_loan_outstanding_within_principal(seed: int) -> None:
         out = generate_scenario("fintech", seed, output_dir=tmp)
     loans = out["loans"]
     bad = loans[loans["outstanding"] > loans["principal"] + 0.01]
-    assert bad.empty, (
-        f"{len(bad)} loans have outstanding > principal (seed={seed})"
-    )
+    assert bad.empty, f"{len(bad)} loans have outstanding > principal (seed={seed})"
 
 
 @_PROP_SETTINGS
