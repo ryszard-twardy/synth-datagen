@@ -799,14 +799,14 @@ The workflow is complete when ALL of the below are ✅:
 # UPDATE THIS BLOCK AFTER EACH SESSION
 project_state:
   last_updated: "2026-05-05 [your time]"
-  current_phase: "phase-2-ready"
+  current_phase: "phase-3-ready"
   current_branch: "main"
-  current_commit_hash: "eedaa1d"
+  current_commit_hash: "f6bdb8b"
   repo_local_path: "X:\\Python\\projects\\synth-datagen"
   
 tags_created:
   v0_1_0_preaudit: "2026-05-05"
-  v0_2_0_rc1: ""
+  v0_2_0_rc1: "2026-05-05"
   v0_2_0_rc2: ""
   v0_2_0: ""
   v0_2_1: ""
@@ -818,6 +818,8 @@ audit_findings:
   total_p2: 14
   total_p3: 9
   addressed_in_phase2: ["P0-1", "P0-2", "P0-3", "P1-1", "P1-2", "P1-9", "P1-11", "P2-4", "P2-9"]
+  deferred_to_phase3: ["P1-3", "P1-4", "P1-5", "P1-6", "P1-7", "P1-8", "P1-10", "P1-12", "P2-1", "P2-2", "P2-3", "P2-5", "P2-6", "P2-7", "P2-8", "P2-10", "P2-11", "P2-12", "P2-13", "P2-14"]
+  side_findings_phase2: ["fintech-feb29-leap-day-crash", "crlf-lf-whole-file-churn"]
 
 decisions_made:
   - "2026-05-05: Repo name confirmed as `synth-datagen`. Reason: kebab-case PyPI standard, semantic, tool-grade."
@@ -829,14 +831,17 @@ decisions_made:
   - "2026-05-05: RNG salts: 0xD15C0UNT (existing), 0x5AA50000 (SaaS), 0x5DDA50000 (Pharma)."
   - "2026-05-05: Pharma benchmarks: DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse."
   - "2026-05-05: Filename convention adopted: prompts/{00_master, audit/01_handoff, audit/02_workflow, saas/03_extension, pharma/04_integration_notes, pharma/05_implementation}.md"
-  - "2026-05-05: Pre-flight complete. Skills installed (Superpowers full + ECC selective: python-patterns, python-testing, search-first, agentshield). Tag v0.1.0-preaudit pushed. Commit d954b50 includes prompts/ folder."
-  - "2026-05-05: includeCoAuthoredBy set to false in user-level Claude Code settings. Verified clean author trailer in commit d954b50."
+  - "2026-05-05: Pre-flight complete. Skills installed (Superpowers full + ECC selective: python-patterns, python-testing, search-first, security-scan). Tag v0.1.0-preaudit pushed. Commit d954b50 includes prompts/ folder."
+  - "2026-05-05: ECC `agentshield` skill replaced by `security-scan` (upstream rename in ECC repo). Master/02 references updated where applicable."
+  - "2026-05-05: includeCoAuthoredBy set to false in user-level Claude Code settings. Verified clean author trailer in all Phase 2 commits."
   - "2026-05-05: Phase 1 audit complete. Health score 6.5/10. 38 findings (3 P0, 12 P1, 14 P2, 9 P3). All 4 classic scenarios (retail/saas/fintech/logistics) reproduce empty diff with seed=42. Test coverage 91%, ruff lint clean, security scan zero real bugs. Architectural blocker: P0-3 shared self.rng across generators — mandatory fix as first commit in Phase 2."
   - "2026-05-05: Phase 2 scope decided: 9 [ADDRESS] findings (P0-1 LICENSE, P0-2 package rename, P0-3 RNG factory, P1-1 src layout, P1-2 single CLI, P1-9 mypy errors, P1-11 kupferkanne RNG, P2-4 distribute_counts seed, P2-9 SchemaType dead values). 29 findings [DEFER] to Phase 3/4 or post-v0.2.0."
+  - "2026-05-05: Phase 2 complete and merged (f6bdb8b). All 9 [ADDRESS] findings closed across 9 commits on feat/refactor-from-audit. RNG factory (src/synth_datagen/rng.py) established as architectural foundation. Baseline-diff harness (scripts/baseline_diff.py) added as reusable infrastructure for Phase 5/6. Tests 127 → 140 (+13 contract tests for RNG factory + unified CLI). Coverage 91% held. Pytest verified locally on Python 3.13 (5m41s) and 3.12 (6m06s) — both 140 passed. Tag v0.2.0-rc1 pushed."
+  - "2026-05-05: Side-findings logged in audit_report.md L495-510 for Phase 3 fix queue: (a) Feb-29 leap-day crash in fintech default-scale (latent bug surfaced when capturing baseline; harness uses small row overrides to side-step); (b) CRLF/LF whole-file churn from VS Code editor normalization (cosmetic only, CSV bytes diff empty)."
 
 known_blockers: []
-last_action: "2026-05-05: Phase 1 complete. audit_report.md committed at eedaa1d (next commit). 9 findings tagged [ADDRESS], 29 [DEFER]. GO for Phase 2."
-next_action: "Phase 2 — branch feat/refactor-from-audit. Start with P0-3 RNG factory (architectural foundation, must precede other refactors). Salt convention: existing streams salt=0 for math-identical output, new streams use registered salts (0xD15C0UNT, 0x5AA50000, 0x5DDA50000). Then proceed with P0-1, P0-2, P1-1, P1-2, P1-9, P1-11, P2-4, P2-9."
+last_action: "2026-05-05: Phase 2 merged to main (f6bdb8b), tagged v0.2.0-rc1, pushed to origin. Branch feat/refactor-from-audit closed."
+next_action: "Phase 3 — branch feat/test-hardening. Priority order: (1) .gitattributes + ruff format in single commit (CRLF cleanup, P1-10); (2) Fix Feb-29 leap-day fintech crash + regression test; (3) Hypothesis property tests 5+ per scenario (P2-6); (4) Reproducibility tests for fintech/logistics (P2-7); (5) CSV roundtrip / byte-equality tests (P2-8); (6) Slow-test trim < 60s (P1-12); (7) Coverage hardening for parquet_exporter / saas_v3/cli / sql_exporter (P2-14); (8) CI workflow .github/workflows/ci.yml on Python 3.11/3.12/3.13 (P1-4); (9) pre-commit config (P1-5). Skills to use explicitly: python-testing, test-driven-development, verification-before-completion, code-reviewer agent at session end."
 
 repo_state:
   is_public: false
