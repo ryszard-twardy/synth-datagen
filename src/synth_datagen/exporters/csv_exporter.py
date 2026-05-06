@@ -55,7 +55,9 @@ class CsvExporter:
                     first = False
                 else:
                     # Append without repeating header
-                    chunk.to_csv(fh, index=False, header=False, quoting=csv.QUOTE_NONNUMERIC)
+                    chunk.to_csv(
+                        fh, index=False, header=False, quoting=csv.QUOTE_NONNUMERIC
+                    )
 
         return out_path
 

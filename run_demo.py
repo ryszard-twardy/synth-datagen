@@ -13,7 +13,10 @@ from synth_datagen.config import (
     Scenario,
     SchemaType,
 )
-from synth_datagen.runtime_support import is_missing_runtime_dependency, missing_dependency_message
+from synth_datagen.runtime_support import (
+    is_missing_runtime_dependency,
+    missing_dependency_message,
+)
 
 SMALL = {
     # retail

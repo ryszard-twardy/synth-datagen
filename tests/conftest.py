@@ -14,14 +14,24 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-import pandas as pd
-import pytest
+# Imports below the sys.path setup are intentional — required so tests can
+# import the unpackaged top-level ``run_demo`` script. Ruff E402 is silenced
+# at the line level rather than via a global ignore so other files still get
+# the import-order check.
+import pandas as pd  # noqa: E402
+import pytest  # noqa: E402
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
-from synth_datagen.generators.retail import RetailGenerator
-from synth_datagen.schema_builder import SchemaBuilder
-from synth_datagen.schema_builder import SchemaGraph
-from synth_datagen.utils import seed_everything
+from synth_datagen.config import (  # noqa: E402
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
+from synth_datagen.generators.retail import RetailGenerator  # noqa: E402
+from synth_datagen.schema_builder import SchemaBuilder, SchemaGraph  # noqa: E402
+from synth_datagen.utils import seed_everything  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -36,15 +46,15 @@ def retail_config(tmp_path_factory) -> GeneratorConfig:
         output_dir=tmp,
         chunk_size=500,
         row_overrides={
-            "dim_customers":          200,
-            "dim_products":           100,
-            "dim_stores":             20,
-            "dim_date":               365,
-            "dim_promotions":         30,
-            "fact_orders":            500,
-            "fact_order_items":       1_000,
-            "fact_payments":          500,
-            "bridge_order_promotions":300,
+            "dim_customers": 200,
+            "dim_products": 100,
+            "dim_stores": 20,
+            "dim_date": 365,
+            "dim_promotions": 30,
+            "fact_orders": 500,
+            "fact_order_items": 1_000,
+            "fact_payments": 500,
+            "bridge_order_promotions": 300,
         },
         data_quality=DataQualityConfig(level=DataQuality.NONE),
         export_sqlite=False,

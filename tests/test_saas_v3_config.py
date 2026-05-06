@@ -15,7 +15,11 @@ def test_saas_v3_default_config_uses_requested_business_defaults() -> None:
 
     assert config.row_targets.accounts == 1500
     assert config.history.lookback_years == 2.5
-    assert [plan.name for plan in config.plans] == ["Starter", "Professional", "Enterprise"]
+    assert [plan.name for plan in config.plans] == [
+        "Starter",
+        "Professional",
+        "Enterprise",
+    ]
     assert [plan.monthly_price for plan in config.plans] == [49.0, 149.0, 399.0]
     assert config.output.root_dir.as_posix().endswith("out/saas_v3")
     assert config.defects.bad_date_formats.rate == 0.003

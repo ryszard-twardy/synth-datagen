@@ -26,6 +26,6 @@ def missing_dependency_message(module_name: str) -> str:
     return (
         f"Missing runtime dependency '{module_name}'.\n"
         "This repo requires Python 3.11+.\n"
-        'From the repo root, install dependencies with a 3.11+ interpreter, for example:\n'
-        '  py -3.11 -m pip install -e ".[dev]"'
+        "From the repo root, install dependencies with a 3.11+ interpreter, for example:\n"
+        '  py -3.11 -m pip install -e ".[test]"'
     )

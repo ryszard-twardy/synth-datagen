@@ -11,6 +11,11 @@ from synth_datagen.saas_v3.ids import pattern_for
 from synth_datagen.saas_v3.validate import validate_generated_dataset
 
 
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SMOKE_CONFIG = REPO_ROOT / "configs" / "saas_v3.smoke.yaml"
 
@@ -34,12 +39,22 @@ def test_saas_v3_deterministic_core_tables(tmp_path) -> None:
     result_a = SaaSV3Engine(config_a).generate(OutputMode.BOTH)
     result_b = SaaSV3Engine(config_b).generate(OutputMode.BOTH)
 
-    for table_name in ["accounts", "users", "subscriptions", "invoices", "support_tickets", "nps_responses"]:
+    for table_name in [
+        "accounts",
+        "users",
+        "subscriptions",
+        "invoices",
+        "support_tickets",
+        "nps_responses",
+    ]:
         left = result_a.clean.materialize(table_name)
         right = result_b.clean.materialize(table_name)
         pd.testing.assert_frame_equal(left, right)
 
-    pd.testing.assert_frame_equal(result_a.clean.materialize("product_events"), result_b.clean.materialize("product_events"))
+    pd.testing.assert_frame_equal(
+        result_a.clean.materialize("product_events"),
+        result_b.clean.materialize("product_events"),
+    )
 
 
 def test_saas_v3_clean_validation_and_id_formats(smoke_result) -> None:
@@ -55,13 +70,32 @@ def test_saas_v3_clean_validation_and_id_formats(smoke_result) -> None:
     tickets = result.clean.materialize("support_tickets")
     nps = result.clean.materialize("nps_responses")
 
-    assert accounts["account_id"].astype(str).str.fullmatch(pattern_for("account_id")).all()
+    assert (
+        accounts["account_id"]
+        .astype(str)
+        .str.fullmatch(pattern_for("account_id"))
+        .all()
+    )
     assert users["user_id"].astype(str).str.fullmatch(pattern_for("user_id")).all()
-    assert subscriptions["subscription_id"].astype(str).str.fullmatch(pattern_for("subscription_id")).all()
+    assert (
+        subscriptions["subscription_id"]
+        .astype(str)
+        .str.fullmatch(pattern_for("subscription_id"))
+        .all()
+    )
     assert events["event_id"].astype(str).str.fullmatch(pattern_for("event_id")).all()
-    assert invoices["invoice_id"].astype(str).str.fullmatch(pattern_for("invoice_id")).all()
-    assert tickets["ticket_id"].astype(str).str.fullmatch(pattern_for("ticket_id")).all()
-    assert nps["response_id"].astype(str).str.fullmatch(pattern_for("response_id")).all()
+    assert (
+        invoices["invoice_id"]
+        .astype(str)
+        .str.fullmatch(pattern_for("invoice_id"))
+        .all()
+    )
+    assert (
+        tickets["ticket_id"].astype(str).str.fullmatch(pattern_for("ticket_id")).all()
+    )
+    assert (
+        nps["response_id"].astype(str).str.fullmatch(pattern_for("response_id")).all()
+    )
 
 
 def test_saas_v3_dirty_validation_and_required_defects(smoke_result) -> None:

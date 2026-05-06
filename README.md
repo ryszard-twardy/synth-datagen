@@ -26,13 +26,13 @@ Prerequisite: Python 3.11 or 3.12.
 From the repo root:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[test]"
 ```
 
 If `python --version` shows Python 3.10.x, use a 3.11+ interpreter instead. On Windows, for example:
 
 ```bash
-py -3.11 -m pip install -e ".[dev]"
+py -3.11 -m pip install -e ".[test]"
 ```
 
 ## Quick Start

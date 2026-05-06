@@ -53,8 +53,12 @@ class MonthlySalesFlatAuditProfile(StrictModel):
 
 class MonthlySalesBadDataProfile(StrictModel):
     enabled: bool = False
-    normalized: MonthlySalesNormalizedAuditProfile = Field(default_factory=MonthlySalesNormalizedAuditProfile)
-    flat: MonthlySalesFlatAuditProfile = Field(default_factory=MonthlySalesFlatAuditProfile)
+    normalized: MonthlySalesNormalizedAuditProfile = Field(
+        default_factory=MonthlySalesNormalizedAuditProfile
+    )
+    flat: MonthlySalesFlatAuditProfile = Field(
+        default_factory=MonthlySalesFlatAuditProfile
+    )
 
     def has_flat_defects(self) -> bool:
         return any(rate > 0 for rate in self.flat.model_dump().values())
@@ -71,7 +75,9 @@ class MonthlySalesOutputProfile(StrictModel):
 class MonthlySalesProfile(StrictModel):
     period: MonthlySalesPeriodProfile
     volume: MonthlySalesVolumeProfile
-    bad_data: MonthlySalesBadDataProfile = Field(default_factory=MonthlySalesBadDataProfile)
+    bad_data: MonthlySalesBadDataProfile = Field(
+        default_factory=MonthlySalesBadDataProfile
+    )
     output: MonthlySalesOutputProfile = Field(default_factory=MonthlySalesOutputProfile)
 
 

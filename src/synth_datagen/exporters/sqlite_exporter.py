@@ -61,7 +61,11 @@ class SqliteExporter:
             else:
                 unique = " UNIQUE" if column.unique else ""
                 column_defs.append(f'"{column.name}" {sql_type}{nullable}{unique}')
-        return f'CREATE TABLE IF NOT EXISTS "{table.name}" (\n    ' + ",\n    ".join(column_defs) + "\n);\n"
+        return (
+            f'CREATE TABLE IF NOT EXISTS "{table.name}" (\n    '
+            + ",\n    ".join(column_defs)
+            + "\n);\n"
+        )
 
     def _insert_all(
         self,
@@ -72,7 +76,9 @@ class SqliteExporter:
             for chunk in chunks:
                 clean = chunk.copy()
                 for column in clean.select_dtypes(include=["object", "string"]).columns:
-                    clean[column] = clean[column].astype(str).where(clean[column].notna(), None)
+                    clean[column] = (
+                        clean[column].astype(str).where(clean[column].notna(), None)
+                    )
                 clean.to_sql(
                     table.name,
                     conn,
@@ -89,4 +95,3 @@ class SqliteExporter:
                 f'CREATE INDEX IF NOT EXISTS "{idx_name}" '
                 f'ON "{relation.source_table}" ("{relation.source_column}");'
             )
-

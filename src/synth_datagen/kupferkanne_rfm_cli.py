@@ -24,8 +24,16 @@ def main() -> None:
 
 @app.command("generate")
 def generate(
-    config: Path = typer.Option(..., "--config", exists=True, dir_okay=False, help="Path to the Kupferkanne YAML config."),
-    output: Path | None = typer.Option(None, "--output", "-o", help="Output directory override."),
+    config: Path = typer.Option(
+        ...,
+        "--config",
+        exists=True,
+        dir_okay=False,
+        help="Path to the Kupferkanne YAML config.",
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output directory override."
+    ),
     seed: int = typer.Option(42, "--seed", help="Random seed for reproducibility."),
     discount_variation: bool = typer.Option(
         True,
@@ -43,7 +51,9 @@ def generate(
 
     resolved = load_config(config)
     target_output = output or resolved.output.default_dir
-    outputs = generate_dataset(resolved, target_output, seed=seed, discount_variation=discount_variation)
+    outputs = generate_dataset(
+        resolved, target_output, seed=seed, discount_variation=discount_variation
+    )
     for name, path in outputs.items():
         typer.echo(f"{name}: {path}")
     manifest_path = outputs.get("manifest")

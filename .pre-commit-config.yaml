@@ -1,0 +1,59 @@
+# Pre-commit hooks for the synth-datagen repo (Phase 3, P9).
+#
+# Install with:
+#     pip install pre-commit
+#     pre-commit install
+#
+# Run against the whole repo on demand:
+#     pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # ruff replaces black/isort/flake8. The official mirror tracks ruff
+  # versions and is the recommended pre-commit source.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # mypy runs against the source tree only — tests and scripts are
+  # excluded for parity with the CI matrix and to keep the hook fast.
+  # ``stages: [manual]`` keeps it out of the default ``pre-commit run``
+  # path so the hook matches CI's advisory posture: contributors opt in
+  # with ``pre-commit run mypy --all-files --hook-stage manual`` (or run
+  # ``mypy src/`` directly). Flip back to default stages once the
+  # remaining 57 mypy errors in the wider codebase are fixed.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        stages: [manual]
+        files: ^src/
+        additional_dependencies:
+          - "types-PyYAML>=6.0.0"
+          - "pydantic>=2.0.0"
+        args: ["--ignore-missing-imports"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        # Mirror the CI invocation exactly: ``bandit -r src/ -ll``.
+        # ``pass_filenames: false`` stops pre-commit from appending each
+        # changed file path; otherwise -r becomes a no-op per file and
+        # output diverges from CI.
+        entry: bandit -r src/ -ll
+        pass_filenames: false
+        files: ^src/

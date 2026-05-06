@@ -65,7 +65,9 @@ def date_range_samples(
 ) -> np.ndarray:
     delta_days = (end - start).days
     offsets = rng.integers(0, delta_days + 1, size=size)
-    return np.array([start + timedelta(days=int(offset)) for offset in offsets], dtype=object)
+    return np.array(
+        [start + timedelta(days=int(offset)) for offset in offsets], dtype=object
+    )
 
 
 def datetime_range_samples(
@@ -76,7 +78,9 @@ def datetime_range_samples(
 ) -> np.ndarray:
     delta_seconds = int((end - start).total_seconds())
     offsets = rng.integers(0, delta_seconds + 1, size=size)
-    return np.array([start + timedelta(seconds=int(offset)) for offset in offsets], dtype=object)
+    return np.array(
+        [start + timedelta(seconds=int(offset)) for offset in offsets], dtype=object
+    )
 
 
 def sequential_ids(start: int, size: int) -> np.ndarray:
@@ -133,13 +137,27 @@ def add_months(value: datetime, months: int) -> datetime:
     month = month_index % 12 + 1
     day = min(
         value.day,
-        [31, 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28, 31, 30, 31, 30,
-         31, 31, 30, 31, 30, 31][month - 1],
+        [
+            31,
+            29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ][month - 1],
     )
     return value.replace(year=year, month=month, day=day)
 
 
-def month_starts_between(start: datetime, end: datetime, step_months: int) -> list[datetime]:
+def month_starts_between(
+    start: datetime, end: datetime, step_months: int
+) -> list[datetime]:
     values: list[datetime] = []
     current = start.replace(hour=0, minute=0, second=0, microsecond=0)
     while current <= end:
@@ -168,11 +186,29 @@ def protected_columns_for_table(table: TableConfig) -> set[str]:
             SemanticType.IP_ADDRESS,
         }:
             protected.add(column.name)
-        if column.name in {"full_date", "created_at", "shipped_at", "delivered_at", "paid_at",
-                           "started_at", "ended_at", "issued_at", "due_at", "occurred_at",
-                           "opened_at", "closed_at", "last_updated", "last_login",
-                           "issue_date", "expiry_date", "dob", "valid_from", "valid_to",
-                           "estimated_at", "disbursed_at"}:
+        if column.name in {
+            "full_date",
+            "created_at",
+            "shipped_at",
+            "delivered_at",
+            "paid_at",
+            "started_at",
+            "ended_at",
+            "issued_at",
+            "due_at",
+            "occurred_at",
+            "opened_at",
+            "closed_at",
+            "last_updated",
+            "last_login",
+            "issue_date",
+            "expiry_date",
+            "dob",
+            "valid_from",
+            "valid_to",
+            "estimated_at",
+            "disbursed_at",
+        }:
             protected.add(column.name)
     return protected
 
@@ -226,7 +262,9 @@ def _generate_unique_semantic_value(
         elif column.semantic_type == SemanticType.DOMAIN:
             candidate = f"dup-{sequence}.example.com"
         elif column.semantic_type == SemanticType.SKU:
-            prefix = "".join(ch for ch in seed_text if ch.isalpha() or ch == "-") or "SKU-"
+            prefix = (
+                "".join(ch for ch in seed_text if ch.isalpha() or ch == "-") or "SKU-"
+            )
             candidate = f"{prefix}{sequence:08d}"
         elif column.semantic_type == SemanticType.REFERENCE:
             base = seed_text.split("-", 1)[0] if seed_text else "REF"
@@ -249,17 +287,26 @@ def inject_duplicates(
         return df
 
     unique_columns = [col for col in table.columns if col.unique]
-    if any(col.name != table.pk_column and col.name in table.fk_columns for col in unique_columns):
+    if any(
+        col.name != table.pk_column and col.name in table.fk_columns
+        for col in unique_columns
+    ):
         return df
 
     n_dupes = max(1, int(len(df) * dupe_rate))
-    picked_rows = df.iloc[rng.integers(0, len(df), size=n_dupes)].copy().reset_index(drop=True)
+    picked_rows = (
+        df.iloc[rng.integers(0, len(df), size=n_dupes)].copy().reset_index(drop=True)
+    )
 
     pk_column = table.pk_column
     if is_identifier_column(pk_column):
-        new_values = next_ids(pk_column, unique_state.setdefault(pk_column, set()), n_dupes)
+        new_values = next_ids(
+            pk_column, unique_state.setdefault(pk_column, set()), n_dupes
+        )
     else:
-        new_values = _next_numeric_values(unique_state.setdefault(pk_column, set()), n_dupes)
+        new_values = _next_numeric_values(
+            unique_state.setdefault(pk_column, set()), n_dupes
+        )
     picked_rows[pk_column] = new_values
     unique_state[pk_column].update(new_values)
 
@@ -273,7 +320,9 @@ def inject_duplicates(
         state = unique_state.setdefault(column.name, set())
         replacements: list[str] = []
         for index, value in enumerate(picked_rows[column.name].tolist(), start=1):
-            replacement = _generate_unique_semantic_value(column, value, len(state) + index, state)
+            replacement = _generate_unique_semantic_value(
+                column, value, len(state) + index, state
+            )
             state.add(replacement)
             replacements.append(replacement)
         picked_rows[column.name] = replacements
@@ -290,7 +339,9 @@ def inject_outliers(
     if outlier_rate == 0.0:
         return df
     numeric_columns = [
-        col for col in df.select_dtypes(include=[np.number]).columns if col not in protected_cols
+        col
+        for col in df.select_dtypes(include=[np.number]).columns
+        if col not in protected_cols
     ]
     for column in numeric_columns:
         original_dtype = df[column].dtype
@@ -327,7 +378,7 @@ def inject_typos(
                 continue
             position = int(rng.integers(1, len(text) - 1))
             replacement = str(rng.choice(list(string.ascii_lowercase)))
-            df.at[idx, column] = text[:position] + replacement + text[position + 1:]
+            df.at[idx, column] = text[:position] + replacement + text[position + 1 :]
     return df
 
 

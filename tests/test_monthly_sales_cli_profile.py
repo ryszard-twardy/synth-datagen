@@ -47,14 +47,25 @@ def test_monthly_sales_cli_profile_generates_manifest(tmp_path) -> None:
 
     result = runner.invoke(
         monthly_sales_cli.app,
-        ["generate", "--profile-config", str(profile_path), "--output", str(output_dir)],
+        [
+            "generate",
+            "--profile-config",
+            str(profile_path),
+            "--output",
+            str(output_dir),
+        ],
     )
 
     assert result.exit_code == 0, result.output
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["profile_config"].endswith("monthly_sales.audit.yaml")
-    assert manifest["defect_summary"]["normalized"]["null_required_fields"]["actual_count"] > 0
-    assert manifest["defect_summary"]["flat"]["bad_orderdate_formats"]["actual_count"] > 0
+    assert (
+        manifest["defect_summary"]["normalized"]["null_required_fields"]["actual_count"]
+        > 0
+    )
+    assert (
+        manifest["defect_summary"]["flat"]["bad_orderdate_formats"]["actual_count"] > 0
+    )
 
 
 def test_monthly_sales_cli_profile_allows_discount_override(tmp_path) -> None:

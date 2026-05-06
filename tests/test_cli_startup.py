@@ -47,7 +47,15 @@ def test_monthly_generate_rejects_invalid_layout_before_runtime_import(monkeypat
 
     result = runner.invoke(
         monthly_sales_cli.app,
-        ["generate", "--month", "2025-01", "--orders-per-month", "10", "--layout", "invalid"],
+        [
+            "generate",
+            "--month",
+            "2025-01",
+            "--orders-per-month",
+            "10",
+            "--layout",
+            "invalid",
+        ],
     )
 
     assert result.exit_code == 2
@@ -60,7 +68,15 @@ def test_monthly_generate_reports_missing_runtime_dependency(monkeypatch):
 
     result = runner.invoke(
         monthly_sales_cli.app,
-        ["generate", "--month", "2025-01", "--orders-per-month", "10", "--layout", "monthly"],
+        [
+            "generate",
+            "--month",
+            "2025-01",
+            "--orders-per-month",
+            "10",
+            "--layout",
+            "monthly",
+        ],
     )
 
     assert result.exit_code == 1
@@ -69,7 +85,10 @@ def test_monthly_generate_reports_missing_runtime_dependency(monkeypatch):
 
 def test_monthly_generate_profile_rejects_conflicting_flags(monkeypatch, tmp_path):
     profile_path = tmp_path / "profile.yaml"
-    profile_path.write_text("period:\n  start_date: 2025-01-01\n  end_date: 2025-01-31\nvolume:\n  max_orders_per_month: 25\n", encoding="utf-8")
+    profile_path.write_text(
+        "period:\n  start_date: 2025-01-01\n  end_date: 2025-01-31\nvolume:\n  max_orders_per_month: 25\n",
+        encoding="utf-8",
+    )
 
     def fake_runtime():
         def fail_if_profile_loaded(_path):

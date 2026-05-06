@@ -111,10 +111,12 @@ def numeric_suffix(value: str, column_name: str) -> int:
         raise KeyError(f"No ID spec registered for column '{column_name}'")
     if not isinstance(value, str) or not re.fullmatch(spec.pattern, value):
         raise ValueError(f"Value '{value}' does not match ID format for {column_name}")
-    return int(value[len(spec.prefix):])
+    return int(value[len(spec.prefix) :])
 
 
-def next_ids(column_name: str, existing_values: Iterable[object], count: int) -> list[str]:
+def next_ids(
+    column_name: str, existing_values: Iterable[object], count: int
+) -> list[str]:
     if count <= 0:
         return []
     spec = get_id_spec(column_name)
@@ -125,7 +127,7 @@ def next_ids(column_name: str, existing_values: Iterable[object], count: int) ->
         if value is None:
             continue
         if isinstance(value, str) and re.fullmatch(spec.pattern, value):
-            max_seen = max(max_seen, int(value[len(spec.prefix):]))
+            max_seen = max(max_seen, int(value[len(spec.prefix) :]))
     return [spec.format(max_seen + idx + 1) for idx in range(count)]
 
 
@@ -138,7 +140,7 @@ def max_numeric_suffix(column_name: str, existing_values: Iterable[object]) -> i
         if value is None:
             continue
         if isinstance(value, str) and re.fullmatch(spec.pattern, value):
-            max_seen = max(max_seen, int(value[len(spec.prefix):]))
+            max_seen = max(max_seen, int(value[len(spec.prefix) :]))
     return max_seen
 
 

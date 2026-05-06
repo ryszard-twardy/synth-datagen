@@ -33,8 +33,10 @@ def _sanitise_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
         if pd.api.types.is_datetime64_any_dtype(dtype):
             continue
 
-        # Object columns may hold Python date/datetime/None or mixed types
-        if dtype is object:
+        # Object columns may hold Python date/datetime/None or mixed types.
+        # NB: ``dtype is object`` is False for numpy's object dtype — use the
+        # public predicate so this branch actually runs.
+        if pd.api.types.is_object_dtype(dtype):
             # Sample a non-null value to decide how to handle the column
             sample = series.dropna().head(1)
             if len(sample) == 0:
@@ -47,7 +49,9 @@ def _sanitise_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
                 # Convert date objects to datetime (Arrow date32 via Timestamp)
                 chunk[col] = pd.to_datetime(
                     series.apply(
-                        lambda d: pd.Timestamp(d) if isinstance(d, datetime.date) else pd.NaT
+                        lambda d: (
+                            pd.Timestamp(d) if isinstance(d, datetime.date) else pd.NaT
+                        )
                     ),
                     errors="coerce",
                 )

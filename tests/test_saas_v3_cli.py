@@ -6,6 +6,12 @@ from typer.testing import CliRunner
 
 from synth_datagen.saas_v3.cli import app
 
+import pytest
+
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
 
 runner = CliRunner()
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +20,9 @@ SMOKE_CONFIG = REPO_ROOT / "configs" / "saas_v3.smoke.yaml"
 
 def test_saas_v3_cli_smoke_test_writes_outputs(tmp_path) -> None:
     output_dir = tmp_path / "smoke_run"
-    result = runner.invoke(app, ["smoke-test", "--config", str(SMOKE_CONFIG), "--output", str(output_dir)])
+    result = runner.invoke(
+        app, ["smoke-test", "--config", str(SMOKE_CONFIG), "--output", str(output_dir)]
+    )
 
     assert result.exit_code == 0, result.output
     assert (output_dir / "metadata" / "effective_config.yaml").exists()

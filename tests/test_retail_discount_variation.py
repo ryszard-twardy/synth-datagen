@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 
-from synth_datagen.config import DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.generators.retail import RetailGenerator
 from synth_datagen.schema_builder import SchemaBuilder
 from synth_datagen.utils import seed_everything
@@ -12,13 +18,29 @@ from tests.helpers import generate_scenario_dfs
 def _margin_by_segment(dfs: dict[str, pd.DataFrame]) -> pd.Series:
     items = (
         dfs["fact_order_items"]
-        .merge(dfs["fact_orders"][["order_id", "customer_id"]], on="order_id", how="left")
-        .merge(dfs["dim_customers"][["customer_id", "segment"]], on="customer_id", how="left")
-        .merge(dfs["dim_products"][["product_id", "cost_price"]], on="product_id", how="left")
+        .merge(
+            dfs["fact_orders"][["order_id", "customer_id"]], on="order_id", how="left"
+        )
+        .merge(
+            dfs["dim_customers"][["customer_id", "segment"]],
+            on="customer_id",
+            how="left",
+        )
+        .merge(
+            dfs["dim_products"][["product_id", "cost_price"]],
+            on="product_id",
+            how="left",
+        )
     )
     revenue = pd.to_numeric(items["line_total"], errors="coerce")
-    cost = pd.to_numeric(items["qty"], errors="coerce") * pd.to_numeric(items["cost_price"], errors="coerce")
-    summary = items.assign(revenue=revenue, cost=cost).groupby("segment", as_index=True)[["revenue", "cost"]].sum()
+    cost = pd.to_numeric(items["qty"], errors="coerce") * pd.to_numeric(
+        items["cost_price"], errors="coerce"
+    )
+    summary = (
+        items.assign(revenue=revenue, cost=cost)
+        .groupby("segment", as_index=True)[["revenue", "cost"]]
+        .sum()
+    )
     return (summary["revenue"] - summary["cost"]) / summary["revenue"]
 
 
@@ -79,6 +101,8 @@ def test_retail_discount_variation_can_be_disabled(tmp_path) -> None:
         if table.name == "fact_order_items":
             items = df
         if table.pk_column in df.columns:
-            fk_pools[f"{table.name}.{table.pk_column}"] = df[table.pk_column].dropna().to_numpy()
+            fk_pools[f"{table.name}.{table.pk_column}"] = (
+                df[table.pk_column].dropna().to_numpy()
+            )
     assert items is not None
     assert items["discount_pct"].max() <= 0.25

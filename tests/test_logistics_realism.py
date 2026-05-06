@@ -19,8 +19,13 @@ def test_logistics_shipment_item_costs_match_products(tmp_path) -> None:
         how="left",
         suffixes=("_item", "_product"),
     )
-    assert (merged["unit_cost_item"].round(2) == merged["unit_cost_product"].round(2)).all()
-    assert (merged["line_value"].round(2) == (merged["qty"] * merged["unit_cost_item"]).round(2)).all()
+    assert (
+        merged["unit_cost_item"].round(2) == merged["unit_cost_product"].round(2)
+    ).all()
+    assert (
+        merged["line_value"].round(2)
+        == (merged["qty"] * merged["unit_cost_item"]).round(2)
+    ).all()
 
 
 def test_logistics_transport_and_delivery_are_consistent(tmp_path) -> None:
@@ -33,7 +38,6 @@ def test_logistics_transport_and_delivery_are_consistent(tmp_path) -> None:
     assert (merged["transport_mode"] == merged["transport"]).all()
     delivered_mask = merged["delivered_at"].notna()
     assert (
-        pd.to_datetime(merged.loc[delivered_mask, "delivered_at"]) >=
-        pd.to_datetime(merged.loc[delivered_mask, "shipped_at"])
+        pd.to_datetime(merged.loc[delivered_mask, "delivered_at"])
+        >= pd.to_datetime(merged.loc[delivered_mask, "shipped_at"])
     ).all()
-

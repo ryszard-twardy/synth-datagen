@@ -27,7 +27,10 @@ class SaaSV3Exporter:
     def resolve_run_root(self, output_override: Path | None = None) -> Path:
         if output_override is not None:
             return Path(output_override)
-        return Path(self.config.output.root_dir) / f"{self.config.run.name}_seed{self.config.run.seed}_{self.config.history.as_of_date.isoformat()}"
+        return (
+            Path(self.config.output.root_dir)
+            / f"{self.config.run.name}_seed{self.config.run.seed}_{self.config.history.as_of_date.isoformat()}"
+        )
 
     def export_result(
         self,
@@ -52,7 +55,9 @@ class SaaSV3Exporter:
             paths.update(self._export_dataset(result.dirty, "dirty", run_root))
         return paths
 
-    def _export_dataset(self, dataset: GeneratedTables, mode: str, run_root: Path) -> dict[str, Path]:
+    def _export_dataset(
+        self, dataset: GeneratedTables, mode: str, run_root: Path
+    ) -> dict[str, Path]:
         mode_root = run_root / mode
         csv_dir = mode_root / "csv"
         parquet_dir = mode_root / "parquet"
@@ -75,7 +80,13 @@ class SaaSV3Exporter:
                 self._write_parquet_batches(parquet_path, batches)
             if OutputFormat.BIGQUERY_SCHEMA in self.config.output.formats:
                 schema_path = schema_dir / f"{table_name}.json"
-                self._write_bigquery_schema(schema_path, table_name, batches[0] if batches else pd.DataFrame(columns=EXPORTED_COLUMNS[table_name]))
+                self._write_bigquery_schema(
+                    schema_path,
+                    table_name,
+                    batches[0]
+                    if batches
+                    else pd.DataFrame(columns=EXPORTED_COLUMNS[table_name]),
+                )
 
         manifest = {
             "mode": mode,
@@ -87,7 +98,9 @@ class SaaSV3Exporter:
             "target_row_counts": self.config.row_target_map,
             "defect_summary": dataset.metadata.get("defect_summary", {}),
         }
-        manifest_path.write_text(json.dumps(manifest, indent=2, default=str), encoding="utf-8")
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, default=str), encoding="utf-8"
+        )
         return {f"{mode}_root": mode_root, f"{mode}_manifest": manifest_path}
 
     def _write_csv_batches(self, path: Path, batches: list[pd.DataFrame]) -> None:
@@ -103,7 +116,10 @@ class SaaSV3Exporter:
         stringify_columns = self._columns_to_stringify_for_parquet(batches)
         try:
             for batch in batches:
-                table = pa.Table.from_pandas(self._prepare_batch_for_parquet(batch, stringify_columns), preserve_index=False)
+                table = pa.Table.from_pandas(
+                    self._prepare_batch_for_parquet(batch, stringify_columns),
+                    preserve_index=False,
+                )
                 if writer is None:
                     writer = pq.ParquetWriter(path, table.schema)
                 writer.write_table(table)
@@ -114,38 +130,54 @@ class SaaSV3Exporter:
             if writer is not None:
                 writer.close()
 
-    def _columns_to_stringify_for_parquet(self, batches: list[pd.DataFrame]) -> set[str]:
+    def _columns_to_stringify_for_parquet(
+        self, batches: list[pd.DataFrame]
+    ) -> set[str]:
         observed_types: dict[str, set[type]] = {}
         for batch in batches:
             for column in batch.columns:
                 non_null = batch[column].dropna()
                 if non_null.empty:
                     continue
-                observed_types.setdefault(column, set()).update(type(value) for value in non_null.head(100).tolist())
+                observed_types.setdefault(column, set()).update(
+                    type(value) for value in non_null.head(100).tolist()
+                )
         return {
             column
             for column, types in observed_types.items()
             if len(types) > 1 or str in types
         }
 
-    def _prepare_batch_for_parquet(self, batch: pd.DataFrame, stringify_columns: set[str]) -> pd.DataFrame:
+    def _prepare_batch_for_parquet(
+        self, batch: pd.DataFrame, stringify_columns: set[str]
+    ) -> pd.DataFrame:
         prepared = batch.copy()
         for column in prepared.columns:
             if column not in stringify_columns and prepared[column].dtype != object:
                 continue
             if column in stringify_columns:
-                prepared[column] = prepared[column].map(lambda value: None if pd.isna(value) else str(value))
+                prepared[column] = prepared[column].map(
+                    lambda value: None if pd.isna(value) else str(value)
+                )
                 continue
             non_null = prepared[column].dropna()
             types = {type(value) for value in non_null.head(100).tolist()}
             if len(types) > 1 or str in types:
-                prepared[column] = prepared[column].map(lambda value: None if pd.isna(value) else str(value))
+                prepared[column] = prepared[column].map(
+                    lambda value: None if pd.isna(value) else str(value)
+                )
         return prepared
 
-    def _write_bigquery_schema(self, path: Path, table_name: str, sample_df: pd.DataFrame) -> None:
+    def _write_bigquery_schema(
+        self, path: Path, table_name: str, sample_df: pd.DataFrame
+    ) -> None:
         fields = []
         for column in EXPORTED_COLUMNS[table_name]:
-            series = sample_df[column] if column in sample_df.columns else pd.Series(dtype=object)
+            series = (
+                sample_df[column]
+                if column in sample_df.columns
+                else pd.Series(dtype=object)
+            )
             fields.append(
                 {
                     "name": column,

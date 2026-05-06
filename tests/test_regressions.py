@@ -14,7 +14,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.generators.fintech import FintechGenerator
 from synth_datagen.generators.logistics import LogisticsGenerator
 from synth_datagen.generators.retail import RetailGenerator
@@ -40,7 +47,9 @@ def _generate_scenario_dfs(
         df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
         dfs[table.name] = df
         if table.pk_column in df.columns:
-            fk_pools[f"{table.name}.{table.pk_column}"] = df[table.pk_column].dropna().to_numpy()
+            fk_pools[f"{table.name}.{table.pk_column}"] = (
+                df[table.pk_column].dropna().to_numpy()
+            )
     return dfs, graph
 
 
@@ -243,12 +252,14 @@ def test_retail_payments_align_with_orders(tmp_path: Path) -> None:
     dfs, _ = _generate_scenario_dfs(config, RetailGenerator)
     orders = dfs["fact_orders"][["order_id", "created_at", "order_total", "currency"]]
     payments = dfs["fact_payments"]
-    merged = payments.merge(orders, on="order_id", how="left", suffixes=("_pay", "_order"))
+    merged = payments.merge(
+        orders, on="order_id", how="left", suffixes=("_pay", "_order")
+    )
     paid_mask = merged["paid_at"].notna()
     if paid_mask.any():
         assert (
-            pd.to_datetime(merged.loc[paid_mask, "paid_at"]) >=
-            pd.to_datetime(merged.loc[paid_mask, "created_at"])
+            pd.to_datetime(merged.loc[paid_mask, "paid_at"])
+            >= pd.to_datetime(merged.loc[paid_mask, "created_at"])
         ).all()
     completed_mask = merged["status"].isin(["completed", "refunded", "pending"])
     assert np.allclose(
@@ -280,7 +291,9 @@ def test_saas_invoice_account_matches_subscription(tmp_path: Path) -> None:
     )
     dfs, _ = _generate_scenario_dfs(config, SaasGenerator)
     merged = dfs["invoices"].merge(
-        dfs["subscriptions"][["sub_id", "account_id"]].rename(columns={"account_id": "sub_account_id"}),
+        dfs["subscriptions"][["sub_id", "account_id"]].rename(
+            columns={"account_id": "sub_account_id"}
+        ),
         on="sub_id",
         how="left",
     )
@@ -347,7 +360,15 @@ def test_logistics_shipment_transport_matches_carrier(tmp_path: Path) -> None:
 
 
 def test_retail_dim_date_respects_row_override(tmp_path: Path) -> None:
-    """Regression: dim_date generator should honor row_overrides."""
+    """Regression: dim_date generator should honor row_overrides.
+
+    Note: ``RetailGenerator.generate_table`` builds every table eagerly on
+    first call and caches the result, so a config with only
+    ``{"dim_date": 10}`` would still generate retail at default scale
+    (~200k rows) just to read out one table. P6 trim: pass small overrides
+    for every table so this regression test stays under 1s, while still
+    asserting the dim_date row count honours its override.
+    """
     config = GeneratorConfig(
         scenario=Scenario.RETAIL,
         schema_type=SchemaType.STAR,
@@ -355,7 +376,17 @@ def test_retail_dim_date_respects_row_override(tmp_path: Path) -> None:
         seed=42,
         output_dir=tmp_path / "retail_dim_date_override",
         chunk_size=500,
-        row_overrides={"dim_date": 10},
+        row_overrides={
+            "dim_customers": 50,
+            "dim_products": 30,
+            "dim_stores": 5,
+            "dim_date": 10,
+            "dim_promotions": 10,
+            "fact_orders": 50,
+            "fact_order_items": 100,
+            "fact_payments": 50,
+            "bridge_order_promotions": 30,
+        },
         data_quality=DataQualityConfig(level=DataQuality.NONE),
     )
     _, rng, faker = seed_everything(config.seed)

@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from synth_datagen.monthly_sales import MonthlyLayout, MonthlySalesConfig, build_month_plan
+from synth_datagen.monthly_sales import (
+    MonthlyLayout,
+    MonthlySalesConfig,
+    build_month_plan,
+)
 from synth_datagen.monthly_sales_profile import load_monthly_sales_profile
 
 

@@ -29,17 +29,24 @@ def test_retail_item_prices_match_catalog(tmp_path) -> None:
 def test_retail_temporal_and_status_rules(tmp_path) -> None:
     dfs, _ = generate_scenario_dfs(Scenario.RETAIL, tmp_path)
     orders = dfs["fact_orders"].merge(
-        dfs["dim_customers"][["customer_id", "created_at"]].rename(columns={"created_at": "customer_created_at"}),
+        dfs["dim_customers"][["customer_id", "created_at"]].rename(
+            columns={"created_at": "customer_created_at"}
+        ),
         on="customer_id",
         how="left",
     )
-    assert (pd.to_datetime(orders["created_at"]) >= pd.to_datetime(orders["customer_created_at"])).all()
+    assert (
+        pd.to_datetime(orders["created_at"])
+        >= pd.to_datetime(orders["customer_created_at"])
+    ).all()
     cancelled = dfs["fact_payments"].merge(
         dfs["fact_orders"][["order_id", "status"]],
         on="order_id",
         how="left",
     )
-    assert not ((cancelled["status_y"] == "cancelled") & (cancelled["status_x"] == "completed")).any()
+    assert not (
+        (cancelled["status_y"] == "cancelled") & (cancelled["status_x"] == "completed")
+    ).any()
 
 
 def test_retail_promotions_and_returns_are_plausible(tmp_path) -> None:
@@ -54,7 +61,10 @@ def test_retail_promotions_and_returns_are_plausible(tmp_path) -> None:
     assert (order_dates >= pd.to_datetime(merged["valid_from"])).all()
     assert (order_dates <= pd.to_datetime(merged["valid_to"])).all()
 
-    item_status = dfs["fact_order_items"].merge(orders[["order_id", "status"]], on="order_id")
-    invalid_returns = item_status["return_flag"] & ~item_status["status"].isin(["delivered", "refunded"])
+    item_status = dfs["fact_order_items"].merge(
+        orders[["order_id", "status"]], on="order_id"
+    )
+    invalid_returns = item_status["return_flag"] & ~item_status["status"].isin(
+        ["delivered", "refunded"]
+    )
     assert not invalid_returns.any()
-

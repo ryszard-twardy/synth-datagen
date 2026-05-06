@@ -99,7 +99,9 @@ class SchemaBuilder:
 
     def _apply_row_override(self, table: TableConfig) -> TableConfig:
         if table.name in self.config.row_overrides:
-            return table.model_copy(update={"row_count": self.config.row_overrides[table.name]})
+            return table.model_copy(
+                update={"row_count": self.config.row_overrides[table.name]}
+            )
         return table
 
     def _ensure_pk(self, table: TableConfig) -> TableConfig:
@@ -126,7 +128,10 @@ class SchemaBuilder:
         relation: RelationConfig,
         graph: SchemaGraph,
     ) -> tuple[TableConfig, RelationConfig, RelationConfig]:
-        junction_name = relation.junction_table or f"{relation.source_table}_{relation.target_table}_bridge"
+        junction_name = (
+            relation.junction_table
+            or f"{relation.source_table}_{relation.target_table}_bridge"
+        )
         src_fk = f"{relation.source_table}_{relation.source_column}"
         tgt_fk = f"{relation.target_table}_{relation.target_column}"
         junction = TableConfig(

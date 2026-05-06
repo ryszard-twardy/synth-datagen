@@ -7,7 +7,11 @@ from pathlib import Path
 import pandas as pd
 
 from synth_datagen.config import DataQuality
-from synth_datagen.monthly_sales import MonthlyLayout, MonthlySalesConfig, generate_monthly_sales
+from synth_datagen.monthly_sales import (
+    MonthlyLayout,
+    MonthlySalesConfig,
+    generate_monthly_sales,
+)
 from synth_datagen.monthly_sales_profile import load_monthly_sales_profile
 
 
@@ -29,14 +33,30 @@ def _load_tables(root: Path) -> dict[str, pd.DataFrame]:
 
 
 def _assert_fk_integrity(tables: dict[str, pd.DataFrame]) -> None:
-    assert set(tables["fact_orders"]["customer_id"]).issubset(set(tables["dim_customers"]["customer_id"]))
-    assert set(tables["fact_orders"]["store_id"]).issubset(set(tables["dim_stores"]["store_id"]))
-    assert set(tables["fact_orders"]["date_id"]).issubset(set(tables["dim_date"]["date_id"]))
-    assert set(tables["fact_order_items"]["order_id"]).issubset(set(tables["fact_orders"]["order_id"]))
-    assert set(tables["fact_order_items"]["product_id"]).issubset(set(tables["dim_products"]["product_id"]))
-    assert set(tables["fact_payments"]["order_id"]).issubset(set(tables["fact_orders"]["order_id"]))
-    assert set(tables["bridge_order_promotions"]["order_id"]).issubset(set(tables["fact_orders"]["order_id"]))
-    assert set(tables["bridge_order_promotions"]["promo_id"]).issubset(set(tables["dim_promotions"]["promo_id"]))
+    assert set(tables["fact_orders"]["customer_id"]).issubset(
+        set(tables["dim_customers"]["customer_id"])
+    )
+    assert set(tables["fact_orders"]["store_id"]).issubset(
+        set(tables["dim_stores"]["store_id"])
+    )
+    assert set(tables["fact_orders"]["date_id"]).issubset(
+        set(tables["dim_date"]["date_id"])
+    )
+    assert set(tables["fact_order_items"]["order_id"]).issubset(
+        set(tables["fact_orders"]["order_id"])
+    )
+    assert set(tables["fact_order_items"]["product_id"]).issubset(
+        set(tables["dim_products"]["product_id"])
+    )
+    assert set(tables["fact_payments"]["order_id"]).issubset(
+        set(tables["fact_orders"]["order_id"])
+    )
+    assert set(tables["bridge_order_promotions"]["order_id"]).issubset(
+        set(tables["fact_orders"]["order_id"])
+    )
+    assert set(tables["bridge_order_promotions"]["promo_id"]).issubset(
+        set(tables["dim_promotions"]["promo_id"])
+    )
 
 
 def _write_audit_profile(path: Path) -> Path:
@@ -105,7 +125,9 @@ def _write_sales_files_audit_profile(path: Path) -> Path:
     return path
 
 
-def test_monthly_sales_generation_produces_consistent_combined_and_monthly_outputs(tmp_path) -> None:
+def test_monthly_sales_generation_produces_consistent_combined_and_monthly_outputs(
+    tmp_path,
+) -> None:
     config = MonthlySalesConfig.from_inputs(
         start_date=date(2025, 1, 10),
         end_date=date(2025, 3, 5),
@@ -121,28 +143,48 @@ def test_monthly_sales_generation_produces_consistent_combined_and_monthly_outpu
     combined_tables = _load_tables(outputs["combined"])
     _assert_fk_integrity(combined_tables)
     assert len(combined_tables["fact_payments"]) == len(combined_tables["fact_orders"])
-    assert len(combined_tables["fact_order_items"]) >= len(combined_tables["fact_orders"])
+    assert len(combined_tables["fact_order_items"]) >= len(
+        combined_tables["fact_orders"]
+    )
 
     months_root = outputs["months"]
     month_dirs = sorted(path.name for path in months_root.iterdir() if path.is_dir())
     assert month_dirs == ["2025-01", "2025-02", "2025-03"]
 
-    monthly_fact_rows = {"fact_orders": 0, "fact_order_items": 0, "fact_payments": 0, "bridge_order_promotions": 0}
+    monthly_fact_rows = {
+        "fact_orders": 0,
+        "fact_order_items": 0,
+        "fact_payments": 0,
+        "bridge_order_promotions": 0,
+    }
     for month_dir in month_dirs:
         month_tables = _load_tables(months_root / month_dir)
         _assert_fk_integrity(month_tables)
         monthly_fact_rows["fact_orders"] += len(month_tables["fact_orders"])
         monthly_fact_rows["fact_order_items"] += len(month_tables["fact_order_items"])
         monthly_fact_rows["fact_payments"] += len(month_tables["fact_payments"])
-        monthly_fact_rows["bridge_order_promotions"] += len(month_tables["bridge_order_promotions"])
+        monthly_fact_rows["bridge_order_promotions"] += len(
+            month_tables["bridge_order_promotions"]
+        )
 
-        order_months = pd.to_datetime(month_tables["fact_orders"]["created_at"], errors="coerce").dt.strftime("%Y-%m").unique().tolist()
+        order_months = (
+            pd.to_datetime(month_tables["fact_orders"]["created_at"], errors="coerce")
+            .dt.strftime("%Y-%m")
+            .unique()
+            .tolist()
+        )
         assert order_months == [month_dir]
 
     assert len(combined_tables["fact_orders"]) == monthly_fact_rows["fact_orders"]
-    assert len(combined_tables["fact_order_items"]) == monthly_fact_rows["fact_order_items"]
+    assert (
+        len(combined_tables["fact_order_items"])
+        == monthly_fact_rows["fact_order_items"]
+    )
     assert len(combined_tables["fact_payments"]) == monthly_fact_rows["fact_payments"]
-    assert len(combined_tables["bridge_order_promotions"]) == monthly_fact_rows["bridge_order_promotions"]
+    assert (
+        len(combined_tables["bridge_order_promotions"])
+        == monthly_fact_rows["bridge_order_promotions"]
+    )
 
     flat = pd.read_csv(outputs["combined"] / "monthly_sales_flat.csv")
     assert len(flat) == len(combined_tables["fact_order_items"])
@@ -153,7 +195,9 @@ def test_monthly_sales_generation_produces_consistent_combined_and_monthly_outpu
         right_on="order_id",
         how="inner",
     )
-    assert (reconciled["OrderValue"].round(2) == reconciled["order_total"].round(2)).all()
+    assert (
+        reconciled["OrderValue"].round(2) == reconciled["order_total"].round(2)
+    ).all()
 
 
 def test_monthly_sales_light_dq_keeps_ids_and_dates_valid(tmp_path) -> None:
@@ -172,14 +216,22 @@ def test_monthly_sales_light_dq_keeps_ids_and_dates_valid(tmp_path) -> None:
 
     assert tables["dim_customers"]["customer_id"].str.fullmatch(r"CU\d{8}").all()
     assert tables["fact_orders"]["order_id"].str.fullmatch(r"OR\d{8}").all()
-    assert pd.to_datetime(tables["fact_orders"]["created_at"], errors="coerce").notna().all()
+    assert (
+        pd.to_datetime(tables["fact_orders"]["created_at"], errors="coerce")
+        .notna()
+        .all()
+    )
     paid_at = pd.to_datetime(tables["fact_payments"]["paid_at"], errors="coerce")
     assert paid_at[tables["fact_payments"]["paid_at"].notna()].notna().all()
-    assert pd.to_datetime(tables["dim_date"]["full_date"], errors="coerce").notna().all()
+    assert (
+        pd.to_datetime(tables["dim_date"]["full_date"], errors="coerce").notna().all()
+    )
     _assert_fk_integrity(tables)
 
 
-def test_monthly_sales_profile_audit_injection_keeps_normalized_tables_structurally_safe(tmp_path) -> None:
+def test_monthly_sales_profile_audit_injection_keeps_normalized_tables_structurally_safe(
+    tmp_path,
+) -> None:
     profile_path = _write_audit_profile(tmp_path / "monthly_sales.audit.yaml")
     profile = load_monthly_sales_profile(profile_path)
     config = MonthlySalesConfig.from_profile(
@@ -193,19 +245,47 @@ def test_monthly_sales_profile_audit_injection_keeps_normalized_tables_structura
     combined_tables = _load_tables(outputs["combined"])
     _assert_fk_integrity(combined_tables)
 
-    assert combined_tables["dim_customers"]["customer_id"].str.fullmatch(r"CU\d{8}").all()
-    assert combined_tables["fact_orders"]["order_id"].str.fullmatch(r"OR\d{8}").all()
-    assert pd.to_datetime(combined_tables["fact_orders"]["created_at"], errors="coerce").notna().all()
-    assert pd.to_datetime(combined_tables["fact_payments"]["paid_at"], errors="coerce")[combined_tables["fact_payments"]["paid_at"].notna()].notna().all()
-    assert pd.to_datetime(combined_tables["dim_date"]["full_date"], errors="coerce").notna().all()
-    assert len(combined_tables["fact_payments"]) == len(combined_tables["fact_orders"])
-    assert len(combined_tables["fact_order_items"]) >= len(combined_tables["fact_orders"])
-
-    assert combined_tables["dim_customers"]["city"].isna().any() or combined_tables["dim_customers"]["segment"].isna().any()
-    assert combined_tables["fact_orders"]["order_total"].lt(0).any() or combined_tables["fact_orders"]["subtotal"].lt(0).any()
     assert (
-        combined_tables["fact_orders"]["order_total"].gt(combined_tables["fact_orders"]["order_total"].median() * 8).any()
-        or combined_tables["fact_payments"]["amount"].gt(combined_tables["fact_payments"]["amount"].median() * 8).any()
+        combined_tables["dim_customers"]["customer_id"].str.fullmatch(r"CU\d{8}").all()
+    )
+    assert combined_tables["fact_orders"]["order_id"].str.fullmatch(r"OR\d{8}").all()
+    assert (
+        pd.to_datetime(combined_tables["fact_orders"]["created_at"], errors="coerce")
+        .notna()
+        .all()
+    )
+    assert (
+        pd.to_datetime(combined_tables["fact_payments"]["paid_at"], errors="coerce")[
+            combined_tables["fact_payments"]["paid_at"].notna()
+        ]
+        .notna()
+        .all()
+    )
+    assert (
+        pd.to_datetime(combined_tables["dim_date"]["full_date"], errors="coerce")
+        .notna()
+        .all()
+    )
+    assert len(combined_tables["fact_payments"]) == len(combined_tables["fact_orders"])
+    assert len(combined_tables["fact_order_items"]) >= len(
+        combined_tables["fact_orders"]
+    )
+
+    assert (
+        combined_tables["dim_customers"]["city"].isna().any()
+        or combined_tables["dim_customers"]["segment"].isna().any()
+    )
+    assert (
+        combined_tables["fact_orders"]["order_total"].lt(0).any()
+        or combined_tables["fact_orders"]["subtotal"].lt(0).any()
+    )
+    assert (
+        combined_tables["fact_orders"]["order_total"]
+        .gt(combined_tables["fact_orders"]["order_total"].median() * 8)
+        .any()
+        or combined_tables["fact_payments"]["amount"]
+        .gt(combined_tables["fact_payments"]["amount"].median() * 8)
+        .any()
     )
 
     flat = pd.read_csv(outputs["combined"] / "monthly_sales_flat.csv")
@@ -217,7 +297,9 @@ def test_monthly_sales_profile_audit_injection_keeps_normalized_tables_structura
     assert numeric_order_values.lt(0).any()
 
 
-def test_sales_files_layout_exports_shared_dimensions_and_monthly_sales_files(tmp_path) -> None:
+def test_sales_files_layout_exports_shared_dimensions_and_monthly_sales_files(
+    tmp_path,
+) -> None:
     config = MonthlySalesConfig.from_inputs(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 3, 31),
@@ -234,9 +316,20 @@ def test_sales_files_layout_exports_shared_dimensions_and_monthly_sales_files(tm
     assert root == config.output_dir
     assert not (root / "months").exists()
     assert not (root / "combined").exists()
-    for name in ["dim_customers", "dim_products", "dim_stores", "dim_date", "dim_promotions"]:
+    for name in [
+        "dim_customers",
+        "dim_products",
+        "dim_stores",
+        "dim_date",
+        "dim_promotions",
+    ]:
         assert (root / f"{name}.csv").exists()
-    for name in ["fact_orders.csv", "fact_order_items.csv", "fact_payments.csv", "bridge_order_promotions.csv"]:
+    for name in [
+        "fact_orders.csv",
+        "fact_order_items.csv",
+        "fact_payments.csv",
+        "bridge_order_promotions.csv",
+    ]:
         assert not (root / name).exists()
 
     sales_files = sorted(path.name for path in root.glob("sales_*.csv"))
@@ -245,7 +338,18 @@ def test_sales_files_layout_exports_shared_dimensions_and_monthly_sales_files(tm
     rows_sum = 0
     for sales_name in sales_files:
         sales_df = pd.read_csv(root / sales_name)
-        assert list(sales_df.columns) == ["OrderID", "CustomerID", "OrderDate", "ProductType", "OrderValue", "OrderItemID", "ProductID", "Quantity", "UnitPrice", "Channel"]
+        assert list(sales_df.columns) == [
+            "OrderID",
+            "CustomerID",
+            "OrderDate",
+            "ProductType",
+            "OrderValue",
+            "OrderItemID",
+            "ProductID",
+            "Quantity",
+            "UnitPrice",
+            "Channel",
+        ]
         rows_sum += len(sales_df)
 
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
@@ -254,7 +358,9 @@ def test_sales_files_layout_exports_shared_dimensions_and_monthly_sales_files(tm
     assert sum(manifest["sales_file_row_counts"].values()) == rows_sum
 
 
-def test_sales_files_layout_can_append_single_month_without_overwriting_dimensions(tmp_path) -> None:
+def test_sales_files_layout_can_append_single_month_without_overwriting_dimensions(
+    tmp_path,
+) -> None:
     root = tmp_path / "sales_files_resume"
     first = generate_monthly_sales(
         MonthlySalesConfig.from_inputs(

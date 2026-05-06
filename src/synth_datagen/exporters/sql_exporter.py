@@ -67,8 +67,8 @@ _TYPE_MAP: dict[Dialect, dict[str, str]] = {
 _QUOTE: dict[Dialect, tuple[str, str]] = {
     Dialect.POSTGRES: ('"', '"'),
     Dialect.SQLITE: ('"', '"'),
-    Dialect.MYSQL: ('`', '`'),
-    Dialect.SQLSERVER: ('[', ']'),
+    Dialect.MYSQL: ("`", "`"),
+    Dialect.SQLSERVER: ("[", "]"),
 }
 
 
@@ -95,7 +95,8 @@ class SqlExporter:
     def export(
         self,
         graph: SchemaGraph,
-        tables_and_chunks: list[tuple[TableConfig, Iterator[pd.DataFrame]]] | None = None,
+        tables_and_chunks: list[tuple[TableConfig, Iterator[pd.DataFrame]]]
+        | None = None,
     ) -> Path:
         out_path = self.output_dir / "schema.sql"
         with open(out_path, "w", encoding="utf-8") as handle:
@@ -128,12 +129,18 @@ class SqlExporter:
         column_defs: list[str] = []
         for column in table.columns:
             nullable = "" if column.nullable else " NOT NULL"
-            unique = " UNIQUE" if column.unique and column.name != table.pk_column else ""
+            unique = (
+                " UNIQUE" if column.unique and column.name != table.pk_column else ""
+            )
             column_defs.append(
                 f"    {self._q(column.name)} {self._sql_type(column)}{nullable}{unique}"
             )
         column_defs.append(f"    PRIMARY KEY ({self._q(table.pk_column)})")
-        return f"CREATE TABLE {self._q(table.name)} (\n" + ",\n".join(column_defs) + "\n);\n"
+        return (
+            f"CREATE TABLE {self._q(table.name)} (\n"
+            + ",\n".join(column_defs)
+            + "\n);\n"
+        )
 
     def _add_fk(self, relation: RelationConfig) -> str:
         constraint_name = f"fk_{relation.source_table}_{relation.source_column}"
@@ -149,12 +156,17 @@ class SqlExporter:
         rows = df.values.tolist()
         statements: list[str] = []
         for start in range(0, len(rows), batch):
-            batch_rows = rows[start:start + batch]
+            batch_rows = rows[start : start + batch]
             values_sql = ",\n    ".join(
-                "(" + ", ".join(_sql_val(value) for value in row) + ")" for row in batch_rows
+                "(" + ", ".join(_sql_val(value) for value in row) + ")"
+                for row in batch_rows
             )
+            # nosec B608 — this exporter emits synthetic-data DDL/DML for
+            # downstream tooling; values pass through ``_sql_val`` which
+            # quotes/escapes them and the table/column names come from a
+            # closed config schema, not user input.
             statements.append(
-                f"INSERT INTO {self._q(table.name)} ({columns}) VALUES\n    {values_sql};\n"
+                f"INSERT INTO {self._q(table.name)} ({columns}) VALUES\n    {values_sql};\n"  # nosec B608
             )
         return "\n".join(statements)
 

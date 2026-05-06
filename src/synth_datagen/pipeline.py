@@ -82,21 +82,29 @@ def run_pipeline(config: GeneratorConfig) -> None:
         TimeElapsedColumn(),
         console=console,
     ) as progress:
-        task_id = progress.add_task("Generating canonical tables...", total=len(ordered_tables))
+        task_id = progress.add_task(
+            "Generating canonical tables...", total=len(ordered_tables)
+        )
         for table in ordered_tables:
-            progress.update(task_id, description=f"Generating [cyan]{table.name}[/cyan]")
+            progress.update(
+                task_id, description=f"Generating [cyan]{table.name}[/cyan]"
+            )
             chunks = list(generator.generate_table(table, graph, fk_pools))
             canonical_chunks[table.name] = chunks
             full_df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
             if table.pk_column in full_df.columns:
-                fk_pools[f"{table.name}.{table.pk_column}"] = full_df[table.pk_column].dropna().to_numpy()
+                fk_pools[f"{table.name}.{table.pk_column}"] = (
+                    full_df[table.pk_column].dropna().to_numpy()
+                )
             progress.advance(task_id)
 
     export_chunks: dict[str, list[pd.DataFrame]] = {}
     for table in ordered_tables:
         unique_state = {
             column.name: set(
-                pd.concat(canonical_chunks[table.name], ignore_index=True)[column.name].dropna().tolist()
+                pd.concat(canonical_chunks[table.name], ignore_index=True)[column.name]
+                .dropna()
+                .tolist()
             )
             for column in table.columns
             if column.unique or column.name == table.pk_column
@@ -115,7 +123,9 @@ def run_pipeline(config: GeneratorConfig) -> None:
     console.print(f"[green][OK][/green] SQL DDL written -> {sql_path}")
 
     if sqlite_exporter:
-        sqlite_data = [(table, iter(export_chunks[table.name])) for table in ordered_tables]
+        sqlite_data = [
+            (table, iter(export_chunks[table.name])) for table in ordered_tables
+        ]
         db_path = sqlite_exporter.export(graph, sqlite_data)
         console.print(f"[green][OK][/green] SQLite DB written -> {db_path}")
 
@@ -123,6 +133,10 @@ def run_pipeline(config: GeneratorConfig) -> None:
     write_erd(graph, config, console)
 
     elapsed = time.perf_counter() - t0
-    total_rows = sum(sum(len(chunk) for chunk in chunks) for chunks in export_chunks.values())
+    total_rows = sum(
+        sum(len(chunk) for chunk in chunks) for chunks in export_chunks.values()
+    )
     console.rule(characters="-")
-    console.print(f"[bold green]Done![/bold green] {total_rows:,} rows in {elapsed:.1f}s -> {config.output_dir}")
+    console.print(
+        f"[bold green]Done![/bold green] {total_rows:,} rows in {elapsed:.1f}s -> {config.output_dir}"
+    )

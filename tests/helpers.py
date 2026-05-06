@@ -5,7 +5,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from synth_datagen.config import DataQuality, DataQualityConfig, Dialect, GeneratorConfig, Scenario, SchemaType
+from synth_datagen.config import (
+    DataQuality,
+    DataQualityConfig,
+    Dialect,
+    GeneratorConfig,
+    Scenario,
+    SchemaType,
+)
 from synth_datagen.generators.fintech import FintechGenerator
 from synth_datagen.generators.logistics import LogisticsGenerator
 from synth_datagen.generators.retail import RetailGenerator
@@ -97,7 +104,9 @@ def generate_scenario_dfs(
         df = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
         dfs[table.name] = df
         if table.pk_column in df.columns:
-            fk_pools[f"{table.name}.{table.pk_column}"] = df[table.pk_column].dropna().to_numpy()
+            fk_pools[f"{table.name}.{table.pk_column}"] = (
+                df[table.pk_column].dropna().to_numpy()
+            )
     return dfs, graph
 
 

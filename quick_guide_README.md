@@ -12,7 +12,7 @@ Quick setup for the project virtual environment in PowerShell:
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[test]"
 synthetic-saas --help
 ```
 

@@ -8,12 +8,20 @@ import yaml
 
 from synth_datagen import kupferkanne_rfm_cli
 
+import pytest
+
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
 
 runner = CliRunner()
 
 
 def test_kupferkanne_v3_cli_generates_dataset_from_config(tmp_path) -> None:
-    base = yaml.safe_load(Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8"))
+    base = yaml.safe_load(
+        Path("configs/kupferkanne_rfm_v3.yaml").read_text(encoding="utf-8")
+    )
     base["period"]["end_date"] = "2023-03-31"
     base["customers"]["target_total_customers"] = 2500
     base["validation_targets"]["target_total_orders"] = 9000
@@ -28,7 +36,15 @@ def test_kupferkanne_v3_cli_generates_dataset_from_config(tmp_path) -> None:
 
     result = runner.invoke(
         kupferkanne_rfm_cli.app,
-        ["generate", "--config", str(config_path), "--output", str(output_dir), "--seed", "42"],
+        [
+            "generate",
+            "--config",
+            str(config_path),
+            "--output",
+            str(output_dir),
+            "--seed",
+            "42",
+        ],
     )
 
     assert result.exit_code == 0, result.output
