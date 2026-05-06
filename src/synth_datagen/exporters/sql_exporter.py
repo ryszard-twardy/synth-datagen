@@ -161,8 +161,12 @@ class SqlExporter:
                 "(" + ", ".join(_sql_val(value) for value in row) + ")"
                 for row in batch_rows
             )
+            # nosec B608 — this exporter emits synthetic-data DDL/DML for
+            # downstream tooling; values pass through ``_sql_val`` which
+            # quotes/escapes them and the table/column names come from a
+            # closed config schema, not user input.
             statements.append(
-                f"INSERT INTO {self._q(table.name)} ({columns}) VALUES\n    {values_sql};\n"
+                f"INSERT INTO {self._q(table.name)} ({columns}) VALUES\n    {values_sql};\n"  # nosec B608
             )
         return "\n".join(statements)
 
