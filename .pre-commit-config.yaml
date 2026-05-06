@@ -13,6 +13,12 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+        # Preserve intentional Markdown hard-breaks (lines ending in two
+        # spaces) for ``.md`` files — otherwise the bottom metadata block
+        # in ``prompts/00_master.md`` and similar docs collapses into a
+        # single paragraph. The hook still strips other trailing
+        # whitespace in ``.md`` files.
+        args: ["--markdown-linebreak-ext=md"]
       - id: check-yaml
       - id: check-toml
       - id: check-merge-conflict
@@ -21,8 +27,14 @@ repos:
 
   # ruff replaces black/isort/flake8. The official mirror tracks ruff
   # versions and is the recommended pre-commit source.
+  #
+  # Pinned to match the ruff version installed via the ``[test]`` extra
+  # so the pre-commit ``ruff-format`` hook and the CI ``ruff format
+  # --check .`` step agree on style. When bumping ruff in pyproject.toml
+  # (or pulling a newer one transitively), bump this rev to the same
+  # version — otherwise the two formatters fight and CI fails.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.4
+    rev: v0.15.12
     hooks:
       - id: ruff
         args: ["--fix"]
