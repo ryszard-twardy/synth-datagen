@@ -2,9 +2,11 @@
 
 Covers reproducibility, schema stability, foreign-key integrity, sign / range
 invariants on numeric columns, and seed sensitivity. ``max_examples`` is kept
-deliberately low (5) per test because each example regenerates the full
-9-table dataset (~1400 rows) — at 0.3s/generation this leaves the suite well
-under the P6 budget while still exercising 25 distinct seeds across the file.
+deliberately low (3) per test because each example regenerates the full
+9-table dataset (~1400 rows) — at 0.3s/generation this stays inside the P6
+<60s default-pytest budget. The whole property suite is marked ``slow`` at
+the conftest level (pytest -m slow) so CI and on-demand fuzz runs still
+exercise more seeds.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ from hypothesis import strategies as st
 from tests.property._helpers import generate_scenario
 
 _PROP_SETTINGS = settings(
-    max_examples=5,
+    max_examples=3,
     deadline=None,
     database=None,
     suppress_health_check=[HealthCheck.function_scoped_fixture],

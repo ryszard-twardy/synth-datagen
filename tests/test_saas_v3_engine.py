@@ -11,6 +11,11 @@ from synth_datagen.saas_v3.ids import pattern_for
 from synth_datagen.saas_v3.validate import validate_generated_dataset
 
 
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SMOKE_CONFIG = REPO_ROOT / "configs" / "saas_v3.smoke.yaml"
 

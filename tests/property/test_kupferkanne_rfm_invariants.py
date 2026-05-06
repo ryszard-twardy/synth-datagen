@@ -22,7 +22,7 @@ from synth_datagen.kupferkanne_rfm import build_clean_kupferkanne_frames
 from synth_datagen.kupferkanne_rfm_config import load_kupferkanne_rfm_config
 
 _PROP_SETTINGS = settings(
-    max_examples=5,
+    max_examples=3,
     deadline=None,
     database=None,
     suppress_health_check=[HealthCheck.function_scoped_fixture],

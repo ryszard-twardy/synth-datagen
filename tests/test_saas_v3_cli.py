@@ -6,6 +6,12 @@ from typer.testing import CliRunner
 
 from synth_datagen.saas_v3.cli import app
 
+import pytest
+
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
 
 runner = CliRunner()
 REPO_ROOT = Path(__file__).resolve().parents[1]

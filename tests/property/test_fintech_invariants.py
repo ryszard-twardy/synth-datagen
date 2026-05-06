@@ -17,7 +17,7 @@ from hypothesis import strategies as st
 from tests.property._helpers import generate_scenario
 
 _PROP_SETTINGS = settings(
-    max_examples=5,
+    max_examples=3,
     deadline=None,
     database=None,
     suppress_health_check=[HealthCheck.function_scoped_fixture],

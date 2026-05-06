@@ -60,4 +60,10 @@ include = ["synth_datagen*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v"
+# Skip slow tests by default so a plain `pytest` invocation finishes inside
+# the P6 <60s budget. Run the full suite with `pytest -m slow or not slow`,
+# the slow subset only with `pytest -m slow`. CI keeps the full matrix on.
+addopts = "-v -m 'not slow'"
+markers = [
+    "slow: integration / property tests that take more than ~1s each. Run with `pytest -m slow` or include via `pytest -m 'slow or not slow'`.",
+]

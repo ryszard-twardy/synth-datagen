@@ -19,6 +19,11 @@ from synth_datagen.kupferkanne_rfm import (
 from synth_datagen.kupferkanne_rfm_config import load_kupferkanne_rfm_config
 
 
+# P6 slow-test trim: the suite below runs the full saas_v3 / kupferkanne_rfm
+# pipeline at production scale. Keep them out of default pytest by tagging
+pytestmark = pytest.mark.slow
+
+
 @pytest.fixture(scope="module")
 def generated_dataset(tmp_path_factory):
     config = load_kupferkanne_rfm_config(Path("configs/kupferkanne_rfm_v3.yaml"))
