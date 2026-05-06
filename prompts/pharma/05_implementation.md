@@ -623,14 +623,14 @@ When complete, provide:
 
 ## SESSION CLOSURE — code-reviewer pass
 
-Before declaring this session done, activate the `code-reviewer` agent skill 
+Before declaring this session done, activate the `code-reviewer` agent skill
 from Superpowers and run a final review:
 
 1. Diff against main: `git diff main..HEAD --stat -w` and inspect semantic changes
-2. Check spec compliance: every [ADDRESS] finding from the audit / every required 
+2. Check spec compliance: every [ADDRESS] finding from the audit / every required
    deliverable from this prompt has a matching commit
-3. Check architectural compliance: 
-   - RNG factory used correctly (no direct np.random.default_rng calls in 
+3. Check architectural compliance:
+   - RNG factory used correctly (no direct np.random.default_rng calls in
      scenario code)
    - Backward compat baseline diff is empty for all prior scenarios
    - Conventional Commits format on every commit

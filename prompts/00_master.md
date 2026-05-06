@@ -648,8 +648,8 @@ git diff baseline_before/ baseline_after/ | head -50
 
 ```
 In chat:
-"Stop. Use the brainstorming skill from Superpowers. 
-Don't write any more code. Tell me three different architectural approaches 
+"Stop. Use the brainstorming skill from Superpowers.
+Don't write any more code. Tell me three different architectural approaches
 to this problem and your reasoning for each."
 
 # Pick one approach, then "OK, proceed with approach #2."
@@ -866,8 +866,8 @@ I'm continuing the synth-datagen audit + extensions project. I'm attaching 6 fil
 - pharma/04_integration_notes.md
 - pharma/05_implementation.md
 
-Read 00 master workflow. Section 11 has the state tracker — 
-check current_phase, decisions_made, and next_action. 
+Read 00 master workflow. Section 11 has the state tracker —
+check current_phase, decisions_made, and next_action.
 
 Tell me:
 1. Which phase I'm in

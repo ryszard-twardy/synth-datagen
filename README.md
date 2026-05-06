@@ -274,4 +274,3 @@ output:
 - The original `synthetic_data` repo remains untouched.
 - Sample outputs in `out/` are deterministic and can be regenerated with seed `42`.
 - If you request incompatible row overrides, v2 fails fast instead of silently generating incoherent data.
-

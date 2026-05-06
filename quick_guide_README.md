@@ -174,4 +174,3 @@ python -m pytest tests -q
 ```bash
 python run_demo.py
 ```
-
