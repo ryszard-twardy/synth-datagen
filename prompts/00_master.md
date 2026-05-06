@@ -169,10 +169,10 @@ mkdir -p ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-patterns ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-testing ~/.claude/skills/
 cp -r /tmp/ecc/skills/search-first ~/.claude/skills/
-cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
+cp -r /tmp/ecc/skills/security-scan ~/.claude/skills/
 
 # 5. Optional: baseline security scan
-npx ecc-agentshield scan --no-install
+npx ecc-security-scan scan --no-install
 # if P0 issues: fix BEFORE Phase 1
 
 # 6. Create prompts/ folder
@@ -678,7 +678,7 @@ git log --oneline -5        # recent changes
 # 4. Simplest: rotate the leaked credential (it's already public if anyone cloned)
 #    + commit removal + force push + document in SECURITY.md
 
-# After fix: re-run agentshield to confirm clean history
+# After fix: re-run security-scan to confirm clean history
 ```
 
 ### Phase 4 docs build fails (`mkdocs build --strict`)
@@ -749,7 +749,7 @@ Claude Code (preferred)               # has Superpowers + ECC selective
 ### Skills active (Phase 2-4)
 
 - **Superpowers** (full install, 14 skills): brainstorming, systematic-debugging, test-driven-development, subagent-driven-development, verification-before-completion, writing-plans, using-git-worktrees, code-reviewer agent, ...
-- **ECC selective** (4 skills): python-patterns, python-testing, search-first, agentshield
+- **ECC selective** (4 skills): python-patterns, python-testing, search-first, security-scan
 
 ---
 
@@ -832,7 +832,7 @@ decisions_made:
   - "2026-05-05: Pharma benchmarks: DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse."
   - "2026-05-05: Filename convention adopted: prompts/{00_master, audit/01_handoff, audit/02_workflow, saas/03_extension, pharma/04_integration_notes, pharma/05_implementation}.md"
   - "2026-05-05: Pre-flight complete. Skills installed (Superpowers full + ECC selective: python-patterns, python-testing, search-first, security-scan). Tag v0.1.0-preaudit pushed. Commit d954b50 includes prompts/ folder."
-  - "2026-05-05: ECC `agentshield` skill replaced by `security-scan` (upstream rename in ECC repo). Master/02 references updated where applicable."
+  - "2026-05-05: ECC `security-scan` skill replaced by `security-scan` (upstream rename in ECC repo). Master/02 references updated where applicable."
   - "2026-05-05: includeCoAuthoredBy set to false in user-level Claude Code settings. Verified clean author trailer in all Phase 2 commits."
   - "2026-05-05: Phase 1 audit complete. Health score 6.5/10. 38 findings (3 P0, 12 P1, 14 P2, 9 P3). All 4 classic scenarios (retail/saas/fintech/logistics) reproduce empty diff with seed=42. Test coverage 91%, ruff lint clean, security scan zero real bugs. Architectural blocker: P0-3 shared self.rng across generators — mandatory fix as first commit in Phase 2."
   - "2026-05-05: Phase 2 scope decided: 9 [ADDRESS] findings (P0-1 LICENSE, P0-2 package rename, P0-3 RNG factory, P1-1 src layout, P1-2 single CLI, P1-9 mypy errors, P1-11 kupferkanne RNG, P2-4 distribute_counts seed, P2-9 SchemaType dead values). 29 findings [DEFER] to Phase 3/4 or post-v0.2.0."

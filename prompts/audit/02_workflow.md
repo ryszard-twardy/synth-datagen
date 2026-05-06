@@ -39,7 +39,7 @@ This gives you all 14 skills (`brainstorming`, `systematic-debugging`, `test-dri
 /plugin marketplace add affaan-m/everything-claude-code
 
 # Option A — selective install via flag (if supported in your ECC version):
-/plugin install everything-claude-code@everything-claude-code --skills python-patterns,python-testing,search-first,agentshield
+/plugin install everything-claude-code@everything-claude-code --skills python-patterns,python-testing,search-first,security-scan
 
 # Option B — manual selective copy (always works):
 git clone https://github.com/affaan-m/everything-claude-code /tmp/ecc
@@ -47,7 +47,7 @@ mkdir -p ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-patterns ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-testing ~/.claude/skills/
 cp -r /tmp/ecc/skills/search-first ~/.claude/skills/
-cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
+cp -r /tmp/ecc/skills/security-scan ~/.claude/skills/
 ```
 
 ⚠️ **CRITICAL warning from ECC v2.0.0-rc.1 docs:** If you install ECC via `/plugin install`, do NOT also run `./install.sh --profile full`. That copies all skills to user directories and creates duplicates with duplicate runtime behavior. Pick ONE install method and stick with it.
@@ -59,7 +59,7 @@ cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
 | `python-patterns` | Phase 2 (refactor) | Type hints, dataclass patterns, Pydantic v2 idioms |
 | `python-testing` | Phase 3 (tests) | pytest fixtures, hypothesis property tests, coverage analysis |
 | `search-first` | Phase 1 (audit) | Forces research before any changes — critical for audit phase |
-| `agentshield` | Phase 1, 4 (security) | Scans for credentials, injection risks, unsafe patterns |
+| `security-scan` | Phase 1, 4 (security) | Scans for credentials, injection risks, unsafe patterns |
 
 #### What you DON'T need from ECC (and why)
 
@@ -80,7 +80,7 @@ cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
 
 ```bash
 cd X:\Python\projects\synth-datagen
-npx ecc-agentshield scan --no-install
+npx ecc-security-scan scan --no-install
 ```
 
 Run this once before Phase 1. If it finds P0 (e.g., hardcoded API key in git history), fix BEFORE starting the audit workflow.
@@ -119,7 +119,7 @@ The two skill libraries are complementary, not competing:
 - `python-patterns` — Python idioms, type hints, dataclass patterns
 - `python-testing` — pytest, hypothesis, coverage
 - `search-first` — research existing code before changing it
-- `agentshield` — security scan for credentials, injection risks
+- `security-scan` — security scan for credentials, injection risks
 
 ---
 
@@ -266,7 +266,7 @@ This is the most important section. Verify:
 ## STEP 5: SECURITY REVIEW
 Run:
 ```bash
-npx ecc-agentshield scan --no-install
+npx ecc-security-scan scan --no-install
 ```
 
 Check for:
@@ -338,7 +338,7 @@ Repo state: [git rev-parse HEAD]
 [Duplication, complexity, structure]
 
 ## Security Findings
-[From bandit + agentshield]
+[From bandit + security-scan]
 
 ## Documentation Gaps
 [What's missing]

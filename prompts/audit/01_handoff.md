@@ -81,7 +81,7 @@ After installation, the following skills will be available automatically in any 
 # (Exact syntax depends on ECC version v2.0.0-rc.1)
 
 # Option A: If ECC supports selective install via flags
-/plugin install everything-claude-code@everything-claude-code --skills python-patterns,python-testing,search-first,agentshield
+/plugin install everything-claude-code@everything-claude-code --skills python-patterns,python-testing,search-first,security-scan
 
 # Option B: If the above does not work, clone ECC manually and copy only the needed skills
 git clone https://github.com/affaan-m/everything-claude-code /tmp/ecc
@@ -89,7 +89,7 @@ mkdir -p ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-patterns ~/.claude/skills/
 cp -r /tmp/ecc/skills/python-testing ~/.claude/skills/
 cp -r /tmp/ecc/skills/search-first ~/.claude/skills/
-cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
+cp -r /tmp/ecc/skills/security-scan ~/.claude/skills/
 ```
 
 ⚠️ **Critical warning from ECC docs:** If you install ECC via `/plugin install`, do NOT also run `./install.sh --profile full`. That copies all skills to user directories and creates duplicates + duplicate runtime behavior. Choose ONE install method and stick to it.
@@ -106,12 +106,12 @@ cp -r /tmp/ecc/skills/agentshield ~/.claude/skills/
 "List all available skills currently loaded in this session"
 ```
 
-#### Step 4 — Optional: AgentShield baseline scan
+#### Step 4 — Optional: security-scan baseline scan
 
 ```bash
 # Before any audit, run a one-time baseline security scan:
 cd X:\Python\projects\synth-datagen
-npx ecc-agentshield scan --no-install
+npx ecc-security-scan scan --no-install
 ```
 
 This gives you an immediate report on credentials in git history, dangerous functions, etc. If it finds P0 issues (e.g., a hardcoded API key in the private repo), fix them BEFORE Phase 1.
@@ -123,7 +123,7 @@ This gives you an immediate report on credentials in git history, dangerous func
 | `python-patterns` | Phase 2 (refactor) | Type hints, dataclass patterns, Pydantic v2 idioms |
 | `python-testing` | Phase 3 (tests) | pytest fixtures, hypothesis property tests, coverage |
 | `search-first` | Phase 1 (audit) | Forces research before any change — critical for audit |
-| `agentshield` | Phase 1, 4 (security) | Scans credentials, injection risks, dangerous patterns |
+| `security-scan` | Phase 1, 4 (security) | Scans credentials, injection risks, dangerous patterns |
 
 ### What you do NOT need from ECC (and why)
 
@@ -250,7 +250,7 @@ The workflow is complete when:
 - [ ] RNG stream isolation works (changing one config does not shift other streams)
 
 ### Repo hygiene
-- [ ] Zero credentials in git history (agentshield clean)
+- [ ] Zero credentials in git history (security-scan clean)
 - [ ] Conventional commits for all Phase 2 commits
 - [ ] Tag v0.2.0 created
 - [ ] Repo public (if you decide to publish)
