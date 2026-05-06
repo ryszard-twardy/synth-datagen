@@ -624,6 +624,17 @@ class SaasGenerator(BaseScenarioGenerator):
             ].tolist()
             for rank in range(len(_PLANS))
         }
+        # Small ``features`` row counts plus the weighted plan_min sampler can
+        # leave low ranks (typically rank-0 'free') with no eligible features.
+        # The downstream ``self.rng.choice(...)`` would then crash with
+        # ``ValueError: a cannot be empty``. Hypothesis surfaced this at
+        # seed=103 (see tests/test_saas_empty_feature_pool.py); the fallback
+        # below preserves existing seed=42 behaviour because the ``or`` only
+        # fires when the rank bucket was empty.
+        all_features = features["feature_id"].tolist()
+        for rank in feature_by_rank:
+            if not feature_by_rank[rank]:
+                feature_by_rank[rank] = all_features
         user_weights = np.where(users["is_active"], 2.0, 1.0)
         user_weights = user_weights / user_weights.sum()
         sampled_users = self.rng.choice(len(users), size=row_count, p=user_weights)
