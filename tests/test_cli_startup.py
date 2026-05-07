@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import run_demo
+import quickstart_retail
 from typer.testing import CliRunner
 
 from synth_datagen import kupferkanne_rfm_cli
@@ -111,10 +111,10 @@ def test_monthly_generate_profile_rejects_conflicting_flags(monkeypatch, tmp_pat
     assert "--month" in output
 
 
-def test_run_demo_reports_missing_runtime_dependency(monkeypatch, capsys):
-    monkeypatch.setattr(run_demo, "_load_pipeline", _missing_faker)
+def test_quickstart_retail_reports_missing_runtime_dependency(monkeypatch, capsys):
+    monkeypatch.setattr(quickstart_retail, "_load_pipeline", _missing_faker)
 
-    exit_code = run_demo.main()
+    exit_code = quickstart_retail.main()
     captured = capsys.readouterr()
 
     assert exit_code == 1

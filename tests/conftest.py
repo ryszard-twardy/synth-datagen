@@ -8,16 +8,19 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Make the unpackaged top-level module run_demo (repo-root smoke script)
-# importable for tests that exercise it directly.
+# Make the ``examples/`` directory importable so tests can exercise the
+# packaged demo scripts directly (e.g. ``import quickstart_retail``).
+# Phase 4 (P4-2): renamed from ``run_demo.py`` at the repo root so users
+# discover working examples through the conventional ``examples/`` folder.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_EXAMPLES_DIR = _REPO_ROOT / "examples"
+if str(_EXAMPLES_DIR) not in sys.path:
+    sys.path.insert(0, str(_EXAMPLES_DIR))
 
 # Imports below the sys.path setup are intentional — required so tests can
-# import the unpackaged top-level ``run_demo`` script. Ruff E402 is silenced
-# at the line level rather than via a global ignore so other files still get
-# the import-order check.
+# import the unpackaged top-level ``quickstart_retail`` script. Ruff E402 is
+# silenced at the line level rather than via a global ignore so other files
+# still get the import-order check.
 import pandas as pd  # noqa: E402
 import pytest  # noqa: E402
 
