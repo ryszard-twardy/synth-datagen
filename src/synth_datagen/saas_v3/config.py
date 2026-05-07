@@ -9,7 +9,7 @@ from enum import Enum
 from pathlib import Path
 import hashlib
 import json
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 import yaml
@@ -35,6 +35,10 @@ class RunConfig(StrictModel):
     name: str
     seed: int = Field(ge=0)
     schema_version: str = "saas_v3"
+    # v0.2.1: 'legacy' = pre-extension behavior (byte-stable for existing configs).
+    # 'plg-usage-based' = new sub-mode emitting subscription_events + benchmarks.
+    # 'vertical-account-based' deferred to v0.3.0.
+    mode: Literal["legacy", "plg-usage-based"] = "legacy"
 
 
 class HistoryConfig(StrictModel):

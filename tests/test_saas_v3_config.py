@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from synth_datagen.saas_v3.config import load_config
+import pytest
+
+from synth_datagen.saas_v3.config import RunConfig, load_config
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -37,3 +39,18 @@ def test_saas_v3_audit_config_uses_093_percent_per_check() -> None:
     assert config.row_targets.support_tickets == 1500
     assert config.row_targets.nps_responses == 500
     assert all(rate == 0.0093 for rate in config.defects.active_rates().values())
+
+
+def test_runconfig_mode_defaults_to_legacy() -> None:
+    rc = RunConfig(name="x", seed=1)
+    assert rc.mode == "legacy"
+
+
+def test_runconfig_mode_accepts_plg() -> None:
+    rc = RunConfig(name="x", seed=1, mode="plg-usage-based")
+    assert rc.mode == "plg-usage-based"
+
+
+def test_runconfig_mode_rejects_unknown() -> None:
+    with pytest.raises(Exception):  # pydantic ValidationError
+        RunConfig(name="x", seed=1, mode="vertical-account-based")  # deferred to v0.3.0
