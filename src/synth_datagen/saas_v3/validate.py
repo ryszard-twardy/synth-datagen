@@ -4,6 +4,7 @@ Validation helpers for SaaS synthetic engine v3.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -53,13 +54,18 @@ def validate_exported_run(
     tables = {
         table_name: [pd.read_csv(dataset_root / f"{table_name}.csv")]
         for table_name in TABLE_ORDER
+        if (dataset_root / f"{table_name}.csv").exists()
     }
     dataset = GeneratedTables(tables=tables, metadata={})
     return validate_generated_dataset(dataset, config, mode)
 
 
 def _validate_schema(dataset: GeneratedTables, issues: list[ValidationIssue]) -> None:
+    # Only validate tables that are present — optional tables (e.g. subscription_events
+    # in plg mode) are absent in legacy mode and should not trigger schema errors.
     for table_name in TABLE_ORDER:
+        if table_name not in dataset.tables:
+            continue
         columns = list(dataset.materialize(table_name).columns)
         if columns != EXPORTED_COLUMNS[table_name]:
             issues.append(
@@ -520,3 +526,195 @@ def _assert_defect_present(
                 f"{name} produced {count} rows; expected about {expected}",
             )
         )
+
+
+# ---------------------------------------------------------------------------
+# Benchmark validation pass (plg-usage-based mode only)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class BenchmarkIssue:
+    metric: str
+    actual: float
+    expected: tuple[float, float] | float
+    message: str
+
+
+@dataclass
+class BenchmarkReport:
+    skipped: bool
+    passed: bool
+    metrics: dict[str, float]
+    issues: list[BenchmarkIssue] = field(default_factory=list)
+
+
+def compute_benchmarks(
+    tables: GeneratedTables,
+    config: SaaSV3Config,
+) -> BenchmarkReport:
+    """Compare plg-mode metrics against KeyBanc 2024 / Benchmarkit 2025 targets.
+
+    Short-circuits and returns a skipped report in legacy mode — no work, no errors.
+    Only operates on subscription_events, which is present only in plg-usage-based mode.
+    """
+    if config.run.mode != "plg-usage-based":
+        return BenchmarkReport(skipped=True, passed=True, metrics={}, issues=[])
+
+    if "subscription_events" not in tables.tables:
+        return BenchmarkReport(skipped=False, passed=True, metrics={}, issues=[])
+
+    sub_events = tables.materialize("subscription_events")
+
+    if sub_events.empty:
+        # Edge case: pathologically small config produced no events.
+        return BenchmarkReport(skipped=False, passed=True, metrics={}, issues=[])
+
+    sub_events = sub_events.copy()
+    sub_events["event_date"] = pd.to_datetime(sub_events["event_date"], errors="coerce")
+    sub_events["mrr_delta"] = pd.to_numeric(sub_events["mrr_delta"], errors="coerce")
+
+    as_of = pd.Timestamp(config.history.as_of_date)
+    window_end = as_of
+    window_12m = as_of - pd.DateOffset(months=12)
+    window_24m = as_of - pd.DateOffset(months=24)
+
+    # ------------------------------------------------------------------
+    # NRR / GRR: trailing-12-month window (window_12m .. window_end)
+    # start_mrr: cumulative MRR snapshot 12 months back, computed as the sum
+    # of mrr_delta for events in the 24..12 months prior window.
+    # Caveat: for very short or sparse synthetic data sets, start_mrr may be
+    # zero or negative (edge case).  We skip NRR/GRR checks in that case and
+    # document as NaN rather than crash.
+    # ------------------------------------------------------------------
+    prior_window = sub_events[
+        (sub_events["event_date"] >= window_24m)
+        & (sub_events["event_date"] < window_12m)
+    ]
+    start_mrr = float(prior_window["mrr_delta"].sum())
+
+    trailing_window = sub_events[
+        (sub_events["event_date"] >= window_12m)
+        & (sub_events["event_date"] <= window_end)
+    ]
+
+    expansion = float(
+        trailing_window.loc[
+            trailing_window["event_type"] == "expansion", "mrr_delta"
+        ].sum()
+    )
+    # contraction and churn deltas are negative; take absolute for formula
+    contraction = float(
+        abs(
+            trailing_window.loc[
+                trailing_window["event_type"] == "contraction", "mrr_delta"
+            ].sum()
+        )
+    )
+    churn = float(
+        abs(
+            trailing_window.loc[
+                trailing_window["event_type"] == "churn", "mrr_delta"
+            ].sum()
+        )
+    )
+
+    if start_mrr <= 0:
+        # Synthetic small data: not enough history to compute a valid baseline.
+        nrr = float("nan")
+        grr = float("nan")
+    else:
+        nrr = (start_mrr + expansion - contraction - churn) / start_mrr
+        grr = (start_mrr - contraction - churn) / start_mrr
+
+    # ------------------------------------------------------------------
+    # Lifetime churn rate: unique churned / all accounts that ever had 'new'
+    # ------------------------------------------------------------------
+    new_accounts = set(
+        sub_events.loc[sub_events["event_type"] == "new", "account_id"].unique()
+    )
+    churned_accounts = set(
+        sub_events.loc[sub_events["event_type"] == "churn", "account_id"].unique()
+    )
+    if len(new_accounts) == 0:
+        lifetime_churn_rate = float("nan")
+    else:
+        lifetime_churn_rate = len(churned_accounts) / len(new_accounts)
+
+    # ------------------------------------------------------------------
+    # Trial conversion rate: no trials table in v0.2.1 — forward-compat stub.
+    # Will be wired to the 'trials' table in v0.3.0.
+    # ------------------------------------------------------------------
+    trial_conversion_rate = float("nan")
+
+    metrics: dict[str, float] = {
+        "nrr": nrr,
+        "grr": grr,
+        "lifetime_churn_rate": lifetime_churn_rate,
+        "trial_conversion_rate": trial_conversion_rate,
+    }
+
+    bc = config.benchmarks
+    issues: list[BenchmarkIssue] = []
+
+    if not math.isnan(nrr):
+        if not (bc.target_nrr_min <= nrr <= bc.target_nrr_max):
+            issues.append(
+                BenchmarkIssue(
+                    metric="nrr",
+                    actual=nrr,
+                    expected=(bc.target_nrr_min, bc.target_nrr_max),
+                    message=(
+                        f"NRR {nrr:.3f} outside target range "
+                        f"[{bc.target_nrr_min}, {bc.target_nrr_max}]"
+                    ),
+                )
+            )
+
+    if not math.isnan(grr):
+        if grr < bc.target_grr_min:
+            issues.append(
+                BenchmarkIssue(
+                    metric="grr",
+                    actual=grr,
+                    expected=bc.target_grr_min,
+                    message=(f"GRR {grr:.3f} below minimum target {bc.target_grr_min}"),
+                )
+            )
+
+    if not math.isnan(lifetime_churn_rate):
+        if lifetime_churn_rate > bc.lifetime_churn_max:
+            issues.append(
+                BenchmarkIssue(
+                    metric="lifetime_churn_rate",
+                    actual=lifetime_churn_rate,
+                    expected=bc.lifetime_churn_max,
+                    message=(
+                        f"Lifetime churn rate {lifetime_churn_rate:.3f} exceeds "
+                        f"maximum {bc.lifetime_churn_max}"
+                    ),
+                )
+            )
+
+    if not math.isnan(trial_conversion_rate):
+        if not (
+            bc.trial_conversion_min <= trial_conversion_rate <= bc.trial_conversion_max
+        ):
+            issues.append(
+                BenchmarkIssue(
+                    metric="trial_conversion_rate",
+                    actual=trial_conversion_rate,
+                    expected=(bc.trial_conversion_min, bc.trial_conversion_max),
+                    message=(
+                        f"Trial conversion rate {trial_conversion_rate:.3f} outside "
+                        f"target range [{bc.trial_conversion_min}, {bc.trial_conversion_max}]"
+                    ),
+                )
+            )
+
+    return BenchmarkReport(
+        skipped=False,
+        passed=not issues,
+        metrics=metrics,
+        issues=issues,
+    )

@@ -7,6 +7,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pyarrow as pa
@@ -14,6 +15,9 @@ import pyarrow.parquet as pq
 
 from .config import OutputFormat, SaaSV3Config, dump_config
 from .engine import EXPORTED_COLUMNS, GeneratedTables, GenerationResult, TABLE_ORDER
+
+if TYPE_CHECKING:
+    from .validate import BenchmarkReport
 
 
 DATE_COLUMNS = {"signup_date", "start_date", "end_date", "invoice_date", "survey_date"}
@@ -71,6 +75,10 @@ class SaaSV3Exporter:
             schema_dir.mkdir(parents=True, exist_ok=True)
 
         for table_name in TABLE_ORDER:
+            if table_name not in dataset.tables:
+                # Optional tables (e.g. subscription_events in plg mode) are absent
+                # in legacy mode — skip without error.
+                continue
             batches = dataset.tables[table_name]
             if OutputFormat.CSV in self.config.output.formats:
                 csv_path = csv_dir / f"{table_name}.csv"
@@ -186,6 +194,37 @@ class SaaSV3Exporter:
                 }
             )
         path.write_text(json.dumps(fields, indent=2), encoding="utf-8")
+
+    def write_benchmark_report(self, report: "BenchmarkReport", run_root: Path) -> Path:
+        """Write a Markdown table summarizing benchmark metrics + issues."""
+        from .validate import BenchmarkReport
+
+        assert isinstance(report, BenchmarkReport)
+        md_path = run_root / "benchmark_validation.md"
+        lines: list[str] = []
+        lines.append("# Benchmark validation\n")
+        lines.append(f"**Status:** {'PASS' if report.passed else 'FAIL'}  ")
+        lines.append(f"**Skipped:** {report.skipped}\n")
+        if not report.skipped:
+            lines.append("## Metrics\n")
+            lines.append("| Metric | Actual |")
+            lines.append("|---|---|")
+            for name, value in sorted(report.metrics.items()):
+                # NaN-safe formatting
+                formatted = "n/a" if value != value else f"{value:.4f}"
+                lines.append(f"| {name} | {formatted} |")
+            lines.append("\n## Issues\n")
+            if not report.issues:
+                lines.append("_None — all metrics within configured target ranges._")
+            else:
+                lines.append("| Metric | Actual | Expected | Message |")
+                lines.append("|---|---|---|---|")
+                for issue in report.issues:
+                    lines.append(
+                        f"| {issue.metric} | {issue.actual:.4f} | {issue.expected} | {issue.message} |"
+                    )
+        md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return md_path
 
     def _bq_type_for_series(self, column_name: str, series: pd.Series) -> str:
         if column_name in DATE_COLUMNS:

@@ -19,6 +19,50 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - _nothing yet_
 
+## [0.2.1] — 2026-05-07
+
+### Added
+
+- **`saas-v3` `plg-usage-based` sub-mode (Phase 5).**
+  - New `run.mode` field in saas_v3 YAML config; defaults to `legacy`
+    so every existing config remains byte-stable. Set
+    `run.mode: plg-usage-based` to opt in.
+  - 8th table `subscription_events` with the full 5-movement MRR
+    waterfall: `new`, `expansion`, `contraction`, `churn`, and
+    `reactivation`. `SUM(mrr_delta) GROUP BY account_id` matches the
+    account's current MRR within ±0.01 EUR — verified by a Hypothesis
+    property test across 8 random seeds per run.
+  - `--benchmark-validation` CLI flag on `synth-datagen saas-v3 generate`
+    (saas-v3 only). Computes NRR, GRR, lifetime-churn-rate, and a
+    forward-compat `trial_conversion_rate` stub against KeyBanc 2024 +
+    Benchmarkit 2025 target ranges; writes `benchmark_validation.md` to
+    the run root and exits non-zero on failure.
+  - `BenchmarkConfig` model (`benchmarks:` block) with calibrated
+    defaults — override per-config without code changes.
+  - `configs/saas_v3.plg.yaml` reference config exercising the new mode.
+  - Hypothesis property test
+    `tests/property/test_saas_v3_invariants.py` for the MRR-delta
+    sum invariant.
+  - `subscription_event_id` ID format (`sevt_NNNNNNNNNN`) registered in
+    `IdFactory`.
+
+### Changed
+
+- **saas_v3 RNG migrated to the central `make_rng` factory** under the
+  newly registered `"saas_v3"` salt (`0x5AA50000`). `SaaSV3Engine._rng`
+  and `DefectInjector._rng` no longer call `np.random.default_rng`
+  directly — every saas_v3 random draw now flows through
+  `make_rng(seed, "saas_v3").spawn(N)`. saas_v3 byte output shifted
+  once at this release; pinned going forward by
+  `scripts/baseline_diff.py`.
+- `scripts/baseline_diff.py` now captures `saas_v3` alongside the four
+  legacy scenarios. Pre-v0.2.1 baselines without a `saas_v3/`
+  subdirectory are gracefully skipped (not flagged as missing).
+
+### Fixed
+
+- _nothing yet_
+
 ## [0.2.0] — 2026-05-07
 
 First public release. Refactored, tested, documented, and ready for PyPI.

@@ -61,3 +61,16 @@ def test_register_salt_is_idempotent_with_same_value():
     """Re-registering the same value (e.g. on module reload) must be safe."""
     register_salt("master", 0)
     assert SALT_REGISTRY["master"] == 0
+
+
+def test_saas_v3_salt_registered() -> None:
+    assert SALT_REGISTRY["saas_v3"] == 0x5AA50000
+
+
+def test_saas_v3_make_rng_independent_of_master() -> None:
+    master = make_rng(42, "master")
+    saas = make_rng(42, "saas_v3")
+    # First five draws must differ — proves stream isolation.
+    assert list(master.integers(0, 1_000_000, size=5)) != list(
+        saas.integers(0, 1_000_000, size=5)
+    )

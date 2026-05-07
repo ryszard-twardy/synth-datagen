@@ -31,6 +31,8 @@ ID_SPECS: dict[str, IdSpec] = {
     "invoice_id": IdSpec("invoice_id", "inv"),
     "ticket_id": IdSpec("ticket_id", "tkt"),
     "response_id": IdSpec("response_id", "nps"),
+    # v0.2.1: separate prefix avoids collisions with product_events (evt_*).
+    "subscription_event_id": IdSpec("subscription_event_id", "sevt"),
 }
 
 

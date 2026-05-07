@@ -9,7 +9,7 @@ from enum import Enum
 from pathlib import Path
 import hashlib
 import json
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 import yaml
@@ -35,6 +35,10 @@ class RunConfig(StrictModel):
     name: str
     seed: int = Field(ge=0)
     schema_version: str = "saas_v3"
+    # v0.2.1: 'legacy' = pre-extension behavior (byte-stable for existing configs).
+    # 'plg-usage-based' = new sub-mode emitting subscription_events + benchmarks.
+    # 'vertical-account-based' deferred to v0.3.0.
+    mode: Literal["legacy", "plg-usage-based"] = "legacy"
 
 
 class HistoryConfig(StrictModel):
@@ -208,6 +212,21 @@ class ValidationConfig(StrictModel):
         return self
 
 
+class BenchmarkConfig(StrictModel):
+    """Industry benchmark target ranges (KeyBanc 2024 / Benchmarkit 2025).
+
+    Used by validate.compute_benchmarks() when run.mode == 'plg-usage-based'.
+    Skipped silently in legacy mode.
+    """
+
+    target_nrr_min: float = Field(default=1.05, gt=0)
+    target_nrr_max: float = Field(default=1.35, gt=0)
+    target_grr_min: float = Field(default=0.85, gt=0, le=1.0)
+    lifetime_churn_max: float = Field(default=0.40, gt=0, le=1.0)
+    trial_conversion_min: float = Field(default=0.15, ge=0, le=1.0)
+    trial_conversion_max: float = Field(default=0.40, gt=0, le=1.0)
+
+
 class SaaSV3Config(StrictModel):
     run: RunConfig
     history: HistoryConfig
@@ -221,6 +240,7 @@ class SaaSV3Config(StrictModel):
     event_taxonomy: list[EventTypeConfig]
     lifecycle: LifecycleConfig
     billing: BillingConfig
+    benchmarks: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     defects: DefectsConfig
     output: OutputConfig
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
