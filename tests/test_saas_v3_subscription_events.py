@@ -1,4 +1,5 @@
 """Tests for the v0.2.1 subscription_events table (plg-usage-based mode)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -36,10 +37,33 @@ def test_legacy_mode_omits_subscription_events(tmp_path) -> None:
 
 
 def test_plg_mode_emits_all_five_movement_types(tmp_path) -> None:
+    # n_sample floor is 2 (raised from 1) so smoke configs absorb single
+    # date-window skips and reliably emit at least one reactivation event.
     result = SaaSV3Engine(_plg_config(tmp_path)).generate(OutputMode.CLEAN)
     events = result.clean.materialize("subscription_events")
     assert {"new", "expansion", "contraction", "churn", "reactivation"}.issubset(
         set(events["event_type"].unique())
+    )
+
+
+def test_plg_mode_reactivations_iter_order_deterministic(tmp_path) -> None:
+    """Sanity check: with same seed, the SET of churned-account IDs chosen
+    for reactivation must be enumerated in a stable (sorted) order so the
+    downstream RNG consumption is process-independent.
+
+    Verifies the fix for the chosen_ids = set(...) reproducibility bug.
+    """
+    cfg = _plg_config(tmp_path)
+    engine = SaaSV3Engine(cfg)
+    engine.generate(OutputMode.CLEAN)
+    # _reactivations is a list ordered by the iteration order of chosen_ids.
+    # If chosen_ids was an unsorted set, this list would be a non-deterministic
+    # permutation across runs. Assert it's sorted by account_id.
+    account_ids = [r["account_id"] for r in engine._reactivations]
+    assert account_ids == sorted(account_ids), (
+        "Reactivation account_ids must be enumerated in sorted order "
+        "to keep RNG consumption process-deterministic. "
+        f"Got: {account_ids}"
     )
 
 
@@ -55,7 +79,9 @@ def test_plg_mode_event_types_have_signed_deltas(tmp_path) -> None:
 
 def test_plg_mode_mrr_delta_sum_matches_account_mrr(tmp_path) -> None:
     result = SaaSV3Engine(_plg_config(tmp_path)).generate(OutputMode.CLEAN)
-    accounts = result.clean.hidden_tables["accounts_with_mrr"].set_index("account_id")["mrr"]
+    accounts = result.clean.hidden_tables["accounts_with_mrr"].set_index("account_id")[
+        "mrr"
+    ]
     events = result.clean.materialize("subscription_events")
     delta_sum = events.groupby("account_id")["mrr_delta"].sum()
     sample_size = min(50, len(accounts))
@@ -68,13 +94,27 @@ def test_plg_mode_mrr_delta_sum_matches_account_mrr(tmp_path) -> None:
 
 
 def test_plg_mode_reproducible(tmp_path) -> None:
-    a = SaaSV3Engine(_plg_config(tmp_path / "a")).generate(OutputMode.CLEAN).clean.materialize("subscription_events")
-    b = SaaSV3Engine(_plg_config(tmp_path / "b")).generate(OutputMode.CLEAN).clean.materialize("subscription_events")
+    a = (
+        SaaSV3Engine(_plg_config(tmp_path / "a"))
+        .generate(OutputMode.CLEAN)
+        .clean.materialize("subscription_events")
+    )
+    b = (
+        SaaSV3Engine(_plg_config(tmp_path / "b"))
+        .generate(OutputMode.CLEAN)
+        .clean.materialize("subscription_events")
+    )
     pd.testing.assert_frame_equal(a, b)
 
 
 def test_plg_mode_event_id_format(tmp_path) -> None:
     from synth_datagen.saas_v3.ids import pattern_for
+
     result = SaaSV3Engine(_plg_config(tmp_path)).generate(OutputMode.CLEAN)
     events = result.clean.materialize("subscription_events")
-    assert events["event_id"].astype(str).str.fullmatch(pattern_for("subscription_event_id")).all()
+    assert (
+        events["event_id"]
+        .astype(str)
+        .str.fullmatch(pattern_for("subscription_event_id"))
+        .all()
+    )

@@ -965,11 +965,20 @@ class SaaSV3Engine:
             self._reactivations: list[dict] = []
             return subscriptions, account_month_state
 
-        # Deterministic 5% sample.
-        n_sample = max(1, round(len(churned_accounts) * 0.05))
+        # Deterministic 5% sample; floor raised to 2 so smoke configs (small N)
+        # reliably produce at least one reactivation even when the date-window
+        # skip eliminates one candidate.  Clamped to pool size to avoid
+        # indexing past the array end when the pool itself is tiny.
+        n_sample = min(
+            len(churned_accounts), max(2, round(len(churned_accounts) * 0.05))
+        )
         # Use rng.choice for determinism — operates on indices.
         chosen_indices = rng.choice(len(churned_accounts), size=n_sample, replace=False)
-        chosen_ids = {churned_accounts[int(i)] for i in chosen_indices}
+        # MUST be sorted: Python set iteration order depends on PYTHONHASHSEED,
+        # so using a plain set here would make the downstream rng.integers /
+        # rng.choice call sequence process-dependent, silently breaking
+        # cross-process reproducibility at the same --seed.
+        chosen_ids = sorted({churned_accounts[int(i)] for i in chosen_indices})
 
         new_sub_rows: list[dict] = []
         new_ams_rows: list[dict] = []
