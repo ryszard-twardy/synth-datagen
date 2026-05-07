@@ -1,9 +1,9 @@
 # synth-datagen — Master Workflow & Orchestration
-## v1.1 — Single source of truth for the whole project (audit + SaaS extension + Pharma scenario) — English edition
+## v1.2 — Single source of truth for the whole project (audit + SaaS extension + Pharma scenario) — English edition
 
 > **Why this document exists:** Files 01–05 contain *execution instructions* (commands, REQs, contracts). This file is the *orchestration layer* — when to open which file, in which session, which commits, which human checkpoints. Open this FIRST in a new Claude thread. Attach files 01–05 alongside as a package.
 
-> **State as of:** 2026-05-05. Workflow not yet started. P1 Kupferkanne in progress (Pages 2–6 + drillthrough for NovyPro publication).
+> **State as of:** 2026-05-07. Phases 1–3 complete and CI-hardened (hotfix `ec8b5e6` merged to main). Phase 4 ready to start on `feat/docs` @ `99de7cc`. P1 Kupferkanne in progress in parallel (Pages 2–6 + drillthrough for NovyPro publication).
 
 ---
 
@@ -330,7 +330,7 @@ git push origin v0.2.0-rc2
 
 ### Step 4 — Phase 4: Docs & Publication Prep
 
-**Before the session:** Cut the prompt from **02** section "PHASE 4 — Documentation", save as `prompts/audit/04_docs.md`.
+**Before the session:** The Phase 4 prompt is already extracted to [prompts/audit/phase4_docs.md](audit/phase4_docs.md) on `feat/docs` (commit `a646817`). It supersedes the inline cut from `02_workflow.md` and includes session-specific overlays (CLI flag reality check, MkDocs strict requirement, conventional-commits constraint).
 
 **Session:**
 ```
@@ -751,6 +751,18 @@ Claude Code (preferred)               # has Superpowers + ECC selective
 - **Superpowers** (full install, 14 skills): brainstorming, systematic-debugging, test-driven-development, subagent-driven-development, verification-before-completion, writing-plans, using-git-worktrees, code-reviewer agent, ...
 - **ECC selective** (4 skills): python-patterns, python-testing, search-first, security-scan
 
+### Repo conventions (added 2026-05-07)
+
+- `checkpoints/` — session-end snapshots in tiered L0/L1/L2 schema. One file per significant session, named `CHECKPOINT_synth-datagen_YYYY-MM-DD_vN.md`. Append-only — never edit a past checkpoint. See [checkpoints/README.md](../checkpoints/README.md) for the full convention. Latest: [checkpoints/CHECKPOINT_synth-datagen_2026-05-07_v1.md](../checkpoints/CHECKPOINT_synth-datagen_2026-05-07_v1.md).
+- Per-user Claude memory (machine-local, NOT in repo) at `~/.claude/projects/x--Python-projects-synth-datagen/memory/`, indexed by `MEMORY.md`. Holds locked rules and references that survive across sessions. Mentioned here so future sessions know to consult it; do not duplicate its contents in tracked files.
+
+### Locked rules (post-Phase-3 hotfix, 2026-05-07)
+
+Two rules added during the post-Phase-3 CI hotfix. Full rationale in [checkpoints/CHECKPOINT_synth-datagen_2026-05-07_v1.md](../checkpoints/CHECKPOINT_synth-datagen_2026-05-07_v1.md) §L2 RULES — not duplicated here.
+
+- **Ruff version coupling:** when pre-commit and the runtime install ruff (or any same tool), pin both to identical version. The hotfix bumped the pre-commit hook from `v0.7.4` to `v0.15.12` to match `[test]` extra. Mismatch causes formatter-vs-formatter loops between local pre-commit and CI.
+- **CLI test ANSI strip:** CLI test assertions on `result.output` from Click/Typer's `CliRunner` must call `strip_ansi(result.output)` (helper in `tests/conftest.py` and re-exported via `tests.helpers`) before substring match. Rich emits ANSI on Ubuntu CI but not on Windows local — assertions that pass locally fail on CI without the strip.
+
 ---
 
 ## 10. DEFINITION OF DONE — WHOLE PROJECT
@@ -798,10 +810,11 @@ The workflow is complete when ALL of the below are ✅:
 ```yaml
 # UPDATE THIS BLOCK AFTER EACH SESSION
 project_state:
-  last_updated: "2026-05-06 15:03"
+  last_updated: "2026-05-07"
   current_phase: "phase-4-ready"
-  current_branch: "main"
-  current_commit_hash: "7e48fc6"
+  current_branch: "feat/docs"
+  current_commit_hash: "99de7cc"
+  main_commit_hash: "ec8b5e6"
   repo_local_path: "X:\\Python\\projects\\synth-datagen"
 
 tags_created:
@@ -841,10 +854,14 @@ decisions_made:
   - "2026-05-06: Phase 3 complete and merged (7e48fc6, tag v0.2.0-rc2). All 9 priorities + Final ✅. 246 fast tests + 48 slow tests = 294 total, all pass. Combined coverage 94% (target ≥80%; per-module: parquet 98%, schema_builder 100%, sql_exporter 100%, saas_v3.cli 99%). Pytest 5× consecutive runs 43-47s each, all green. ruff/format/bandit clean. Hypothesis property tests live in tests/property/ as slow lane."
   - "2026-05-06: Phase 3 real bug found and fixed: parquet_exporter._sanitise_chunk used `dtype is object` (identity check, always False for numpy object dtype) — entire object-column branch was dead code. Object columns holding datetime.date/datetime.datetime/None silently bypassed sanitisation. Fixed to pd.api.types.is_object_dtype(dtype). Documented in CHANGELOG.md."
   - "2026-05-06: Phase 3 documented spec deviations (CHANGELOG.md): (a) two-lane pytest in CI (fast + slow with --cov-append) instead of single invocation; (b) mypy continue-on-error: true (advisory) — pre-commit mirrors via stages: [manual]; (c) Bandit at -ll with single # nosec B608 annotation on SQL INSERT f-string."
+  - "2026-05-07: Post-Phase-3 CI hotfix merged to main (ec8b5e6, --no-ff). 3 commits (708318c, 5dff34c, 84e0b13) brought CI green: bumped pre-commit ruff hook v0.7.4 → v0.15.12 to match [test] extra, added --markdown-linebreak-ext=md to trailing-whitespace hook, introduced strip_ansi() helper in tests/conftest.py + 4 CLI assertions updated. CI run 25479480080 green across all 3 matrix legs."
+  - "2026-05-07: New repo convention adopted — checkpoints/ folder with tiered L0/L1/L2 schema, one file per significant session, append-only. See checkpoints/README.md. First snapshot: CHECKPOINT_synth-datagen_2026-05-07_v1.md (commit 99de7cc on feat/docs)."
+  - "2026-05-07: Phase 4 prompt extracted to prompts/audit/phase4_docs.md on feat/docs (a646817), with session-specific overlays (CLI flag reality check correcting --scale/--output-dir to actual --rows/--output, MkDocs strict mandatory, conventional-commits enforced, NO co-authored-by trailer)."
+  - "2026-05-07: Two locked rules added (full rationale in checkpoint L2 RULES, not duplicated): (1) ruff version coupling — pre-commit and runtime ruff must be pinned to identical version; (2) CLI test ANSI strip — CliRunner output assertions must use strip_ansi() before substring match (Rich emits ANSI on Ubuntu CI but not Windows local)."
 
 known_blockers: []
-last_action: "2026-05-06 15:03: Phase 3 merged to main (7e48fc6), tagged v0.2.0-rc2, pushed. CI workflow + pre-commit live. Branch feat/test-hardening closed."
-next_action: "Phase 4 — branch feat/docs. README rewrite (≤300 lines), MkDocs Material site, CHANGELOG (extend for v0.2.0), CONTRIBUTING.md, SECURITY.md, pyproject.toml metadata for PyPI. Use 02_workflow.md §Phase 4. Final tag v0.2.0 = public release."
+last_action: "2026-05-07: feat/docs branched and ready (@99de7cc). Phase 4 prompt extracted (a646817), checkpoints/ convention established (99de7cc). Hotfix already on main (ec8b5e6). Pytest green; CI green."
+next_action: "Phase 4 execution on feat/docs. Use prompts/audit/phase4_docs.md (already extracted). README rewrite (≤300 lines), MkDocs Material site (mkdocs build --strict mandatory), CHANGELOG (extend for v0.2.0), CONTRIBUTING.md, SECURITY.md, pyproject.toml metadata for PyPI. Final tag v0.2.0 = public release."
 
 repo_state:
   is_public: false
@@ -932,7 +949,7 @@ Good luck.
 ---
 
 **Author:** Ryszard Twardy  
-**Master document version:** v1.1 (English edition, repo path corrected to X:\Python\projects)  
+**Master document version:** v1.2 (post-Phase-3 hotfix, checkpoints/ convention, two new locked rules)  
 **Created:** 2026-05-05  
-**Last updated:** 2026-05-05  
-**Status:** Ready for execution post Kupferkanne completion
+**Last updated:** 2026-05-07  
+**Status:** Phase 4 ready on `feat/docs` @ `99de7cc`. Phases 1–3 complete and CI-hardened.
