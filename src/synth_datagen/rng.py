@@ -35,9 +35,13 @@ import numpy as np
 # Kept as the literal byte expression to make the lineage obvious.
 _DISCOUNTS_SALT = int.from_bytes(b"D15C0UNT", "big")
 
+# Phase 5 — SaaS extension v0.2.1. Locked decision: 0x5AA50000.
+_SAAS_V3_SALT = 0x5AA50000
+
 SALT_REGISTRY: dict[str, int] = {
     "master": 0,
     "discounts": _DISCOUNTS_SALT,
+    "saas_v3": _SAAS_V3_SALT,
 }
 
 
