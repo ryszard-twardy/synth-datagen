@@ -41,6 +41,10 @@ jobs:
         uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
+          # We don't ship a uv.lock; deps live in pyproject.toml [docs]
+          # extra. Override the action's default cache key so it doesn't
+          # error out with 'No matches found for glob **/uv.lock'.
+          cache-dependency-glob: pyproject.toml
 
       - name: Install docs deps
         run: |
