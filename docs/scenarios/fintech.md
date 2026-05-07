@@ -4,15 +4,17 @@ A 7-table payment ledger with chronologically valid transactions, account balanc
 
 ## Tables
 
-| Table | Kind | Approx default size | Notes |
+| Table | Kind | Default rows (no `--rows` override) | Notes |
 |---|---|---|---|
-| `customers` | dim | 5,000 | Demographic profile, KYC tier |
-| `accounts` | fact-ish | 6,000 | Per-customer account; `balance` reverse-derived from ledger |
-| `cards` | dim | 7,000 | Issued, expired, reissued — `valid_to` shifts off Feb 29 in non-leap years |
-| `merchants` | dim | 200 | Industry, MCC, region |
-| `transactions` | fact | 100,000 | Generated in **chronological order** so balances reconcile |
-| `loans` | fact | 1,000 | Principal, term, APR, status |
-| `loan_payments` | fact | 12,000 | Scheduled and actual repayments |
+| `customers` | dim | 10,000 | Demographic profile, KYC tier |
+| `accounts` | fact-ish | 15,000 | Per-customer account; `balance` reverse-derived from ledger |
+| `cards` | dim | 12,000 | Issued, expired, reissued — `valid_to` shifts off Feb 29 in non-leap years |
+| `merchants` | dim | 2,000 | Industry, MCC, region |
+| `transactions` | fact | 200,000 | Generated in **chronological order** so balances reconcile |
+| `loans` | fact | 3,000 | Principal, term, APR, status |
+| `loan_payments` | fact | 30,000 | Scheduled and actual repayments |
+
+The defaults above match `src/synth_datagen/generators/fintech.py` at v0.2.0.
 
 ## Sample command
 

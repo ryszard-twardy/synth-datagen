@@ -56,6 +56,13 @@ uv run mkdocs build --strict             # what CI / GitHub Pages run
 `--strict` rejects any warning (broken links, missing nav entries, dead
 auto-references). Always run it before opening a docs PR.
 
+The site is published by `.github/workflows/docs.yml` on push to `main`,
+so changes only appear at <https://ryszard-twardy.github.io/synth-datagen/>
+once your PR merges. The docs `changelog.md` page inlines the root
+`CHANGELOG.md` via a `pymdownx.snippets` directive — anything you put
+under `## [Unreleased]` will show on the public site at next deploy, so
+keep that section to released-style bullets, not free-form notes.
+
 ## Conventional Commits
 
 Commit subjects follow [Conventional Commits 1.0](https://www.conventionalcommits.org/).

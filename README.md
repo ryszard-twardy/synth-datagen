@@ -78,7 +78,7 @@ synth-datagen <scenario> [OPTIONS]
   --export-sqlite / --no-sqlite
   --export-parquet / --no-parquet
   --export-dml / --no-dml
-  --discount-variation / --no-discount-variation   (retail only)
+  --discount-variation / --no-discount-variation   (retail-only effect)
   --chunk-size INTEGER                 Rows per generation chunk
   --cols-min / --cols-max INTEGER      Auto-table column-count window
 ```

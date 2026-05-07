@@ -60,7 +60,7 @@ Tables   : ['dim_customers', 'dim_products', 'dim_stores', 'dim_date',
 [OK] SQL DDL written -> out\retail\schema.sql
 [OK] Data dictionary -> out\retail\data_dictionary.md
 [OK] ERD (Mermaid)  -> out\retail\erd.md
-Done! 29,807 rows in 5.5s -> out\retail
+Done! 29,807 rows in ~6s -> out\retail
 ```
 
 You should now see 21 files under `out/retail/`:

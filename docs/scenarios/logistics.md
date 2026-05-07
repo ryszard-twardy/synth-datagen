@@ -4,15 +4,17 @@ A 7-table model of a multi-warehouse, multi-carrier shipping operation. Inventor
 
 ## Tables
 
-| Table | Kind | Approx default size | Notes |
+| Table | Kind | Default rows (no `--rows` override) | Notes |
 |---|---|---|---|
-| `warehouses` | dim | 50 | Location, type (DC / cross-dock / 3PL) |
-| `suppliers` | dim | 200 | Country, lead time, OTD score |
-| `products` | dim | 1,000 | SKU, weight, volume, hazmat flag |
-| `inventory` | fact | 5,000 | (warehouse_id, product_id) on-hand snapshots |
-| `carriers` | dim | 30 | Mode (truck / air / sea / parcel), lanes, rate card hash |
-| `shipments` | fact | 20,000 | Origin warehouse, destination, carrier, freight cost |
-| `shipment_items` | fact | 60,000 | (shipment_id, product_id, quantity) — typically 3× `shipments` |
+| `warehouses` | dim | 100 | Location, type (DC / cross-dock / 3PL) |
+| `suppliers` | dim | 500 | Country, lead time, OTD score |
+| `products` | dim | 3,000 | SKU, weight, volume, hazmat flag |
+| `inventory` | fact | 10,000 | (warehouse_id, product_id) on-hand snapshots |
+| `carriers` | dim | 50 | Mode (truck / air / sea / parcel), lanes, rate card hash |
+| `shipments` | fact | 50,000 | Origin warehouse, destination, carrier, freight cost |
+| `shipment_items` | fact | 120,000 | (shipment_id, product_id, quantity) — averages ~2.4× `shipments` |
+
+The defaults above match `src/synth_datagen/generators/logistics.py` at v0.2.0.
 
 ## Sample command
 

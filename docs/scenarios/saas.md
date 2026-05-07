@@ -4,15 +4,17 @@ A 7-table star schema modelling a B2B SaaS product with subscription billing, us
 
 ## Tables
 
-| Table | Kind | Approx default size | Notes |
+| Table | Kind | Default rows (no `--rows` override) | Notes |
 |---|---|---|---|
-| `accounts` | dim | 1,000 | One row per company; `mrr` populated post-fact from active subscriptions |
-| `users` | dim | 5,000 | Many-per-account; carries role and last-active timestamp |
+| `accounts` | dim | 5,000 | One row per company; `mrr` populated post-fact from active subscriptions |
+| `users` | dim | 25,000 | Many-per-account; carries role and last-active timestamp |
 | `features` | dim | 50 | Product features for usage attribution |
-| `subscriptions` | fact | 1,500 | Plan, term, MRR, status; valid timeline (start ≤ end) |
-| `feature_usage` | fact | 50,000 | (account_id, feature_id, period) usage counters |
+| `subscriptions` | fact | 6,000 | Plan, term, MRR, status; valid timeline (start ≤ end) |
+| `feature_usage` | fact | 150,000 | (account_id, feature_id, period) usage counters |
 | `events` | fact | 500,000 | Activity event log — login, action, page view |
-| `invoices` | fact | 12,000 | Monthly recurring billing aligned to subscription terms |
+| `invoices` | fact | 20,000 | Monthly recurring billing aligned to subscription terms |
+
+The defaults above match `src/synth_datagen/generators/saas.py` at v0.2.0.
 
 ## Sample command
 

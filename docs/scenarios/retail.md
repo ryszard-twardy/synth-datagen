@@ -4,17 +4,19 @@ A 9-table star schema modelling a multi-store, multi-channel e-commerce business
 
 ## Tables
 
-| Table | Kind | Approx default size | Notes |
+| Table | Kind | Default rows (no `--rows` override) | Notes |
 |---|---|---|---|
-| `dim_customers` | dim | 50,000 | Segment-aware (`new`, `casual`, `loyal`, `vip`); attaches lifetime metrics post-fact |
+| `dim_customers` | dim | 20,000 | Segment-aware (`new`, `casual`, `loyal`, `vip`); attaches lifetime metrics post-fact |
 | `dim_products` | dim | 5,000 | Categories, prices, margin bands |
 | `dim_stores` | dim | 200 | Channel mix (online / brick / hybrid) |
-| `dim_date` | dim | 1,461 | One row per day, 4 years; warehouse `YYYYMMDD` int key |
-| `dim_promotions` | dim | 200 | Discount %, validity windows |
+| `dim_date` | dim | period-driven | One row per day across the configured period; warehouse `YYYYMMDD` int key |
+| `dim_promotions` | dim | 150 | Discount %, validity windows |
 | `fact_orders` | fact | 80,000 | Header — one row per order |
-| `fact_order_items` | fact | 240,000 | Line items — typically 3× `fact_orders` |
+| `fact_order_items` | fact | 200,000 | Line items — averages ~2.5× `fact_orders` |
 | `fact_payments` | fact | 80,000 | **1:1 with `fact_orders`** (validated) |
-| `bridge_order_promotions` | bridge | 50,000 | M:N attaching promotions to orders |
+| `bridge_order_promotions` | bridge | 30,000 | M:N attaching promotions to orders |
+
+The defaults above match `src/synth_datagen/generators/retail_builder.py` at v0.2.0; verify with `git grep 'ov.get(\"<table>\"' src/synth_datagen/generators/`.
 
 The `--rows` flag accepts overrides per table:
 
