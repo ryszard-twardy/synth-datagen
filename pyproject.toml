@@ -5,19 +5,37 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "synth-datagen"
 version = "0.2.0-dev"
-description = "Synthetic dataset generator with production-style IDs, realistic cross-table rules, and audit-grade validations"
+description = "Realistic synthetic business data with referential integrity, deterministic seeding, and configurable quality injection."
 requires-python = ">=3.11"
-authors = [{ name = "Data Engineer" }]
+authors = [{ name = "Ryszard Twardy" }]
 readme = "README.md"
 license = { text = "MIT" }
-keywords = ["synthetic-data", "data-engineering", "sql", "power-bi", "faker"]
+keywords = [
+    "synthetic-data",
+    "data-engineering",
+    "data-generation",
+    "testing",
+    "etl",
+    "sql",
+    "power-bi",
+    "star-schema",
+    "faker",
+    "portfolio",
+]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Database",
     "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
 ]
 dependencies = [
     "faker>=24.0.0",
@@ -45,6 +63,21 @@ test = [
     "bandit>=1.7.0",             # security scan in CI (P8)
     "pre-commit>=3.5.0",         # local hook runner — see .pre-commit-config.yaml (P9)
 ]
+# Documentation site (MkDocs Material). Phase 4 (P4-1).
+# Install with: uv pip install -e ".[docs]"
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.25.0",
+    "pymdown-extensions>=10.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ryszard-twardy/synth-datagen"
+Documentation = "https://ryszard-twardy.github.io/synth-datagen/"
+Repository = "https://github.com/ryszard-twardy/synth-datagen"
+Issues = "https://github.com/ryszard-twardy/synth-datagen/issues"
+Changelog = "https://github.com/ryszard-twardy/synth-datagen/blob/main/CHANGELOG.md"
 
 [project.scripts]
 synth-datagen = "synth_datagen.cli:app"
