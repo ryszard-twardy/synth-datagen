@@ -1,4 +1,5 @@
 """Hypothesis invariants for saas_v3 plg-usage-based mode."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,10 +30,9 @@ def test_subscription_events_mrr_delta_balances(tmp_path_factory, seed: int) -> 
     cfg.output.root_dir = tmp_path_factory.mktemp(f"seed_{seed}")
     result = SaaSV3Engine(cfg).generate(OutputMode.CLEAN)
     events = result.clean.materialize("subscription_events")
-    account_mrr = (
-        result.clean.hidden_tables["accounts_with_mrr"]
-        .set_index("account_id")["mrr"]
-    )
+    account_mrr = result.clean.hidden_tables["accounts_with_mrr"].set_index(
+        "account_id"
+    )["mrr"]
     delta_sum = events.groupby("account_id")["mrr_delta"].sum()
     for acct, mrr in account_mrr.items():
         observed = float(delta_sum.get(acct, 0.0))

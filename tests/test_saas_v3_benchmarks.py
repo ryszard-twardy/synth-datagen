@@ -1,9 +1,9 @@
 """Tests for the v0.2.1 saas_v3 benchmark validation pass."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from synth_datagen.saas_v3.config import (

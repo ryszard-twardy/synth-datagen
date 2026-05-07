@@ -573,9 +573,6 @@ def compute_benchmarks(
     sub_events = sub_events.copy()
     sub_events["event_date"] = pd.to_datetime(sub_events["event_date"], errors="coerce")
     sub_events["mrr_delta"] = pd.to_numeric(sub_events["mrr_delta"], errors="coerce")
-    sub_events["previous_mrr"] = pd.to_numeric(
-        sub_events["previous_mrr"], errors="coerce"
-    )
 
     as_of = pd.Timestamp(config.history.as_of_date)
     window_end = as_of
