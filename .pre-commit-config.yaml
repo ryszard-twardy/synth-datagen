@@ -20,6 +20,16 @@ repos:
         # whitespace in ``.md`` files.
         args: ["--markdown-linebreak-ext=md"]
       - id: check-yaml
+        # mkdocs.yml uses Python-specific YAML tags
+        # (``!!python/name:pymdownx.superfences.fence_code_format``) for
+        # the Mermaid custom fence. The check-yaml hook ships with
+        # ``yaml.safe_load``, which refuses those tags. Excluding the
+        # single file is safer than enabling the global ``--unsafe``
+        # flag (which would allow arbitrary Python construction in any
+        # YAML file in the repo). MkDocs itself parses mkdocs.yml with
+        # its own loader, and the docs CI lane runs
+        # ``mkdocs build --strict`` which catches any real syntax issue.
+        exclude: ^mkdocs\.yml$
       - id: check-toml
       - id: check-merge-conflict
       - id: mixed-line-ending
