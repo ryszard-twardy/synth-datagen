@@ -699,13 +699,13 @@ def test_cli_retail_end_to_end(tmp_path):
         '--output-format', 'csv',
     ], capture_output=True, text=True)
     assert result.returncode == 0
-    
+
     # Verify expected files
     assert (tmp_path / 'fact_orders.csv').exists()
     assert (tmp_path / 'dim_customers.csv').exists()
     assert (tmp_path / 'metadata.json').exists()
     assert (tmp_path / 'data_dictionary.md').exists()
-    
+
     # Verify metadata
     metadata = json.loads((tmp_path / 'metadata.json').read_text())
     assert metadata['seed'] == 42

@@ -507,4 +507,3 @@ New tests live in:
 - Whole-file CRLF / LF churn appeared on edited files because the editor
   normalises line endings. Behaviour is unaffected (CSV bytes diff empty);
   cosmetic-only. Phase 3's `ruff format` + `.gitattributes` will canonicalise.
-

@@ -215,4 +215,3 @@ Verification result from that smoke run:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests -q
 ```
-

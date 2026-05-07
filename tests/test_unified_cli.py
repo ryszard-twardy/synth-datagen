@@ -13,6 +13,7 @@ import tomllib
 from typer.testing import CliRunner
 
 from synth_datagen.cli import app
+from tests.helpers import strip_ansi
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 runner = CliRunner()
@@ -47,8 +48,9 @@ def test_unified_cli_scenario_help_runs() -> None:
     for scenario in ("retail", "saas", "fintech", "logistics"):
         result = runner.invoke(app, [scenario, "--help"])
         assert result.exit_code == 0, f"{scenario} help failed: {result.output}"
-        assert "--seed" in result.output
-        assert "--output" in result.output
+        output = strip_ansi(result.output)
+        assert "--seed" in output
+        assert "--output" in output
 
 
 def test_license_file_present_and_declared() -> None:
