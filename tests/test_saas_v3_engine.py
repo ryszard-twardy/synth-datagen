@@ -120,3 +120,16 @@ def test_saas_v3_dirty_validation_and_required_defects(smoke_result) -> None:
     }
     assert required == set(counts)
     assert all(counts[name] > 0 for name in required)
+
+
+def test_saas_v3_rng_uses_central_factory(tmp_path) -> None:
+    """Engine RNG must derive from make_rng(seed, 'saas_v3'), not np.random.default_rng directly."""
+    from synth_datagen.rng import make_rng
+
+    config = _smoke_config(tmp_path)
+    engine = SaaSV3Engine(config)
+    # Internal contract: engine exposes a parent RNG sourced via factory.
+    parent = make_rng(config.run.seed, "saas_v3")
+    expected_first = parent.integers(0, 1_000_000_000, size=1)[0]
+    actual_first = engine._parent_rng.integers(0, 1_000_000_000, size=1)[0]
+    assert int(actual_first) == int(expected_first)

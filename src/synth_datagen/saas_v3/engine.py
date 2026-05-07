@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from faker import Faker
 
+from ..rng import make_rng
 from .config import (
     CountryConfig,
     EventTypeConfig,
@@ -185,12 +186,31 @@ def _format_date_series(values: pd.Series) -> pd.Series:
     return pd.to_datetime(values).dt.date
 
 
+# Stable order — appending new labels is OK; reordering shifts bytes.
+_RNG_LABELS: tuple[str, ...] = (
+    "accounts",
+    "lifecycle",
+    "subscriptions",
+    "account_month_state",
+    "users",
+    "invoices",
+    "support_tickets",
+    "nps",
+    "product_events",
+)
+
+
 class SaaSV3Engine:
     def __init__(self, config: SaaSV3Config, seed_override: int | None = None) -> None:
         self.config = config.model_copy(deep=True)
         if seed_override is not None:
             self.config.run.seed = seed_override
         self.seed = self.config.run.seed
+        self._parent_rng = make_rng(self.seed, "saas_v3")
+        spawned = self._parent_rng.spawn(len(_RNG_LABELS))
+        self._rng_streams: dict[str, np.random.Generator] = dict(
+            zip(_RNG_LABELS, spawned)
+        )
         self.faker = Faker()
         self.faker.seed_instance(self.seed)
         self.id_factory = IdFactory()
@@ -216,7 +236,12 @@ class SaaSV3Engine:
         self.role_by_name = {role.name: role for role in self.config.role_mix}
 
     def _rng(self, label: str) -> np.random.Generator:
-        return np.random.default_rng(_seed_from_label(self.seed, label))
+        try:
+            return self._rng_streams[label]
+        except KeyError as exc:
+            raise KeyError(
+                f"Unknown saas_v3 RNG label '{label}'. Add it to _RNG_LABELS."
+            ) from exc
 
     def _sample_configs(
         self,
