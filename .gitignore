@@ -97,3 +97,9 @@ logs/
 *.tmp
 ~$*
 desktop.ini
+
+# ==========================================
+# Personal portfolio strategy — not for public repo
+# ==========================================
+prompts/
+checkpoints/
