@@ -1,276 +1,159 @@
-﻿# synthetic-data
+# synth-datagen
 
-Synthetic business dataset generator with:
+> Realistic synthetic business data — referential integrity, deterministic seeding, and quality injection you control.
 
-- fixed-format production-style IDs
-- cross-table business-rule coherence
-- deterministic generation by seed
-- configurable dirty-data injection for audit and demo use cases
+[![CI](https://github.com/ryszard-twardy/synth-datagen/actions/workflows/ci.yml/badge.svg)](https://github.com/ryszard-twardy/synth-datagen/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-mkdocs--material-526CFE)](https://ryszard-twardy.github.io/synth-datagen/)
 
-## What Changed In This v3 Copy
+Generate multi-table relational datasets — retail, SaaS, fintech, logistics — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
-- `customer_id`, `order_id`, and all other business PK/FK columns now use fixed-format string IDs such as `CU00000001` and `OR00000001`.
-- `date_id` is a warehouse-style `YYYYMMDD` integer key.
-- Retail order headers reconcile to order items.
-- SaaS subscriptions, invoices, users, events, and feature usage follow valid timelines.
-- Fintech transactions are generated in chronological ledger order and account balances reflect those ledgers.
-- Logistics inventory, shipment items, and freight costs are internally consistent.
-- Data-quality modes preserve ID formats, referential integrity, and parseable date/timestamp fields in the classic v2 pipeline.
-- `saas_v3` adds YAML-driven lifecycle generation plus per-check defect rates for audit-grade dirty CSV generation.
-- Only `--schema star` is supported. `3nf` and `mixed` are rejected explicitly.
+## Quickstart
 
-## Installation
-
-Prerequisite: Python 3.11 or 3.12.
-
-From the repo root:
+### From source (today)
 
 ```bash
-python -m pip install -e ".[test]"
+git clone https://github.com/ryszard-twardy/synth-datagen
+cd synth-datagen
+uv venv && source .venv/bin/activate    # PowerShell: .\.venv\Scripts\Activate.ps1
+uv pip install -e ".[test]"
+synth-datagen retail --seed 42 --output ./out/retail \
+    --rows fact_orders=500,fact_order_items=1500,fact_payments=500 \
+    --export-parquet
 ```
 
-If `python --version` shows Python 3.10.x, use a 3.11+ interpreter instead. On Windows, for example:
+### From PyPI (from v0.2.0 onward)
 
 ```bash
-py -3.11 -m pip install -e ".[test]"
+pip install synth-datagen
+synth-datagen retail --seed 42 --output ./out/retail \
+    --rows fact_orders=10000,fact_order_items=30000,fact_payments=10000
 ```
 
-## Quick Start
+You now have a clean retail star schema (5 dim + 3 fact + 1 bridge table) as CSV, plus an auto-generated `data_dictionary.md`, Mermaid `erd.md`, and a `schema.sql` DDL file ready to load into Postgres / MySQL / SQLServer / SQLite.
 
-Classic scenario entrypoints in the v3 repo:
+## Why this exists
+
+Faker handles names and emails; it doesn't give you `fact_orders` rows whose `customer_id` actually appears in `dim_customers`, whose payment totals reconcile to line-item subtotals, or whose order-item counts match the header. Public datasets (Kaggle, UCI) are static, undocumented, and rarely include the kind of intentional-but-realistic data quality issues you need to demonstrate cleaning logic. Hand-rolled SQL fixtures rot the moment your schema changes.
+
+`synth-datagen` sits in the gap. It generates **business-coherent multi-table data** for four scenarios out of the box, gives you four levels of quality injection (`none / light / medium / heavy`), and emits CSV + Parquet + DDL + a data dictionary + an ERD from a single CLI call. Every generation is fully reproducible from `--seed`.
+
+## Features
+
+- **Four scenarios:** retail, SaaS, fintech, logistics — each a star schema with realistic dim/fact/bridge structure.
+- **Three sub-apps:** Kupferkanne RFM (monthly fact shards from YAML), monthly-sales (period-windowed retail), SaaS v3 (audit-grade dirty-CSV pipeline with per-check defect rates).
+- **Referential integrity** across tables — FKs reconcile, totals sum, timelines are valid.
+- **Configurable quality injection:** `--data-quality {none,light,medium,heavy}` toggles missing values, format drift, duplicates, and out-of-range outliers without breaking PK/FK structure.
+- **Reproducible:** identical `--seed` → identical bytes (verified by property tests in CI).
+- **Auto-documentation:** every run emits `data_dictionary.md` + Mermaid `erd.md` next to the data.
+- **Multi-dialect DDL:** Postgres, SQLite, MySQL, SQL Server.
+- **Multi-format exports:** CSV (always), Parquet (`--export-parquet`), SQLite (`--export-sqlite`), DML inserts (`--export-dml`).
+- **Production-style IDs:** fixed-format strings (`CU00000001`, `OR00000001`) and warehouse-style `YYYYMMDD` date keys.
+- **Python 3.11 / 3.12 / 3.13.**
+
+## Scenarios
 
 ```bash
-python -m synth_datagen.main generate --scenario retail --output ./out/retail --seed 42
-python -m synth_datagen.main generate --scenario saas --output ./out/saas --seed 42
+synth-datagen scenarios   # list all four
 ```
 
-Installed console entry points:
+| Scenario | What it models | Tables |
+|---|---|---|
+| `retail` | E-commerce orders with customer segments, promotions, payments | `dim_customers`, `dim_products`, `dim_stores`, `dim_date`, `dim_promotions`, `fact_orders`, `fact_order_items`, `fact_payments`, `bridge_order_promotions` |
+| `saas` | B2B SaaS with subscriptions, usage, invoices | `accounts`, `users`, `features`, `subscriptions`, `feature_usage`, `events`, `invoices` |
+| `fintech` | Payment ledger with cards, merchants, loans | `customers`, `accounts`, `cards`, `merchants`, `transactions`, `loans`, `loan_payments` |
+| `logistics` | Shipping with warehouses, carriers, inventory | `warehouses`, `suppliers`, `products`, `inventory`, `carriers`, `shipments`, `shipment_items` |
+
+Each accepts the same flags:
 
 ```bash
-synthetic-data generate --scenario fintech --output ./out/fintech --seed 42
-synthetic-monthly-sales generate --month 2025-01 --orders-per-month 5000 --layout combined
-synthetic-saas generate --config configs/saas_v3.default.yaml --mode both --output ./out/saas_v3_default
-synthetic-rfm-kupferkanne generate --config configs/kupferkanne_rfm_v3.yaml --output ./output/monthly/
+synth-datagen <scenario> [OPTIONS]
+
+  --seed INTEGER                       Random seed (default 42)
+  --output, -o PATH                    Output directory (default ./out)
+  --rows, -r TEXT                      Per-table overrides, e.g. "fact_orders=200000,dim_customers=50000"
+  --dialect, -d {postgres|sqlite|mysql|sqlserver}
+  --data-quality, --dq {none|light|medium|heavy}
+  --export-sqlite / --no-sqlite
+  --export-parquet / --no-parquet
+  --export-dml / --no-dml
+  --discount-variation / --no-discount-variation   (retail-only effect)
+  --chunk-size INTEGER                 Rows per generation chunk
+  --cols-min / --cols-max INTEGER      Auto-table column-count window
 ```
 
-Examples use single-line commands so they work in PowerShell as well as Bash.
+See [docs/scenarios/](https://ryszard-twardy.github.io/synth-datagen/scenarios/retail/) for full schema details and per-scenario sample output.
 
-## SaaS v3
+## Architecture
 
-Use `saas_v3` when you need a more controllable SaaS customer-success dataset with:
+```mermaid
+flowchart LR
+    CLI["synth-datagen CLI<br/>(Typer)"] --> Cfg["GeneratorConfig<br/>(Pydantic v2)"]
+    Cfg --> Gen["Scenario generator<br/>(retail / saas / fintech / logistics)"]
+    Gen --> Schema["SchemaBuilder<br/>(topological sort,<br/>PK/FK pools)"]
+    Schema --> Pipe["run_pipeline<br/>(chunked generation)"]
+    Pipe --> DQ["apply_data_quality<br/>(none/light/medium/heavy)"]
+    DQ --> Exp["Exporters<br/>CSV · Parquet · SQLite · DDL"]
+    Exp --> Docs["Auto-docs<br/>data_dictionary.md · erd.md"]
+    Pipe -. isolated RNG streams .-> Gen
+```
 
-- YAML configuration
-- clean and dirty output modes
-- per-check defect rates
-- audit-oriented dirty CSV exports before BigQuery loading
+**RNG isolation.** A single `--seed` derives a tree of independent generators (`numpy.random.SeedSequence.spawn`) so each table — and each chunk within a table — gets its own RNG. Adding rows to one table doesn't shift values in another, which is what makes the byte-equality property tests possible. See [docs/architecture/rng-isolation.md](https://ryszard-twardy.github.io/synth-datagen/architecture/rng-isolation/).
 
-Use classic `src.main generate --scenario saas` when you only need the older v2 SaaS dataset with coarse `none|light|medium|heavy` quality levels.
+## Examples
 
-### SaaS v3 Audit 0.93%
-
-This repo now includes `configs/saas_v3.audit_093.yaml`, which targets roughly `0.93%` dirty rows per active check, including a deliberate `bad_date_formats` defect for raw CSV audit scenarios.
-
-Recommended command:
+Three runnable scripts in [`examples/`](examples/):
 
 ```bash
-synthetic-saas generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
+python examples/quickstart_retail.py     # ~6 s,  21 files
+python examples/quickstart_saas.py       # ~2 s,  10 files (DQ=medium)
+python examples/kupferkanne_full.py      # ~5 min, 83 files (full 39-month period)
 ```
 
-Equivalent module form:
+Each script header documents the equivalent `synth-datagen` shell invocation.
+
+## Configuration
+
+Most CLI options map 1:1 to fields on `GeneratorConfig` — the same Pydantic model the pipeline consumes. The Kupferkanne RFM and SaaS v3 sub-apps are YAML-driven; example configs live in [`configs/`](configs/) and the schemas are documented at [docs/scenarios/](https://ryszard-twardy.github.io/synth-datagen/scenarios/saas/).
+
+## Development
 
 ```bash
-python -m synth_datagen.saas_v3.cli generate --config configs/saas_v3.audit_093.yaml --mode both --output ./out/saas_v3_audit_093
+git clone https://github.com/ryszard-twardy/synth-datagen
+cd synth-datagen
+uv venv
+source .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
+uv pip install -e ".[test,docs]"
+pre-commit install
+pytest                                   # fast lane (~60 s, slow tests skipped)
+pytest -m 'slow or not slow'             # full suite (CI runs this)
 ```
 
-Important: the dirty CSV in this profile is intended for staging and audit before BigQuery load. It intentionally contains malformed dates and other data issues, so it is not meant to be loaded directly into strict typed `DATE` or `TIMESTAMP` columns without a staging step.
+CI matrix runs Python 3.11 / 3.12 / 3.13 on Ubuntu with ruff lint + format-check, mypy (advisory), bandit `-ll`, and a 80% combined coverage gate. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full PR checklist and `docs/architecture/` for design notes.
 
-### Other SaaS v3 Commands
+## Built with
 
-Default realistic profile:
+- [Typer](https://typer.tiangolo.com/) — CLI
+- [Pydantic v2](https://docs.pydantic.dev/) — config validation
+- [NumPy](https://numpy.org/) — RNG and statistics
+- [pandas](https://pandas.pydata.org/) + [PyArrow](https://arrow.apache.org/docs/python/) — data structures and Parquet
+- [Faker](https://faker.readthedocs.io/) — realistic strings
+- [Hypothesis](https://hypothesis.readthedocs.io/) — property-based tests
+- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) — docs site
 
-```bash
-synthetic-saas generate --config configs/saas_v3.default.yaml --mode both --output ./out/saas_v3_default
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+## Citing
+
+```bibtex
+@software{synth_datagen,
+  author = {Twardy, Ryszard},
+  title  = {synth-datagen: realistic synthetic business data with referential integrity},
+  year   = {2026},
+  url    = {https://github.com/ryszard-twardy/synth-datagen},
+  version = {0.2.0}
+}
 ```
-
-Small smoke profile:
-
-```bash
-synthetic-saas smoke-test --config configs/saas_v3.smoke.yaml --output ./out/saas_v3_smoke
-```
-
-Validate an exported run:
-
-```bash
-synthetic-saas validate --config configs/saas_v3.audit_093.yaml --mode dirty --run-root ./out/saas_v3_audit_093
-```
-
-## Supported Scenarios
-
-- `retail`
-- `saas`
-- `fintech`
-- `logistics`
-- `saas_v3` via `src.saas_v3.cli` or `synthetic-saas`
-- `kupferkanne_rfm` via `src.kupferkanne_rfm_cli` or `synthetic-rfm-kupferkanne`
-
-## ID Standard
-
-- `customer_id`: `CU########`
-- `order_id`: `OR########`
-- other PK/FK columns: fixed semantic prefix plus 8-digit numeric body
-- `date_id`: `YYYYMMDD`
-
-The ID format is enforced in schema metadata and validated in tests.
-
-## Data Quality Modes
-
-Classic v2 pipeline:
-
-`none`, `light`, `medium`, and `heavy` are still available, but v2 treats them as "dirty yet plausible":
-
-- no negative synthetic IDs
-- no typo corruption of IDs, dates, timestamps, status fields, or structured codes
-- no broken foreign keys
-- no invalid email/domain/SKU rewrites
-
-SaaS v3 pipeline:
-
-- defect rates are configured per check in YAML
-- clean and dirty datasets are generated from the same seeded run
-- dirty exports can include malformed raw values for audit scenarios, including bad date formats
-
-## Validation
-
-Run the full suite:
-
-```bash
-python -m pytest tests -q
-```
-
-The suite includes:
-
-- PK/FK integrity
-- ID regex and fixed-length checks
-- retail header/detail reconciliation
-- monthly retail sales range, flat extract, and resume checks
-- SaaS lifecycle validation
-- SaaS v3 dirty defect-rate validation
-- fintech ledger chronology checks
-- logistics inventory and shipment consistency checks
-- data-quality safety checks for `light` and `heavy`
-
-## Monthly Sales Script
-
-The retail wrapper keeps the normalized engine schema and adds a CSV-style convenience layer:
-
-- `combined/` writes the full requested range in the standard retail PK/FK tables
-- `months/YYYY-MM/` writes self-contained monthly subsets trimmed to referenced dimensions
-- `sales-files` writes shared dimension tables once plus monthly flat files like `sales_202501.csv`
-- `monthly_sales_flat.csv` is optional and is derived from `fact_orders` plus `fact_order_items`
-- `--resume-from` appends a new range onto a prior `combined/` snapshot while continuing IDs safely
-
-Key options:
-
-- `--start-date` / `--end-date` or `--month`
-- `--orders-per-month`
-- `--profile-config configs/monthly_sales.audit_growth_2023_2026.yaml`
-- `--avg-items-per-order`
-- `--layout monthly|combined|both|sales-files`
-- `--include-flat`
-- `--resume-from`
-- `--data-quality none|light|medium|heavy`
-
-Ready audit-growth profile:
-
-```bash
-synthetic-monthly-sales generate --profile-config configs/monthly_sales.audit_growth_2023_2026.yaml --output ./out/monthly_sales_audit_2023_2026
-```
-
-That profile generates monthly retail data from `2023-01-01` through `2026-03-31`, keeps monthly `fact_orders` under the configured cap of `5000`, applies a rising long-term trend with natural month-to-month dips, and injects audit-style bad data into normalized tables plus `monthly_sales_flat.csv`.
-
-Shared dimensions plus monthly sales files:
-
-```bash
-synthetic-monthly-sales generate --start-date 2025-01-01 --end-date 2025-03-31 --orders-per-month 5000 --layout sales-files --include-flat --output ./out/monthly_sales_files
-```
-
-Append a single month of sales into an existing sales-files snapshot:
-
-```bash
-synthetic-monthly-sales generate --month 2025-04 --orders-per-month 5000 --layout sales-files --include-flat --resume-from ./out/monthly_sales_files --output ./out/monthly_sales_files
-```
-
-## Kupferkanne RFM
-
-`Kupferkanne RFM` in v3 is a dedicated flow for the Erlangen pantry e-commerce brief. It does not reuse the classic monthly-sales wrapper because the project needs a different customer-behavior model, a richer product catalog, line-item generation, clustered audit defects, and a BigQuery-ready wildcard contract.
-
-The generator builds clean internal order headers and line items, then exports a four-table star schema:
-
-- `dimensions/dim_customers.csv`
-- `dimensions/dim_products.csv`
-- `monthly/orders202301.csv` ... `monthly/orders202603.csv`
-- `monthly/items202301.csv` ... `monthly/items202603.csv`
-
-The monthly fact shards stay analytics-friendly on purpose: `orders20*` matches `orders202301` ... `orders202603`, and `items20*` matches `items202301` ... `items202603`. This keeps `_TABLE_SUFFIX` aligned to `2301` through `2603` for both fact groups in BigQuery.
-
-Every business setting lives in the dedicated YAML config, including:
-
-- date range
-- catalog and category shares
-- archetype mix and acquisition curve
-- country distribution
-- seasonality and YoY growth
-- discount behavior
-- clustered dirty-data injection targets
-
-Recommended command:
-
-```bash
-synthetic-rfm-kupferkanne generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
-```
-
-Module form:
-
-```bash
-python -m synth_datagen.kupferkanne_rfm_cli generate --config configs/kupferkanne_rfm_v3.yaml --output ./output
-```
-
-The output directory contains `dimensions/`, `monthly/`, `manifest.json`, `effective_config.yaml`, and `kupferkanne_rfm_schema.md`.
-
-Current star schema:
-
-- `dim_customers`: `CustomerID`, `SignupDate`, `CustomerArchetype`, plus configurable customer enrichment fields
-- `dim_products`: `ProductID`, `ProductName`, `ProductCategory`, `Brand`, `RetailPrice`, `UnitCost`, `MarginPct`
-- `orders20YYMM`: `OrderID`, `CustomerID`, `OrderDate`, `OrderDiscountPct`, `BasketItemCount`
-- `items20YYMM`: `OrderID`, `LineNumber`, `ProductID`, `Quantity`, `UnitPrice`, `LineNetAmount`
-
-By default, `dim_customers.csv` also exports:
-
-- `FirstName`
-- `LastName`
-- `Email`
-- `Phone`
-- `Country`
-- `State`
-- `City`
-- `Address`
-
-You can trim those optional customer columns in `configs/kupferkanne_rfm_v3.yaml`:
-
-```yaml
-output:
-  dim_customers_extra_columns: []
-```
-
-Or keep only a subset:
-
-```yaml
-output:
-  dim_customers_extra_columns: [first_name, email, city]
-```
-
-## Notes
-
-- The original `synthetic_data` repo remains untouched.
-- Sample outputs in `out/` are deterministic and can be regenerated with seed `42`.
-- If you request incompatible row overrides, v2 fails fast instead of silently generating incoherent data.

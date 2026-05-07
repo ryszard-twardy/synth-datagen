@@ -1,0 +1,120 @@
+site_name: synth-datagen
+site_description: Realistic synthetic business data with referential integrity, deterministic seeding, and configurable quality injection.
+site_author: Ryszard Twardy
+site_url: https://ryszard-twardy.github.io/synth-datagen/
+repo_name: ryszard-twardy/synth-datagen
+repo_url: https://github.com/ryszard-twardy/synth-datagen
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Ryszard Twardy — MIT licensed
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.action.edit
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Scenarios:
+      - Overview: scenarios/index.md
+      - Retail: scenarios/retail.md
+      - SaaS: scenarios/saas.md
+      - Fintech: scenarios/fintech.md
+      - Logistics: scenarios/logistics.md
+  - Architecture:
+      - RNG isolation: architecture/rng-isolation.md
+      - Distributions: architecture/distributions.md
+      - Quality injection: architecture/quality-injection.md
+  - Recipes:
+      - Loading into Power BI: recipes/powerbi-loading.md
+      - Loading into BigQuery: recipes/bigquery-loading.md
+      - Loading into Postgres: recipes/postgres-loading.md
+  - API reference: api/reference.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - .
+        - docs
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            separate_signature: true
+            line_length: 80
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ryszard-twardy
+  generator: false
+
+watch:
+  - src/synth_datagen
