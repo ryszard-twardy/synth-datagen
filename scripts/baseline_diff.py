@@ -5,10 +5,10 @@ Usage:
     python scripts/baseline_diff.py capture <out_dir>
     python scripts/baseline_diff.py compare <baseline_dir> <candidate_dir>
 
-Generates retail/saas/fintech/logistics with seed=42 (defaults). The diff
-compares CSV bytes only — DDL/metadata files (schema.sql, *.md, *.json)
-are ignored because they may legitimately reference paths or version
-numbers that change during refactor.
+Generates retail/saas/fintech/logistics with seed=42 (defaults), plus the
+saas_v3 smoke run (v0.2.1+). The diff compares CSV bytes only — DDL/metadata
+files (schema.sql, *.md, *.json) are ignored because they may legitimately
+reference paths or version numbers that change during refactor.
 """
 
 from __future__ import annotations
@@ -48,6 +48,53 @@ SCENARIO_ROWS: dict[str, str] = {
 }
 SCENARIOS = tuple(SCENARIO_ROWS)
 
+# Phase 5 (v0.2.1) addition: pin the saas_v3 sub-app smoke run alongside
+# the four legacy scenarios. saas_v3 uses YAML configs instead of --rows
+# overrides, so the capture path differs. The smoke config runs in
+# legacy mode (run.mode default "legacy"), so this baseline is byte-stable
+# starting from v0.2.1 onward.
+SAAS_V3_CAPTURE = {
+    "label": "saas_v3",
+    "config": "configs/saas_v3.smoke.yaml",
+    "extra_args": [
+        "--mode",
+        "clean",  # Smoke run, deterministic CSVs only.
+        # No --seed override; the YAML's seed: 42 is what gets pinned.
+    ],
+}
+
+
+def capture_saas_v3(out_root: Path) -> None:
+    """Capture the saas_v3 smoke run into ``out_root / "saas_v3"``.
+
+    The sub-app produces a versioned run-root inside ``--output``. We
+    flatten it under ``out_root / "saas_v3"`` so the existing _hash_csvs
+    walker picks it up identically to the legacy scenarios.
+    """
+    target = out_root / SAAS_V3_CAPTURE["label"]
+    print(f"[capture] saas_v3 -> {target}")
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    # The sub-app writes to --output/{name}_seed{seed}_{as_of}/...
+    # We pass --output target directly; the sub-app creates the versioned
+    # subdir inside it.
+    target.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [
+            PYTHON,
+            "-m",
+            "synth_datagen.cli",
+            "saas-v3",
+            "generate",
+            "--config",
+            SAAS_V3_CAPTURE["config"],
+            "--output",
+            str(target),
+            *SAAS_V3_CAPTURE["extra_args"],
+        ],
+        check=True,
+        env=env,
+    )
+
 
 def capture(out_root: Path) -> None:
     if out_root.exists():
@@ -75,6 +122,7 @@ def capture(out_root: Path) -> None:
             check=True,
             env=env,
         )
+    capture_saas_v3(out_root)
 
 
 def _hash_csvs(root: Path) -> dict[str, str]:
@@ -87,25 +135,44 @@ def _hash_csvs(root: Path) -> dict[str, str]:
 
 def compare(baseline: Path, candidate: Path) -> int:
     failures: list[str] = []
-    for scenario in SCENARIOS:
-        b = _hash_csvs(baseline / scenario)
-        c = _hash_csvs(candidate / scenario)
+    targets = list(SCENARIOS) + [SAAS_V3_CAPTURE["label"]]
+    skipped: list[str] = []
+    for label in targets:
+        baseline_target = baseline / label
+        candidate_target = candidate / label
+        if not baseline_target.exists():
+            print(
+                f"  [skip] {label}: baseline does not contain this target (pre-v0.2.1 baseline)"
+            )
+            skipped.append(label)
+            continue
+        if not candidate_target.exists():
+            failures.append(f"{label}: missing from candidate")
+            continue
+        b = _hash_csvs(baseline_target)
+        c = _hash_csvs(candidate_target)
         if b.keys() != c.keys():
             missing_in_candidate = sorted(b.keys() - c.keys())
             extra_in_candidate = sorted(c.keys() - b.keys())
             failures.append(
-                f"{scenario}: file set differs. missing={missing_in_candidate} extra={extra_in_candidate}"
+                f"{label}: file set differs. missing={missing_in_candidate} extra={extra_in_candidate}"
             )
             continue
         for path, baseline_hash in b.items():
             if c[path] != baseline_hash:
-                failures.append(f"{scenario}/{path}: hash mismatch")
+                failures.append(f"{label}/{path}: hash mismatch")
     if failures:
         print("BASELINE DIFF FAILED:")
         for f in failures:
             print(f"  - {f}")
         return 1
-    print(f"OK — all {len(SCENARIOS)} scenarios match (CSV bytes identical).")
+    matched = len(targets) - len(skipped)
+    if skipped:
+        print(
+            f"OK — {matched} scenarios match (CSV bytes identical), {len(skipped)} skipped ({', '.join(skipped)})."
+        )
+    else:
+        print(f"OK — all {len(targets)} scenarios match (CSV bytes identical).")
     return 0
 
 
