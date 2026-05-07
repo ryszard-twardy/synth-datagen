@@ -191,6 +191,37 @@ class SaaSV3Exporter:
             )
         path.write_text(json.dumps(fields, indent=2), encoding="utf-8")
 
+    def write_benchmark_report(self, report, run_root: Path) -> Path:
+        """Write a Markdown table summarizing benchmark metrics + issues."""
+        from .validate import BenchmarkReport
+
+        assert isinstance(report, BenchmarkReport)
+        md_path = run_root / "benchmark_validation.md"
+        lines: list[str] = []
+        lines.append("# Benchmark validation\n")
+        lines.append(f"**Status:** {'PASS' if report.passed else 'FAIL'}  ")
+        lines.append(f"**Skipped:** {report.skipped}\n")
+        if not report.skipped:
+            lines.append("## Metrics\n")
+            lines.append("| Metric | Actual |")
+            lines.append("|---|---|")
+            for name, value in sorted(report.metrics.items()):
+                # NaN-safe formatting
+                formatted = "n/a" if value != value else f"{value:.4f}"
+                lines.append(f"| {name} | {formatted} |")
+            lines.append("\n## Issues\n")
+            if not report.issues:
+                lines.append("_None — all metrics within configured target ranges._")
+            else:
+                lines.append("| Metric | Actual | Expected | Message |")
+                lines.append("|---|---|---|---|")
+                for issue in report.issues:
+                    lines.append(
+                        f"| {issue.metric} | {issue.actual:.4f} | {issue.expected} | {issue.message} |"
+                    )
+        md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return md_path
+
     def _bq_type_for_series(self, column_name: str, series: pd.Series) -> str:
         if column_name in DATE_COLUMNS:
             return "DATE"

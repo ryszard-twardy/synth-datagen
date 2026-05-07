@@ -34,6 +34,15 @@ def generate(
         None, "--output", help="Optional output override."
     ),
     seed: int | None = typer.Option(None, "--seed", help="Optional seed override."),
+    benchmark_validation: bool = typer.Option(
+        False,
+        "--benchmark-validation/--no-benchmark-validation",
+        help=(
+            "Run industry-benchmark validation (NRR/GRR/lifetime-churn) and "
+            "write benchmark_validation.md to the run root. plg-usage-based "
+            "mode only — silently skipped in legacy mode."
+        ),
+    ),
 ) -> None:
     normalized_mode = _normalize_mode(mode)
     try:
@@ -68,6 +77,21 @@ def generate(
     )
     for name, path in paths.items():
         typer.echo(f"{name}: {path}")
+    if benchmark_validation:
+        from .validate import compute_benchmarks
+
+        bench_report = compute_benchmarks(result.clean, engine.config)
+        if not bench_report.skipped:
+            run_root = paths["run_root"]
+            md_path = exporter.write_benchmark_report(bench_report, run_root)
+            paths["benchmark_validation"] = md_path
+            typer.echo(f"benchmark_validation: {md_path}")
+            if not bench_report.passed:
+                for issue in bench_report.issues:
+                    typer.echo(
+                        f"  benchmark[{issue.metric}]: actual={issue.actual:.3f} expected={issue.expected} ({issue.message})"
+                    )
+                raise typer.Exit(code=1)
 
 
 @app.command("validate")

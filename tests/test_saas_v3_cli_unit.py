@@ -500,3 +500,102 @@ class TestCliGenerateAndValidateHappyPath:
         assert result.exit_code == 0, result.output
         assert seen["validated_root"] == explicit_root
         assert "resolve_called" not in seen
+
+
+# --------------------------------------------------------------------------- #
+# --benchmark-validation flag (Task 9)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture()
+def plg_smoke_config_path(tmp_path):
+    """Copy of configs/saas_v3.smoke.yaml with run.mode flipped to plg-usage-based."""
+    import yaml
+
+    smoke = Path(__file__).resolve().parents[1] / "configs" / "saas_v3.smoke.yaml"
+    cfg_text = smoke.read_text(encoding="utf-8")
+    cfg_data = yaml.safe_load(cfg_text)
+    cfg_data["run"]["mode"] = "plg-usage-based"
+    # plg mode may generate slightly more subscriptions (reactivation rows);
+    # relax row-count tolerance so the fixture doesn't fail on count drift.
+    cfg_data.setdefault("validation", {}).setdefault("row_count_tolerance", {})
+    cfg_data["validation"]["row_count_tolerance"]["subscriptions"] = 0.10
+    new_path = tmp_path / "saas_v3.plg_smoke.yaml"
+    new_path.write_text(yaml.safe_dump(cfg_data, sort_keys=False), encoding="utf-8")
+    return new_path
+
+
+def test_generate_emits_benchmark_validation_md_for_plg(
+    tmp_path, plg_smoke_config_path
+) -> None:
+    """plg-mode + --benchmark-validation must produce benchmark_validation.md."""
+    from tests.helpers import strip_ansi
+
+    out = tmp_path / "out"
+    result = runner.invoke(
+        app,
+        [
+            "generate",
+            "--config",
+            str(plg_smoke_config_path),
+            "--mode",
+            "clean",
+            "--output",
+            str(out),
+            "--benchmark-validation",
+        ],
+    )
+    # Some benchmark checks may legitimately fail on smoke-sized data
+    # (e.g. tiny denominators producing NaN-skipped or out-of-range NRR).
+    # We assert ONLY that the file was written. Failure exit code is fine.
+    md_files = list(out.rglob("benchmark_validation.md"))
+    assert md_files, (
+        f"benchmark_validation.md not written. CLI output:\n{strip_ansi(result.output)}"
+    )
+    text = md_files[0].read_text(encoding="utf-8")
+    assert "Benchmark validation" in text
+    assert "Metrics" in text
+
+
+def test_generate_no_benchmark_md_in_legacy_mode(tmp_path) -> None:
+    """legacy-mode + --benchmark-validation flag is silently a no-op (skipped report)."""
+    smoke = Path(__file__).resolve().parents[1] / "configs" / "saas_v3.smoke.yaml"
+    out = tmp_path / "out"
+    result = runner.invoke(
+        app,
+        [
+            "generate",
+            "--config",
+            str(smoke),
+            "--mode",
+            "clean",
+            "--output",
+            str(out),
+            "--benchmark-validation",
+        ],
+    )
+    assert result.exit_code == 0
+    matches = list(out.rglob("benchmark_validation.md"))
+    assert matches == [], (
+        f"legacy mode must NOT emit benchmark_validation.md, found: {matches}"
+    )
+
+
+def test_generate_no_flag_no_benchmark_md(tmp_path, plg_smoke_config_path) -> None:
+    """plg-mode WITHOUT --benchmark-validation must NOT emit the md file."""
+    out = tmp_path / "out"
+    result = runner.invoke(
+        app,
+        [
+            "generate",
+            "--config",
+            str(plg_smoke_config_path),
+            "--mode",
+            "clean",
+            "--output",
+            str(out),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    matches = list(out.rglob("benchmark_validation.md"))
+    assert matches == []
