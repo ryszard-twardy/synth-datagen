@@ -118,3 +118,46 @@ def test_plg_mode_event_id_format(tmp_path) -> None:
         .str.fullmatch(pattern_for("subscription_event_id"))
         .all()
     )
+
+
+def test_plg_mode_exports_subscription_events_csv(tmp_path) -> None:
+    """End-to-end: plg-mode generation must write subscription_events.csv with the spec column order."""
+    from synth_datagen.saas_v3.exporters import SaaSV3Exporter
+
+    cfg = _plg_config(tmp_path)
+    cfg.output.root_dir = tmp_path / "out"
+    engine = SaaSV3Engine(cfg)
+    result = engine.generate(OutputMode.CLEAN)
+    SaaSV3Exporter(cfg).export_result(result)
+
+    csv_path = next((tmp_path / "out").rglob("subscription_events.csv"))
+    assert csv_path.exists()
+    df = pd.read_csv(csv_path)
+    assert list(df.columns) == [
+        "event_id",
+        "subscription_id",
+        "account_id",
+        "event_type",
+        "event_date",
+        "mrr_delta",
+        "previous_mrr",
+        "new_mrr",
+        "reason",
+    ]
+    assert len(df) > 0
+
+
+def test_legacy_mode_does_not_export_subscription_events_csv(tmp_path) -> None:
+    """End-to-end: legacy mode must NOT write subscription_events.csv (table absent)."""
+    from synth_datagen.saas_v3.exporters import SaaSV3Exporter
+
+    cfg = _legacy_config(tmp_path)
+    cfg.output.root_dir = tmp_path / "out"
+    engine = SaaSV3Engine(cfg)
+    result = engine.generate(OutputMode.CLEAN)
+    SaaSV3Exporter(cfg).export_result(result)
+
+    matches = list((tmp_path / "out").rglob("subscription_events.csv"))
+    assert matches == [], (
+        f"subscription_events.csv must not exist in legacy mode, found: {matches}"
+    )
