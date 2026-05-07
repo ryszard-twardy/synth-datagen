@@ -9,6 +9,13 @@
 
 Generate multi-table relational datasets — retail, SaaS, fintech, logistics — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
+### v0.2.1 — Phase 5: SaaS extension
+
+- **v0.2.1** — `saas-v3` `plg-usage-based` sub-mode with the 5-movement
+  MRR waterfall (`subscription_events` table) and opt-in
+  `--benchmark-validation` against KeyBanc/Benchmarkit ranges.
+- **v0.2.0** — initial PyPI release; four scenarios, three sub-apps, Parquet + DDL exports.
+
 ## Quickstart
 
 ### From source (today)

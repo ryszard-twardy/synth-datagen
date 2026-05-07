@@ -68,6 +68,81 @@ The shipped configs are:
 
 The audit profile's dirty CSV is **not** safe to load directly into typed `DATE`/`TIMESTAMP` columns — that's the whole point. Stage to a `STRING` raw layer first.
 
+### v0.2.1 — `plg-usage-based` sub-mode
+
+The `saas-v3` engine now supports two modes via `run.mode` in YAML:
+
+- `legacy` (default) — original 7-table output. Byte-stable across versions.
+- `plg-usage-based` — emits an 8th table, `subscription_events`, and
+  unlocks the `--benchmark-validation` CLI flag.
+
+Reference config: [`configs/saas_v3.plg.yaml`](https://github.com/ryszard-twardy/synth-datagen/blob/main/configs/saas_v3.plg.yaml).
+
+#### `subscription_events` schema
+
+| column | type | notes |
+|---|---|---|
+| `event_id` | string | `sevt_NNNNNNNNNN` PK |
+| `subscription_id` | string | FK → `subscriptions` |
+| `account_id` | string | FK → `accounts` (denormalized) |
+| `event_type` | enum | `new` \| `expansion` \| `contraction` \| `churn` \| `reactivation` |
+| `event_date` | date | |
+| `mrr_delta` | float | signed; `SUM(mrr_delta) GROUP BY account_id` equals current MRR ± 0.01 |
+| `previous_mrr` | float | MRR immediately before the event |
+| `new_mrr` | float | MRR immediately after the event |
+| `reason` | string | Pareto-distributed for `churn`; tag for `expansion`/`contraction`; empty for `new`/`reactivation` |
+
+The 5-movement decomposition is the source of truth for an MRR waterfall.
+The MRR-balance invariant is verified by a Hypothesis property test
+(`tests/property/test_saas_v3_invariants.py`) across 8 random seeds per
+test run.
+
+Reactivation events synthesize the "win-back" pattern: ~5% of churned
+accounts (minimum 2 per smoke run) emit a `churn` event followed by a
+`reactivation` event 30..365 days later, restoring MRR. This is enabled
+only in `plg-usage-based` mode; legacy mode never produces reactivation
+rows.
+
+#### `--benchmark-validation`
+
+```bash
+synth-datagen saas-v3 generate \
+    --config configs/saas_v3.plg.yaml \
+    --mode clean \
+    --output out/saas_v3_plg \
+    --benchmark-validation
+```
+
+Computes industry KPIs and writes `benchmark_validation.md` to the run
+root, comparing each metric to the configured target range:
+
+| metric | computation | default range |
+|---|---|---|
+| `nrr` | `(start_mrr + expansion − contraction − churn) / start_mrr` over the trailing 12 months | `[1.05, 1.35]` |
+| `grr` | `(start_mrr − contraction − churn) / start_mrr` (same window) | `≥ 0.85` |
+| `lifetime_churn_rate` | unique churned accounts / unique accounts that ever had a `new` event | `≤ 0.40` |
+| `trial_conversion_rate` | reserved for v0.3.0 (no `trials` table emitted in v0.2.1) | `[0.15, 0.40]` (skipped) |
+
+Defaults are calibrated to KeyBanc 2024 SaaS Survey + Benchmarkit 2025.
+Override per-config under the top-level `benchmarks:` block.
+
+The flag exits non-zero (CLI exit code 1) on benchmark failure so CI can
+detect drift. **Smoke-sized configs (≤ 100 accounts) are too small for
+benchmark targets to hold reliably** — calibrate against portfolio-scale
+runs. For shape testing without benchmark gating, omit `--benchmark-validation`.
+
+In legacy mode, `--benchmark-validation` is silently a no-op (the report
+is `skipped=True`, no md file is written, exit 0).
+
+#### RNG salt
+
+`saas_v3` is registered under salt `0x5AA50000` in
+`src/synth_datagen/rng.py:SALT_REGISTRY`. All saas_v3 RNG draws derive
+from `make_rng(seed, "saas_v3").spawn(N)` — no direct
+`np.random.default_rng(...)` calls in saas_v3 scenario code. saas_v3
+byte output shifted once at v0.2.1 (the migration commits); v0.3.0 will
+pin it via `scripts/baseline_diff.py`.
+
 ## Python API equivalent
 
 ```python
