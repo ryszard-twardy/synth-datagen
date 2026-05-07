@@ -212,6 +212,21 @@ class ValidationConfig(StrictModel):
         return self
 
 
+class BenchmarkConfig(StrictModel):
+    """Industry benchmark target ranges (KeyBanc 2024 / Benchmarkit 2025).
+
+    Used by validate.compute_benchmarks() when run.mode == 'plg-usage-based'.
+    Skipped silently in legacy mode.
+    """
+
+    target_nrr_min: float = Field(default=1.05, gt=0)
+    target_nrr_max: float = Field(default=1.35, gt=0)
+    target_grr_min: float = Field(default=0.85, gt=0, le=1.0)
+    lifetime_churn_max: float = Field(default=0.40, gt=0, le=1.0)
+    trial_conversion_min: float = Field(default=0.15, ge=0, le=1.0)
+    trial_conversion_max: float = Field(default=0.40, gt=0, le=1.0)
+
+
 class SaaSV3Config(StrictModel):
     run: RunConfig
     history: HistoryConfig
@@ -225,6 +240,7 @@ class SaaSV3Config(StrictModel):
     event_taxonomy: list[EventTypeConfig]
     lifecycle: LifecycleConfig
     billing: BillingConfig
+    benchmarks: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     defects: DefectsConfig
     output: OutputConfig
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
