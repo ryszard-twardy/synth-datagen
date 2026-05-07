@@ -7,6 +7,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pyarrow as pa
@@ -14,6 +15,9 @@ import pyarrow.parquet as pq
 
 from .config import OutputFormat, SaaSV3Config, dump_config
 from .engine import EXPORTED_COLUMNS, GeneratedTables, GenerationResult, TABLE_ORDER
+
+if TYPE_CHECKING:
+    from .validate import BenchmarkReport
 
 
 DATE_COLUMNS = {"signup_date", "start_date", "end_date", "invoice_date", "survey_date"}
@@ -191,7 +195,7 @@ class SaaSV3Exporter:
             )
         path.write_text(json.dumps(fields, indent=2), encoding="utf-8")
 
-    def write_benchmark_report(self, report, run_root: Path) -> Path:
+    def write_benchmark_report(self, report: "BenchmarkReport", run_root: Path) -> Path:
         """Write a Markdown table summarizing benchmark metrics + issues."""
         from .validate import BenchmarkReport
 
