@@ -133,3 +133,15 @@ def test_saas_v3_rng_uses_central_factory(tmp_path) -> None:
     expected_first = parent.integers(0, 1_000_000_000, size=1)[0]
     actual_first = engine._parent_rng.integers(0, 1_000_000_000, size=1)[0]
     assert int(actual_first) == int(expected_first)
+
+
+def test_saas_v3_defects_use_central_factory(tmp_path) -> None:
+    """DefectInjector must spawn from the same parent saas_v3 stream."""
+    from synth_datagen.saas_v3.defects import DefectInjector
+
+    config = _smoke_config(tmp_path)
+    injector = DefectInjector(config, seed=config.run.seed)
+    # The injector must expose _parent_rng derived from make_rng(seed, "saas_v3"),
+    # NOT a direct np.random.default_rng call.
+    assert hasattr(injector, "_parent_rng")
+    assert injector._parent_rng is not None

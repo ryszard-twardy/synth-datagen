@@ -5,19 +5,30 @@ Controlled dirty-data injection for SaaS synthetic engine v3.
 from __future__ import annotations
 
 from datetime import datetime, time, timedelta
-import hashlib
 
 import numpy as np
 import pandas as pd
 
+from ..rng import make_rng
 from .config import SaaSV3Config
-from .engine import EXPORTED_COLUMNS, GeneratedTables
+from .engine import EXPORTED_COLUMNS, GeneratedTables, _RNG_LABELS as _ENGINE_RNG_LABELS
 from .ids import orphan_id
 
 
-def _seed_from_label(seed: int, label: str) -> int:
-    payload = hashlib.sha256(f"{seed}:{label}".encode("utf-8")).digest()
-    return int.from_bytes(payload[:8], "big", signed=False)
+# Stable order — do NOT reorder; appending new labels is OK.
+_DEFECT_LABELS: tuple[str, ...] = (
+    "null_company_names",
+    "case_duplicate_emails",
+    "pre_signup_logins",
+    "plan_name_typos",
+    "negative_monthly_amounts",
+    "reversed_subscription_dates",
+    "orphaned_product_events",
+    "future_timestamps",
+    "bad_date_formats",
+    "mixed_invoice_amount_formats",
+    "out_of_range_nps_scores",
+)
 
 
 def _count_from_rate(total: int, rate: float) -> int:
@@ -54,9 +65,23 @@ class DefectInjector:
     def __init__(self, config: SaaSV3Config, seed: int) -> None:
         self.config = config
         self.seed = seed
+        # Allocate the defect parent RNG as one extra spawn slot beyond the engine's labels.
+        # The engine spawns len(_ENGINE_RNG_LABELS) children; we take the next one as our root.
+        self._parent_rng = make_rng(seed, "saas_v3").spawn(len(_ENGINE_RNG_LABELS) + 1)[
+            -1
+        ]
+        spawned = self._parent_rng.spawn(len(_DEFECT_LABELS))
+        self._defect_rngs: dict[str, np.random.Generator] = dict(
+            zip(_DEFECT_LABELS, spawned)
+        )
 
     def _rng(self, label: str) -> np.random.Generator:
-        return np.random.default_rng(_seed_from_label(self.seed, f"defect:{label}"))
+        try:
+            return self._defect_rngs[label]
+        except KeyError as exc:
+            raise KeyError(
+                f"Unknown defect label '{label}'. Add it to _DEFECT_LABELS."
+            ) from exc
 
     def apply(self, clean: GeneratedTables) -> GeneratedTables:
         tables = {

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
-import hashlib
 import math
 
 import numpy as np
@@ -115,11 +114,6 @@ class GeneratedTables:
 class GenerationResult:
     clean: GeneratedTables
     dirty: GeneratedTables | None = None
-
-
-def _seed_from_label(seed: int, label: str) -> int:
-    payload = hashlib.sha256(f"{seed}:{label}".encode("utf-8")).digest()
-    return int.from_bytes(payload[:8], "big", signed=False)
 
 
 def _normalize(weights: np.ndarray) -> np.ndarray:
