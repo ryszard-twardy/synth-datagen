@@ -71,6 +71,10 @@ class SaaSV3Exporter:
             schema_dir.mkdir(parents=True, exist_ok=True)
 
         for table_name in TABLE_ORDER:
+            if table_name not in dataset.tables:
+                # Optional tables (e.g. subscription_events in plg mode) are absent
+                # in legacy mode — skip without error.
+                continue
             batches = dataset.tables[table_name]
             if OutputFormat.CSV in self.config.output.formats:
                 csv_path = csv_dir / f"{table_name}.csv"

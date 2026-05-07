@@ -32,6 +32,7 @@ TABLE_ORDER = (
     "invoices",
     "support_tickets",
     "nps_responses",
+    "subscription_events",
 )
 
 EXPORTED_COLUMNS: dict[str, list[str]] = {
@@ -85,6 +86,18 @@ EXPORTED_COLUMNS: dict[str, list[str]] = {
         "resolution_minutes",
     ],
     "nps_responses": ["response_id", "account_id", "score", "survey_date"],
+    # v0.2.1: plg-usage-based mode only.
+    "subscription_events": [
+        "event_id",
+        "subscription_id",
+        "account_id",
+        "event_type",
+        "event_date",
+        "mrr_delta",
+        "previous_mrr",
+        "new_mrr",
+        "reason",
+    ],
 }
 
 
@@ -191,6 +204,8 @@ _RNG_LABELS: tuple[str, ...] = (
     "support_tickets",
     "nps",
     "product_events",
+    # v0.2.1: slot 9 — appended at end to preserve byte-stability of slots 0-8.
+    "subscription_events",
 )
 
 
@@ -257,6 +272,15 @@ class SaaSV3Engine:
         account_month_state = self._build_account_month_state(
             profiles, lifecycle, subscriptions
         )
+
+        is_plg = self.config.run.mode == "plg-usage-based"
+        if is_plg:
+            # Mutate ~5% of churned accounts to "reactivated" state before
+            # _apply_latest_account_status so accounts.status reflects the new activity.
+            subscriptions, account_month_state = self._apply_plg_reactivations(
+                profiles, subscriptions, account_month_state
+            )
+
         profiles = self._apply_latest_account_status(profiles, account_month_state)
         users, users_internal = self._build_users(profiles, account_month_state)
         activity_budget = self._build_activity_budget(
@@ -276,33 +300,59 @@ class SaaSV3Engine:
         )
 
         accounts = profiles[EXPORTED_COLUMNS["accounts"]].copy()
+
+        # Build plg-mode extras before constructing GeneratedTables so that the
+        # subscription_events table and the accounts_with_mrr hidden table are available.
+        if is_plg:
+            subscription_events = self._build_subscription_events(
+                profiles, subscriptions, account_month_state
+            )
+            # Compute per-account MRR: monthly_amount of the last active/past_due row,
+            # 0 for churned accounts (no active row).
+            active_subs = subscriptions[
+                subscriptions["status"].isin(["active", "past_due"])
+            ]
+            mrr_map = (
+                active_subs.sort_values("start_date")
+                .groupby("account_id")["monthly_amount"]
+                .last()
+            )
+            profiles = profiles.copy()
+            profiles["mrr"] = profiles["account_id"].map(mrr_map).fillna(0.0)
+
+        clean_tables: dict[str, list[pd.DataFrame]] = {
+            "accounts": [accounts],
+            "users": [users[EXPORTED_COLUMNS["users"]].copy()],
+            "subscriptions": [subscriptions[EXPORTED_COLUMNS["subscriptions"]].copy()],
+            "product_events": product_event_batches,
+            "invoices": [invoices[EXPORTED_COLUMNS["invoices"]].copy()],
+            "support_tickets": [
+                support_tickets[EXPORTED_COLUMNS["support_tickets"]].copy()
+            ],
+            "nps_responses": [nps_responses[EXPORTED_COLUMNS["nps_responses"]].copy()],
+        }
+        if is_plg:
+            clean_tables["subscription_events"] = [
+                subscription_events[EXPORTED_COLUMNS["subscription_events"]].copy()
+            ]
+
+        clean_hidden: dict[str, pd.DataFrame] = {
+            "account_profile": profiles,
+            "billing_profile": billing_profile,
+            "lifecycle": lifecycle,
+            "account_month_state": account_month_state,
+            "users_internal": users_internal,
+            "activity_budget": activity_budget,
+            "invoice_internal": invoice_internal,
+            "support_internal": support_internal,
+            "nps_internal": nps_internal,
+        }
+        if is_plg:
+            clean_hidden["accounts_with_mrr"] = profiles[["account_id", "mrr"]].copy()
+
         clean = GeneratedTables(
-            tables={
-                "accounts": [accounts],
-                "users": [users[EXPORTED_COLUMNS["users"]].copy()],
-                "subscriptions": [
-                    subscriptions[EXPORTED_COLUMNS["subscriptions"]].copy()
-                ],
-                "product_events": product_event_batches,
-                "invoices": [invoices[EXPORTED_COLUMNS["invoices"]].copy()],
-                "support_tickets": [
-                    support_tickets[EXPORTED_COLUMNS["support_tickets"]].copy()
-                ],
-                "nps_responses": [
-                    nps_responses[EXPORTED_COLUMNS["nps_responses"]].copy()
-                ],
-            },
-            hidden_tables={
-                "account_profile": profiles,
-                "billing_profile": billing_profile,
-                "lifecycle": lifecycle,
-                "account_month_state": account_month_state,
-                "users_internal": users_internal,
-                "activity_budget": activity_budget,
-                "invoice_internal": invoice_internal,
-                "support_internal": support_internal,
-                "nps_internal": nps_internal,
-            },
+            tables=clean_tables,
+            hidden_tables=clean_hidden,
             metadata={
                 "mode": OutputMode.CLEAN.value,
                 "seed": self.seed,
@@ -882,6 +932,380 @@ class SaaSV3Engine:
         )
         merged["status"] = merged["status"].fillna("new")
         return merged
+
+    def _apply_plg_reactivations(
+        self,
+        profiles: pd.DataFrame,
+        subscriptions: pd.DataFrame,
+        account_month_state: pd.DataFrame,
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Flip ~5% of churned accounts to reactivated state (plg-usage-based mode).
+
+        Appends a new 'active' subscription row and an updated account_month_state row
+        so that _apply_latest_account_status will surface the reactivated status.
+        Uses self._rng('subscription_events') for all randomness.
+
+        Returns updated (subscriptions, account_month_state).
+        Caches reactivation records on self._reactivations for use by
+        _build_subscription_events.
+        """
+        rng = self._rng("subscription_events")
+
+        # Identify all churned accounts (final sub row status == 'cancelled').
+        last_subs = (
+            subscriptions.sort_values("start_date")
+            .groupby("account_id", as_index=False)
+            .last()
+        )
+        churned_accounts = last_subs[last_subs["status"] == "cancelled"][
+            "account_id"
+        ].tolist()
+
+        if not churned_accounts:
+            self._reactivations: list[dict] = []
+            return subscriptions, account_month_state
+
+        # Deterministic 5% sample.
+        n_sample = max(1, round(len(churned_accounts) * 0.05))
+        # Use rng.choice for determinism — operates on indices.
+        chosen_indices = rng.choice(len(churned_accounts), size=n_sample, replace=False)
+        chosen_ids = {churned_accounts[int(i)] for i in chosen_indices}
+
+        new_sub_rows: list[dict] = []
+        new_ams_rows: list[dict] = []
+        reactivations: list[dict] = []
+
+        # Build a profile lookup for plan sampling.
+        profile_lookup = profiles.set_index("account_id")
+
+        # Plan sampling weights (same logic as _sample_plan_for_account but uses
+        # the subscription_events rng stream).
+        plan_probs = np.array(
+            [plan.probability for plan in self.config.plans], dtype=float
+        )
+
+        # Pull the last AMS row per account so we can copy its non-critical columns.
+        last_ams = (
+            account_month_state.sort_values("month_start")
+            .groupby("account_id", as_index=False)
+            .last()
+            .set_index("account_id")
+        )
+
+        for account_id in chosen_ids:
+            final_sub = last_subs[last_subs["account_id"] == account_id].iloc[0]
+            cancellation_date = pd.Timestamp(final_sub["end_date"]).date()
+            earliest_reactivation = cancellation_date + timedelta(days=30)
+            latest_reactivation = min(
+                cancellation_date + timedelta(days=365),
+                self.as_of_date - timedelta(days=14),
+            )
+            if earliest_reactivation >= latest_reactivation:
+                # Window too narrow — skip this account.
+                continue
+
+            window_days = (latest_reactivation - earliest_reactivation).days
+            reactivation_date = earliest_reactivation + timedelta(
+                days=int(rng.integers(0, window_days + 1))
+            )
+
+            # Sample reactivation plan using plan probability weights.
+            profile_row = profile_lookup.loc[account_id]
+            weights = plan_probs.copy()
+            size_segment = self.size_by_name[str(profile_row["company_size"])]
+            industry = self.industry_by_name[str(profile_row["industry"])]
+            for idx, plan in enumerate(self.config.plans):
+                weights[idx] *= size_segment.plan_bias.get(plan.name, 1.0)
+                weights[idx] *= industry.plan_bias.get(plan.name, 1.0)
+            reactivation_plan_name = str(
+                rng.choice(self.plan_order, p=_normalize(weights))
+            )
+            reactivation_plan = self.plan_by_name[reactivation_plan_name]
+            new_monthly_amount = round(float(reactivation_plan.monthly_price), 2)
+            prev_monthly_amount = round(float(final_sub["monthly_amount"]), 2)
+
+            new_sub_id = self.id_factory.next_id("subscription_id")
+            new_sub_rows.append(
+                {
+                    "subscription_id": new_sub_id,
+                    "account_id": account_id,
+                    "plan_name": reactivation_plan_name,
+                    "billing_period": final_sub["billing_period"],
+                    "start_date": reactivation_date,
+                    "end_date": None,
+                    "monthly_amount": new_monthly_amount,
+                    "status": "active",
+                    "cancellation_reason": None,
+                    "_is_reactivation": True,
+                }
+            )
+
+            # Append an account_month_state row for the reactivation month so that
+            # _apply_latest_account_status reads 'active' as the latest lifecycle_state.
+            reactivation_month_start = reactivation_date.replace(day=1)
+            reactivation_month_end = _month_end(
+                reactivation_month_start, self.as_of_date
+            )
+            # Copy non-critical fields from the account's last AMS row.
+            base_ams = (
+                last_ams.loc[account_id] if account_id in last_ams.index else None
+            )
+            new_ams_rows.append(
+                {
+                    "account_id": account_id,
+                    "month_start": reactivation_month_start,
+                    "month_end": reactivation_month_end,
+                    "lifecycle_state": "active",
+                    "plan_name": reactivation_plan_name,
+                    "billing_period": str(final_sub["billing_period"]),
+                    "health_score": round(
+                        float(base_ams["health_score"])
+                        if base_ams is not None
+                        else 0.6,
+                        4,
+                    ),
+                    "active_users_estimate": int(base_ams["active_users_estimate"])
+                    if base_ams is not None
+                    else 1,
+                    "event_weight": round(
+                        float(base_ams["event_weight"])
+                        if base_ams is not None
+                        else 0.5,
+                        6,
+                    ),
+                    "ticket_pressure": round(
+                        float(base_ams["ticket_pressure"])
+                        if base_ams is not None
+                        else 0.3,
+                        6,
+                    ),
+                    "nps_signal": round(
+                        float(base_ams["nps_signal"]) if base_ams is not None else 0.5,
+                        6,
+                    ),
+                    "utc_offset_hours": int(base_ams["utc_offset_hours"])
+                    if base_ams is not None
+                    else 0,
+                    "company_size": str(base_ams["company_size"])
+                    if base_ams is not None
+                    else str(profile_row["company_size"]),
+                    "industry": str(base_ams["industry"])
+                    if base_ams is not None
+                    else str(profile_row["industry"]),
+                }
+            )
+
+            reactivations.append(
+                {
+                    "account_id": account_id,
+                    "reactivation_date": reactivation_date,
+                    "prev_mrr": prev_monthly_amount,
+                    "new_mrr": new_monthly_amount,
+                    "prev_subscription_id": str(final_sub["subscription_id"]),
+                    "new_subscription_id": new_sub_id,
+                }
+            )
+
+        self._reactivations = reactivations
+
+        if not new_sub_rows:
+            return subscriptions, account_month_state
+
+        new_subs_df = pd.DataFrame(new_sub_rows)
+        new_subs_df["start_date"] = _format_date_series(new_subs_df["start_date"])
+        new_subs_df["end_date"] = _format_date_series(new_subs_df["end_date"])
+        subscriptions = pd.concat([subscriptions, new_subs_df], ignore_index=True)
+
+        new_ams_df = pd.DataFrame(new_ams_rows)
+        new_ams_df["month_start"] = _format_date_series(new_ams_df["month_start"])
+        new_ams_df["month_end"] = _format_date_series(new_ams_df["month_end"])
+        account_month_state = pd.concat(
+            [account_month_state, new_ams_df], ignore_index=True
+        )
+
+        return subscriptions, account_month_state
+
+    def _build_subscription_events(
+        self,
+        profiles: pd.DataFrame,
+        subscriptions: pd.DataFrame,
+        account_month_state: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """Build the subscription_events table for plg-usage-based mode.
+
+        Emits 5 MRR movement types: new, expansion, contraction, churn, reactivation.
+
+        Invariant: SUM(mrr_delta) per account_id == account's final MRR.
+          - Active accounts: sum == final monthly_amount
+          - Churned accounts: sum == 0  (new + ... + churn nets to 0)
+          - Reactivated accounts: sum == reactivation monthly_amount
+
+        Note: in plg mode, churn reason is Pareto-resampled here for realistic
+        distribution (30/25/15/10/10/10). The legacy subscriptions row's
+        cancellation_reason is also updated to match.
+        """
+        rng = self._rng("subscription_events")
+
+        # Build a set of reactivation subscription IDs for quick lookup.
+        reactivation_sub_ids: set[str] = {
+            r["new_subscription_id"] for r in getattr(self, "_reactivations", [])
+        }
+
+        # Pareto weights for churn reasons (matches DEFAULT_CANCELLATION_REASONS order).
+        n_reasons = len(DEFAULT_CANCELLATION_REASONS)
+        raw_pareto = np.array(
+            [0.30, 0.25, 0.15, 0.10, 0.10, 0.10][:n_reasons], dtype=float
+        )
+        pareto_weights = raw_pareto / raw_pareto.sum()
+
+        expansion_reasons = ["seat_add", "tier_upgrade", "usage_overage", "module_add"]
+        contraction_reasons = ["seat_drop", "tier_downgrade"]
+
+        # Event type sort order: within same (account_id, event_date), churn < reactivation.
+        event_type_order = {
+            "new": 0,
+            "expansion": 1,
+            "contraction": 2,
+            "churn": 3,
+            "reactivation": 4,
+        }
+
+        # Walk subscriptions per account in (account_id, start_date) order.
+        sorted_subs = subscriptions.sort_values(["account_id", "start_date"])
+
+        records: list[dict] = []
+
+        for account_id, group in sorted_subs.groupby("account_id", sort=False):
+            group = group.sort_values("start_date").reset_index(drop=True)
+            previous_mrr = 0.0
+
+            for _, row in group.iterrows():
+                sub_id = str(row["subscription_id"])
+                monthly_amount = float(row["monthly_amount"])
+                is_reactivation_row = sub_id in reactivation_sub_ids
+                event_date = pd.Timestamp(row["start_date"]).date()
+
+                if is_reactivation_row:
+                    # Reactivation: MRR was 0 post-churn, now new plan amount.
+                    records.append(
+                        {
+                            "event_id": self.id_factory.next_id(
+                                "subscription_event_id"
+                            ),
+                            "subscription_id": sub_id,
+                            "account_id": account_id,
+                            "event_type": "reactivation",
+                            "event_date": event_date,
+                            "mrr_delta": round(monthly_amount, 2),
+                            "previous_mrr": 0.0,
+                            "new_mrr": round(monthly_amount, 2),
+                            "reason": "",
+                        }
+                    )
+                    previous_mrr = monthly_amount
+                    # Reactivation rows don't emit churn (status == 'active').
+                    continue
+
+                if previous_mrr == 0.0:
+                    # First row for account — always a 'new' event.
+                    records.append(
+                        {
+                            "event_id": self.id_factory.next_id(
+                                "subscription_event_id"
+                            ),
+                            "subscription_id": sub_id,
+                            "account_id": account_id,
+                            "event_type": "new",
+                            "event_date": event_date,
+                            "mrr_delta": round(monthly_amount, 2),
+                            "previous_mrr": 0.0,
+                            "new_mrr": round(monthly_amount, 2),
+                            "reason": "",
+                        }
+                    )
+                elif monthly_amount > previous_mrr:
+                    reason = str(rng.choice(expansion_reasons))
+                    records.append(
+                        {
+                            "event_id": self.id_factory.next_id(
+                                "subscription_event_id"
+                            ),
+                            "subscription_id": sub_id,
+                            "account_id": account_id,
+                            "event_type": "expansion",
+                            "event_date": event_date,
+                            "mrr_delta": round(monthly_amount - previous_mrr, 2),
+                            "previous_mrr": round(previous_mrr, 2),
+                            "new_mrr": round(monthly_amount, 2),
+                            "reason": reason,
+                        }
+                    )
+                elif monthly_amount < previous_mrr:
+                    reason = str(rng.choice(contraction_reasons))
+                    records.append(
+                        {
+                            "event_id": self.id_factory.next_id(
+                                "subscription_event_id"
+                            ),
+                            "subscription_id": sub_id,
+                            "account_id": account_id,
+                            "event_type": "contraction",
+                            "event_date": event_date,
+                            "mrr_delta": round(monthly_amount - previous_mrr, 2),
+                            "previous_mrr": round(previous_mrr, 2),
+                            "new_mrr": round(monthly_amount, 2),
+                            "reason": reason,
+                        }
+                    )
+                # If monthly_amount == previous_mrr (same-plan renewal), no transition event.
+
+                previous_mrr = monthly_amount
+
+                # Emit churn event if this is the final cancelled row.
+                if str(row["status"]) == "cancelled":
+                    end_date = pd.Timestamp(row["end_date"]).date()
+                    # In plg mode, resample cancellation_reason with Pareto weights for
+                    # more realistic distribution (engine uses uniform sampling).
+                    # Also update the subscriptions DataFrame so both tables agree.
+                    pareto_reason = str(
+                        rng.choice(DEFAULT_CANCELLATION_REASONS, p=pareto_weights)
+                    )
+                    # Update the underlying subscriptions row (cancellation_reason column).
+                    subscriptions.loc[
+                        subscriptions["subscription_id"] == sub_id,
+                        "cancellation_reason",
+                    ] = pareto_reason
+
+                    records.append(
+                        {
+                            "event_id": self.id_factory.next_id(
+                                "subscription_event_id"
+                            ),
+                            "subscription_id": sub_id,
+                            "account_id": account_id,
+                            "event_type": "churn",
+                            "event_date": end_date,
+                            "mrr_delta": round(-monthly_amount, 2),
+                            "previous_mrr": round(monthly_amount, 2),
+                            "new_mrr": 0.0,
+                            "reason": pareto_reason,
+                        }
+                    )
+                    previous_mrr = 0.0
+
+        if not records:
+            return pd.DataFrame(columns=EXPORTED_COLUMNS["subscription_events"])
+
+        events = pd.DataFrame(records)
+        events["event_date"] = pd.to_datetime(events["event_date"]).dt.date
+        # Sort by (account_id, event_date, event_type_ordinal).
+        events["_sort_order"] = events["event_type"].map(event_type_order)
+        events = (
+            events.sort_values(["account_id", "event_date", "_sort_order"])
+            .drop(columns=["_sort_order"])
+            .reset_index(drop=True)
+        )
+        return events
 
     def _sample_user_roles(
         self, count: int, account_profile: pd.Series, rng: np.random.Generator

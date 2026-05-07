@@ -53,13 +53,18 @@ def validate_exported_run(
     tables = {
         table_name: [pd.read_csv(dataset_root / f"{table_name}.csv")]
         for table_name in TABLE_ORDER
+        if (dataset_root / f"{table_name}.csv").exists()
     }
     dataset = GeneratedTables(tables=tables, metadata={})
     return validate_generated_dataset(dataset, config, mode)
 
 
 def _validate_schema(dataset: GeneratedTables, issues: list[ValidationIssue]) -> None:
+    # Only validate tables that are present — optional tables (e.g. subscription_events
+    # in plg mode) are absent in legacy mode and should not trigger schema errors.
     for table_name in TABLE_ORDER:
+        if table_name not in dataset.tables:
+            continue
         columns = list(dataset.materialize(table_name).columns)
         if columns != EXPORTED_COLUMNS[table_name]:
             issues.append(
