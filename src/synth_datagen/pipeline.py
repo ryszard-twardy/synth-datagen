@@ -49,7 +49,7 @@ def _get_generator(
 
 def run_pipeline(config: GeneratorConfig) -> None:
     t0 = time.perf_counter()
-    console.rule("[bold cyan]synthetic-data[/bold cyan]", characters="-")
+    console.rule("[bold cyan]synth-datagen[/bold cyan]", characters="-")
     console.print(f"Scenario : [green]{config.scenario.value}[/green]")
     console.print(f"Schema   : [green]{config.schema_type.value}[/green]")
     console.print(f"Dialect  : [green]{config.dialect.value}[/green]")

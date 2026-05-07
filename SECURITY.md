@@ -17,7 +17,7 @@ When 0.3.0 ships, 0.2.x will continue to receive security patches for
 
 **Do not open a public issue for security problems.**
 
-Email the maintainer directly: <r.kazmierczak@gmail.com>. Use the
+Email the maintainer directly: <r.twardy@proton.me>. Use the
 subject line `synth-datagen security: <short title>` so the report is
 not filed in the wrong inbox.
 
