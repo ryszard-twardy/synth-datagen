@@ -1,8 +1,8 @@
 """Regression tests for the Feb-29 leap-day card-expiry crash in fintech.
 
-Reproduces audit_report.md L503-506 — `date(2024, 2, 29).replace(year=2025)`
-raises ``ValueError: day is out of range for month`` because 2025 is not a
-leap year. Default-scale fintech generation hits this with high probability
+Reproduces the v0.2.0 "Fixed" entry in CHANGELOG.md — `date(2024, 2, 29)
+.replace(year=2025)` raises ``ValueError: day is out of range for month``
+because 2025 is not a leap year. Default-scale fintech generation hits this with high probability
 because card issue dates land on Feb 29 in any 4+ year window crossing
 2020 or 2024 (the leap years inside the scenario's 2020-2025 simulation
 range).
@@ -75,7 +75,7 @@ def test_feb29_full_offset_grid(issue_year: int, offset: int, expected: date) ->
 
 
 def test_fintech_completes_at_card_heavy_scale_with_seed_42(tmp_path: Path) -> None:
-    """End-to-end repro of audit_report.md L503-506.
+    """End-to-end repro of the v0.2.0 fintech leap-day fix in CHANGELOG.md.
 
     Default-scale fintech generation (cards=12_000) with seed=42 used to
     crash on the first Feb-29 issue date the RNG produced. This test runs a

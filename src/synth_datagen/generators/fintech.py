@@ -61,9 +61,10 @@ def _advance_years_safe(d: date, years: int) -> date:
 
     ``date.replace(year=...)`` raises ``ValueError`` when the source date is
     Feb 29 and the target year is not a leap year — the latent bug recorded
-    in audit_report.md L503-506 that crashed default-scale fintech generation.
-    Real card issuers handle the same edge case by issuing the expiry on Feb
-    28 of the target year, which is the behaviour reproduced here.
+    under v0.2.0 "Fixed" in CHANGELOG.md (the fintech leap-day card-expiry
+    crash) that crashed default-scale fintech generation. Real card issuers
+    handle the same edge case by issuing the expiry on Feb 28 of the target
+    year, which is the behaviour reproduced here.
 
     Any other date round-trips unchanged.
     """
