@@ -21,7 +21,11 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PYTHON = str(REPO_ROOT / ".venv" / "Scripts" / "python.exe")
+# Use sys.executable so subprocess invocations work cross-platform.
+# The previous hardcoded ``.venv/Scripts/python.exe`` was Windows-only and
+# crashed on CI Ubuntu (FileNotFoundError) — caught by the Phase-6 final
+# CI matrix verification on c09af3e.
+PYTHON = sys.executable
 
 # Small row overrides per scenario to keep baseline diff fast and avoid
 # latent default-scale bugs that are out of scope for Phase 2 (e.g. fintech
