@@ -21,6 +21,13 @@ keywords = [
     "star-schema",
     "faker",
     "portfolio",
+    # v0.3.0 — pharma scenario discovery
+    "pharma",
+    "pharmaceutical",
+    "german-pharma",
+    "hospital-data",
+    "geospatial",
+    "bkg-vg250",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -33,6 +40,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Database",
+    "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Software Development :: Testing",
     "Typing :: Typed",
