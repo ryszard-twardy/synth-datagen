@@ -38,10 +38,19 @@ _DISCOUNTS_SALT = int.from_bytes(b"D15C0UNT", "big")
 # Phase 5 — SaaS extension v0.2.1. Locked decision: 0x5AA50000.
 _SAAS_V3_SALT = 0x5AA50000
 
+# Phase 6 — Pharma scenario v0.3.0. Locked decision: 0x5DDA50000 (reads
+# as "PHA50000" in hex, mirroring the saas_v3 convention). Used as the
+# single salt for the pharma scenario; sub-streams (accounts, reps,
+# territories, orders, products, engagement, quality, regional) are
+# derived via make_rng(seed, "pharma").spawn(N) at call sites — same
+# pattern saas_v3 adopted.
+_PHARMA_SALT = 0x5DDA50000
+
 SALT_REGISTRY: dict[str, int] = {
     "master": 0,
     "discounts": _DISCOUNTS_SALT,
     "saas_v3": _SAAS_V3_SALT,
+    "pharma": _PHARMA_SALT,
 }
 
 
