@@ -34,6 +34,10 @@ One file per topic, kebab-case filename, markdown. Each file:
 | [`ruff-pin-coupling.md`](ruff-pin-coupling.md) | The pre-commit `ruff` rev must match the ruff installed via the `[test]` extra, or CI fights itself across pushes. |
 | [`cli-tests-ansi-on-ci.md`](cli-tests-ansi-on-ci.md) | Typer `CliRunner` substring asserts on `--help` output need `strip_ansi()` because Rich emits ANSI on Ubuntu CI but not local Windows. |
 | [`precommit-checkyaml-mkdocs.md`](precommit-checkyaml-mkdocs.md) | `mkdocs.yml` with `pymdownx` Python-name tags trips `pre-commit/check-yaml` (uses `yaml.safe_load`); `pytest` and `mkdocs build --strict` both pass while CI fails. |
+| [`version-coupling.md`](version-coupling.md) | `pyproject.toml` `[project] version` and `src/synth_datagen/__init__.py.__version__` are two sources of truth — every release commit must bump both together. |
+| [`pydantic-v2-validator-assignment.md`](pydantic-v2-validator-assignment.md) | Inside a Pydantic v2 `@model_validator(mode='after')`, use `object.__setattr__(self, ...)` for self-assignment — direct `self.field = value` re-enters validation. |
+| [`spawn-slot-pattern.md`](spawn-slot-pattern.md) | RNG engines should derive `master.spawn(N)` count from `len(_STREAM_LABELS)` rather than hardcoded literals; pin the labels tuple in a regression test. |
+| [`cross-platform-python-path.md`](cross-platform-python-path.md) | Subprocess shell-outs to Python MUST use `sys.executable`; hardcoded `.venv/Scripts/python.exe` is Windows-only and fails on Ubuntu CI. |
 
 When adding a new entry, prepend a row to the table above and add a
 brief note in the relevant CHANGELOG.md `[Unreleased]` block under
