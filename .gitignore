@@ -79,6 +79,9 @@ out/
 # Exception: keep test fixtures if any
 !tests/fixtures/*.csv
 !tests/fixtures/*.parquet
+# Nested fixture dirs (e.g. tests/fixtures/pharma/) — Phase 6 onward
+!tests/fixtures/**/*.csv
+!tests/fixtures/**/*.parquet
 
 # ==========================================
 # Logs

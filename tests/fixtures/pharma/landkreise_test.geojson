@@ -1,0 +1,168 @@
+{
+  "type": "FeatureCollection",
+  "name": "landkreise_test",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "01001",
+        "ags_2digit_parent": "01",
+        "name": "Landkreis Alpha-NW",
+        "population": 800000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0, 52.5], [11.0, 52.5], [11.0, 53.0], [10.0, 53.0], [10.0, 52.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "01002",
+        "ags_2digit_parent": "01",
+        "name": "Landkreis Alpha-NE",
+        "population": 700000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[11.0, 52.5], [12.0, 52.5], [12.0, 53.0], [11.0, 53.0], [11.0, 52.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "01003",
+        "ags_2digit_parent": "01",
+        "name": "Landkreis Alpha-SW",
+        "population": 600000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0, 52.0], [11.0, 52.0], [11.0, 52.5], [10.0, 52.5], [10.0, 52.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "01004",
+        "ags_2digit_parent": "01",
+        "name": "Landkreis Alpha-SE",
+        "population": 400000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[11.0, 52.0], [12.0, 52.0], [12.0, 52.5], [11.0, 52.5], [11.0, 52.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "09001",
+        "ags_2digit_parent": "09",
+        "name": "Landkreis Beta-NW",
+        "population": 4000000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0, 51.0], [11.0, 51.0], [11.0, 52.0], [10.0, 52.0], [10.0, 51.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "09002",
+        "ags_2digit_parent": "09",
+        "name": "Landkreis Beta-NE",
+        "population": 4000000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[11.0, 51.0], [12.0, 51.0], [12.0, 52.0], [11.0, 52.0], [11.0, 51.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "09003",
+        "ags_2digit_parent": "09",
+        "name": "Landkreis Beta-SW",
+        "population": 2000000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0, 50.0], [11.0, 50.0], [11.0, 51.0], [10.0, 51.0], [10.0, 50.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "09004",
+        "ags_2digit_parent": "09",
+        "name": "Landkreis Beta-SE",
+        "population": 2000000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[11.0, 50.0], [12.0, 50.0], [12.0, 51.0], [11.0, 51.0], [11.0, 50.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "11001",
+        "ags_2digit_parent": "11",
+        "name": "Landkreis Gamma-NW",
+        "population": 1500000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[12.0, 51.5], [13.0, 51.5], [13.0, 53.0], [12.0, 53.0], [12.0, 51.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "11002",
+        "ags_2digit_parent": "11",
+        "name": "Landkreis Gamma-NE",
+        "population": 1000000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[13.0, 51.5], [14.0, 51.5], [14.0, 53.0], [13.0, 53.0], [13.0, 51.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "11003",
+        "ags_2digit_parent": "11",
+        "name": "Landkreis Gamma-SW",
+        "population": 800000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[12.0, 50.0], [13.0, 50.0], [13.0, 51.5], [12.0, 51.5], [12.0, 50.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ags_5digit": "11004",
+        "ags_2digit_parent": "11",
+        "name": "Landkreis Gamma-SE",
+        "population": 700000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[13.0, 50.0], [14.0, 50.0], [14.0, 51.5], [13.0, 51.5], [13.0, 50.0]]]
+      }
+    }
+  ]
+}
