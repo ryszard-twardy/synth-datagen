@@ -1,7 +1,8 @@
 """German-pharma vocabulary helpers — leaf module consumed by the
 pharma engine.
 
-Three areas, each with module-level data + a small generator:
+Four areas, three with module-level data + a small generator and
+one (account archetypes) with constants only:
 
 1. **PZN8** — Pharma-Zentralnummer, 8-digit form (BfArM, 2013).
    ``generate_pzn(rng)`` yields a checksum-valid string.
@@ -11,6 +12,10 @@ Three areas, each with module-level data + a small generator:
 3. **ATC codes** — WHO Anatomical Therapeutic Chemical level-5 codes,
    restricted to anatomical groups documented in the pharma spec
    (A, B, J, L, N, S, D, R). ``generate_atc_code(rng, primary=...)``.
+4. **Account archetypes** — German hospital classification labels
+   (University, Maximalversorger, Schwerpunktversorger,
+   Grundversorger, Specialist, MVZ). Constants only; engine and
+   validate / tests share the literal tuple.
 
 All generators consume an ``np.random.Generator`` argument so the
 caller controls the stream — the engine wires this up so each table
@@ -254,6 +259,38 @@ ATC_CATALOG: dict[str, tuple[str, ...]] = {
         "R03BB04",  # tiotropium
     ),
 }
+
+
+# ---------------------------------------------------------------------------
+# Account archetypes — German hospital classification labels used by the
+# engine on the ``accounts`` table. Acute-care assigns from the four
+# Krankenhaus tiers; specialty-care assigns from {Specialist, MVZ}.
+# Tuple is the locked vocabulary; tests in test_vocab.py and the engine
+# both import this name.
+# ---------------------------------------------------------------------------
+
+ACCOUNT_ARCHETYPES: tuple[str, ...] = (
+    "University",  # Universitätsklinikum
+    "Maximalversorger",  # large general / regional hospital
+    "Schwerpunktversorger",  # mid-size general
+    "Grundversorger",  # local general
+    "Specialist",  # specialist / facharztklinik
+    "MVZ",  # Medizinisches Versorgungszentrum
+)
+
+# Acute-care subset (excludes specialty-only labels).
+ACUTE_CARE_ARCHETYPES: tuple[str, ...] = (
+    "University",
+    "Maximalversorger",
+    "Schwerpunktversorger",
+    "Grundversorger",
+)
+
+# Specialty-care subset.
+SPECIALTY_CARE_ARCHETYPES: tuple[str, ...] = (
+    "Specialist",
+    "MVZ",
+)
 
 
 def generate_atc_code(rng: np.random.Generator, *, primary: str | None = None) -> str:

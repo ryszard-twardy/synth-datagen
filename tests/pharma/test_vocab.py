@@ -263,3 +263,37 @@ def test_atc_catalog_codes_are_valid_format() -> None:
 def test_atc_catalog_codes_unique() -> None:
     flat = [code for codes in vocab.ATC_CATALOG.values() for code in codes]
     assert len(set(flat)) == len(flat), "duplicate ATC codes in catalog"
+
+
+# ---------------------------------------------------------------------------
+# Account archetype constants — used by engine + validate + tests.
+# ---------------------------------------------------------------------------
+
+
+def test_archetype_tuples_are_string_tuples() -> None:
+    for label in (
+        vocab.ACCOUNT_ARCHETYPES,
+        vocab.ACUTE_CARE_ARCHETYPES,
+        vocab.SPECIALTY_CARE_ARCHETYPES,
+    ):
+        assert isinstance(label, tuple)
+        assert all(isinstance(x, str) and x for x in label)
+
+
+def test_acute_and_specialty_archetypes_partition_full_set() -> None:
+    """Every archetype must belong to exactly one of the two
+    sub-mode subsets — no overlap, no leftover. Catches drift between
+    the master tuple and the sub-mode buckets."""
+    union = set(vocab.ACUTE_CARE_ARCHETYPES) | set(vocab.SPECIALTY_CARE_ARCHETYPES)
+    intersection = set(vocab.ACUTE_CARE_ARCHETYPES) & set(
+        vocab.SPECIALTY_CARE_ARCHETYPES
+    )
+    assert union == set(vocab.ACCOUNT_ARCHETYPES)
+    assert intersection == set()
+
+
+def test_university_only_in_acute_subset() -> None:
+    """Spec REQ-2: Universitätskliniken (35 of them) are flagged in
+    acute-care only; specialty-care does not have a University label."""
+    assert "University" in vocab.ACUTE_CARE_ARCHETYPES
+    assert "University" not in vocab.SPECIALTY_CARE_ARCHETYPES
