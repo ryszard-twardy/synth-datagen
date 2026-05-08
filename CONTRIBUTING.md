@@ -123,9 +123,25 @@ Before requesting review, confirm:
    (yields `pd.DataFrame` chunks). Look at
    [`generators/saas.py`](src/synth_datagen/generators/saas.py) for the
    simplest reference.
+
+   If your generator depends on heavy or platform-specific libraries
+   (geopandas, shapely, image libraries, ML frameworks), gate them
+   behind a `[<scenario>]` optional extra in `pyproject.toml` and
+   guard the imports lazily so a base install never pays the cost.
+   See the `[pharma]` extra (geopandas + shapely) in `pyproject.toml`
+   and the lazy import + friendly error pattern in
+   [`src/synth_datagen/pharma/cli.py`](src/synth_datagen/pharma/cli.py).
 3. **Wire it into the registry.** Add the import + dispatch entry to
    `src/synth_datagen/pipeline.py::_get_generator`.
-4. **Tests.**
+4. **Cross-scenario utilities (if any).** If your scenario adds
+   primitives reusable across scenarios — spatial joins, hierarchy
+   walkers, coordinate-system helpers, period-windowing math — put
+   them in a top-level shared module like
+   [`src/synth_datagen/geo.py`](src/synth_datagen/geo.py) rather than
+   scenario-local code. This prevents duplication when future
+   scenarios need the same primitive and keeps the per-scenario
+   module focused on business logic.
+5. **Tests.**
    - `tests/test_<name>_realism.py` — invariants (FK integrity, totals
      reconcile, no NaNs in PK columns).
    - `tests/test_property_<name>.py` — Hypothesis property tests
@@ -133,12 +149,43 @@ Before requesting review, confirm:
      marker.
    - `tests/test_unified_cli.py` — add the new sub-command to the
      parametrised list.
-5. **Docs.** Add `docs/scenarios/<name>.md` with sample output, table
+   - **Fixtures.** If your scenario reads external data (CSVs,
+     GeoJSON, etc.), commit hermetic mini-fixtures under
+     `tests/fixtures/<name>/` with a `README.md` documenting
+     provenance: license, source URL or "hand-authored synthetic",
+     generation seed if applicable. See
+     [`tests/fixtures/pharma/README.md`](tests/fixtures/pharma/README.md)
+     for the canonical example. Tests that need real production-scale
+     data gate behind a dedicated marker (e.g. `@pytest.mark.real_geo`,
+     registered in `pyproject.toml`'s `[tool.pytest.ini_options]
+     markers`) and are skipped by default — opt in via env var or
+     `pytest -m`.
+6. **Docs.** Add `docs/scenarios/<name>.md` with sample output, table
    inventory, and full config reference. Link it from
    `docs/scenarios/index.md` and from the README scenarios table.
-6. **Changelog.** Add a `Added` bullet under `[Unreleased]`.
-7. **Verify.** Run the full suite and `mkdocs build --strict`. Open the
+7. **Changelog.** Add a `Added` bullet under `[Unreleased]`.
+8. **Verify.** Run the full suite and `mkdocs build --strict`. Open the
    PR with example output (a `tree out/<name>/` listing) in the body.
+
+## Documenting gotchas
+
+When you hit a non-obvious build, CI, or test trap likely to be
+repeated by future contributors, drop a `memory/<slug>.md` note. The
+[`memory/`](memory/) folder is the project's curated list of
+scenario-agnostic technical lessons.
+
+Format: **Title / Symptom / Root cause / Fix / References**. See
+existing entries for canonical examples:
+
+- [`memory/ruff-pin-coupling.md`](memory/ruff-pin-coupling.md)
+- [`memory/cli-tests-ansi-on-ci.md`](memory/cli-tests-ansi-on-ci.md)
+- [`memory/version-coupling.md`](memory/version-coupling.md)
+- [`memory/cross-platform-python-path.md`](memory/cross-platform-python-path.md)
+
+Update [`memory/README.md`](memory/README.md)'s index table with a
+one-line summary in the same commit. Keep entries short, focused on
+the *one* lesson, and free of personal/workflow context — they're
+project-level reference, not session notes.
 
 ## Reporting issues
 
