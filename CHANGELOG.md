@@ -9,7 +9,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
-- _nothing yet_
+- **Phase 6 in progress — Pharma scenario.** Acute-care + specialty-care
+  sub-modes targeting the German pharmaceutical market. Calibrated
+  against DESTATIS Krankenhausstatistik, PHAGRO wholesale data, IQVIA
+  DKM, vfa innovation data, and Pharmalotse field-force benchmarks. New
+  shared `geo.py` module for AGS-based hierarchical lookups
+  (Bundesländer + Landkreise). New optional extra `[pharma]` pulling in
+  `geopandas` + `shapely`. Full release notes accumulated as commits
+  land on `feat/pharma-scenario`; this stub will be expanded into the
+  `[0.3.0]` block at release time.
 
 ### Changed
 
