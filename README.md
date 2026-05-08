@@ -9,8 +9,15 @@
 
 Generate multi-table relational datasets — retail, SaaS, fintech, logistics — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
-### v0.2.1 — Phase 5: SaaS extension
+### v0.3.0 — Phase 6: Pharma scenario
 
+- **v0.3.0** — German pharma field-sales scenario with two sub-modes
+  (acute-care + specialty-care). Calibrated against DESTATIS,
+  PHAGRO, IQVIA, vfa, and Pharmalotse benchmarks. New shared
+  `geo.py` for AGS hierarchy + spatial joins. New optional
+  `[pharma]` extra (geopandas + shapely). 8th output artifact
+  `geo_lineage.md` with license attribution (ODbL for OSM,
+  dl-de/by-2-0 for BKG VG250).
 - **v0.2.1** — `saas-v3` `plg-usage-based` sub-mode with the 5-movement
   MRR waterfall (`subscription_events` table) and opt-in
   `--benchmark-validation` against KeyBanc/Benchmarkit ranges.
@@ -44,11 +51,11 @@ You now have a clean retail star schema (5 dim + 3 fact + 1 bridge table) as CSV
 
 Faker handles names and emails; it doesn't give you `fact_orders` rows whose `customer_id` actually appears in `dim_customers`, whose payment totals reconcile to line-item subtotals, or whose order-item counts match the header. Public datasets (Kaggle, UCI) are static, undocumented, and rarely include the kind of intentional-but-realistic data quality issues you need to demonstrate cleaning logic. Hand-rolled SQL fixtures rot the moment your schema changes.
 
-`synth-datagen` sits in the gap. It generates **business-coherent multi-table data** for four scenarios out of the box, gives you four levels of quality injection (`none / light / medium / heavy`), and emits CSV + Parquet + DDL + a data dictionary + an ERD from a single CLI call. Every generation is fully reproducible from `--seed`.
+`synth-datagen` sits in the gap. It generates **business-coherent multi-table data** for five scenarios out of the box, gives you four levels of quality injection (`none / light / medium / heavy`), and emits CSV + Parquet + DDL + a data dictionary + an ERD from a single CLI call. Every generation is fully reproducible from `--seed`.
 
 ## Features
 
-- **Four scenarios:** retail, SaaS, fintech, logistics — each a star schema with realistic dim/fact/bridge structure.
+- **Five scenarios:** retail, SaaS, fintech, logistics, pharma — each a star schema with realistic dim/fact/bridge structure.
 - **Three sub-apps:** Kupferkanne RFM (monthly fact shards from YAML), monthly-sales (period-windowed retail), SaaS v3 (audit-grade dirty-CSV pipeline with per-check defect rates).
 - **Referential integrity** across tables — FKs reconcile, totals sum, timelines are valid.
 - **Configurable quality injection:** `--data-quality {none,light,medium,heavy}` toggles missing values, format drift, duplicates, and out-of-range outliers without breaking PK/FK structure.
@@ -62,7 +69,8 @@ Faker handles names and emails; it doesn't give you `fact_orders` rows whose `cu
 ## Scenarios
 
 ```bash
-synth-datagen scenarios   # list all four
+synth-datagen scenarios   # list the four classic scenarios
+synth-datagen pharma generate --help   # v0.3.0 sub-app surface
 ```
 
 | Scenario | What it models | Tables |
@@ -71,6 +79,13 @@ synth-datagen scenarios   # list all four
 | `saas` | B2B SaaS with subscriptions, usage, invoices | `accounts`, `users`, `features`, `subscriptions`, `feature_usage`, `events`, `invoices` |
 | `fintech` | Payment ledger with cards, merchants, loans | `customers`, `accounts`, `cards`, `merchants`, `transactions`, `loans`, `loan_payments` |
 | `logistics` | Shipping with warehouses, carriers, inventory | `warehouses`, `suppliers`, `products`, `inventory`, `carriers`, `shipments`, `shipment_items` |
+| `pharma` (v0.3.0) | German field-sales — hospitals + clinics with AGS hierarchy, BKG-VG250-anchored territories, OSM-sourced accounts | `accounts`, `sales_reps`, `territories`, `products`, `orders`, `rep_visits`, `account_specialties`, `geographic_metadata` |
+
+The pharma scenario uses a sub-app idiom (`synth-datagen pharma generate ...`) and ships behind the optional `[pharma]` extra:
+
+```bash
+pip install 'synth-datagen[pharma]'  # adds geopandas + shapely
+```
 
 Each accepts the same flags:
 

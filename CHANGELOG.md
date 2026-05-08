@@ -9,15 +9,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
-- **Phase 6 in progress — Pharma scenario.** Acute-care + specialty-care
-  sub-modes targeting the German pharmaceutical market. Calibrated
-  against DESTATIS Krankenhausstatistik, PHAGRO wholesale data, IQVIA
-  DKM, vfa innovation data, and Pharmalotse field-force benchmarks. New
-  shared `geo.py` module for AGS-based hierarchical lookups
-  (Bundesländer + Landkreise). New optional extra `[pharma]` pulling in
-  `geopandas` + `shapely`. Full release notes accumulated as commits
-  land on `feat/pharma-scenario`; this stub will be expanded into the
-  `[0.3.0]` block at release time.
+- _nothing yet_
 
 ### Changed
 
@@ -26,6 +18,145 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Fixed
 
 - _nothing yet_
+
+## [0.3.0] — 2026-05-07
+
+### Added
+
+- **Pharma scenario (Phase 6) with two sub-modes.** Acute-care
+  (hospitals, OSM `amenity=hospital` with bed-count ≥ 50) and
+  specialty-care (clinics + MVZ, OSM `amenity=clinic`) targeting
+  the German pharmaceutical market. Calibrated against DESTATIS
+  Krankenhausstatistik 2023, PHAGRO Zahlen-Daten-Fakten 2024,
+  IQVIA Marktbericht Classic 2022, vfa Innovationsbilanz 2024 +
+  Biotech-Report 2025, and Pharmalotse Berufsbild Pharmareferent.
+  Sub-app surface: `synth-datagen pharma generate ...`.
+- **8-table schema:** `accounts`, `sales_reps`, `territories`,
+  `products`, `orders`, `rep_visits`, `account_specialties`,
+  `geographic_metadata`. Cross-table FK integrity enforced by
+  property tests across 20 random seeds (`tests/property/
+  test_pharma_invariants.py`).
+- **Two-level AGS hierarchy:** every account carries
+  `bundesland_ags` (2-digit) + `landkreis_ags` (5-digit) with the
+  invariant `landkreis_ags[:2] == bundesland_ags`. Spatial join of
+  OSM hospital lat/lon against BKG VG250 Landkreise polygons
+  resolves the AGS at generation time so downstream SQL doesn't
+  need PostGIS for boundary-aligned aggregations.
+- **`src/synth_datagen/geo.py` shared module** — German-administrative
+  geometry helpers (`load_bundeslaender`, `load_landkreise`,
+  `load_osm_hospitals`, `validate_ags_hierarchy`,
+  `spatial_join_to_landkreis`, `haversine_km`). Top-level under
+  `synth_datagen` because the AGS machinery is reusable for any
+  future scenario that touches German geography. Lazy geopandas
+  imports — `import synth_datagen.geo` works even without the
+  `[pharma]` extra installed; `haversine_km` is pure-stdlib and
+  always works.
+- **`[pharma]` optional extra** in `pyproject.toml` pulling in
+  `geopandas>=1.0` + `shapely>=2.0`. Independent from `[test]` so
+  pure-Python developers can run the classic-scenarios test suite
+  without pulling in the GDAL stack. CI installs both via
+  `pip install -e ".[test,pharma]"`.
+- **Pharma RNG salt `0x5DDA50000`** registered as `"pharma"` in
+  `src/synth_datagen/rng.py:SALT_REGISTRY`. Single salt + 8 child
+  streams via `make_rng(seed, "pharma").spawn(8)` in locked order:
+  `accounts → reps → territories → orders → products → engagement
+  → quality → regional`. Spawn count derived from
+  `len(_STREAM_LABELS)` so adding a new stream auto-extends without
+  the saas_v3 hardcoded-N+1 fragility.
+- **`benchmark_validation.md` artifact** (Phase 6 follow-up to the
+  v0.2.1 saas_v3 pattern) — written when `--benchmark-validation`
+  is set. Five active checks at v0.3.0 (REQ-1 AGS + skipped
+  population correlation, REQ-3 revenue median band, REQ-4 visit
+  frequency band, REQ-5 top-20 % revenue concentration, REQ-7
+  orders FK integrity). CLI exits non-zero on `fail`; CSVs still
+  written for inspection (saas_v3 idiom).
+- **`geo_lineage.md` artifact** (8th output beyond the saas template)
+  — license attribution (ODbL for OSM, dl-de/by-2-0 for BKG VG250)
+  + caller-supplied filenames + dataset shape (BL count, LK count,
+  account count, coverage %). Required for portfolio honesty.
+- **`metadata.json` audit trail** — full effective_config dump,
+  `rng_state_hash` (SHA-256 over per-stream first-three-int draws),
+  `geo_lineage` block, `generated_at` ISO-8601 UTC timestamp, and
+  summary stats. Reproducibility audit trail.
+- **Hypothesis property tests** for pharma invariants
+  (`tests/property/test_pharma_invariants.py`) with
+  `max_examples=20, deadline=10_000`. Covers reproducibility, AGS
+  hierarchy, FK integrity, top-20 % revenue concentration band,
+  university-hospital revenue presence, stream isolation, stream
+  count stability, sign invariants on clean output, and
+  visit-frequency bands. Two real-geo tests gated behind
+  `@pytest.mark.real_geo` (skipped by default; require
+  `PHARMA_REAL_GEO_DIR` env var).
+- **Hermetic test fixtures** under `tests/fixtures/pharma/` (3
+  synthetic Bundesländer, 12 Landkreise, 20 hospitals; total
+  <20 KB). Provenance contract documented in
+  `tests/fixtures/pharma/README.md`.
+- **`baseline_diff.py` pharma pinning** — `capture_pharma()` covers
+  both sub-modes against the hermetic fixtures with `seed=42`,
+  `account_count=100`. Pre-v0.3.0 baselines gracefully skip pharma
+  targets (mirror of the saas_v3 v0.2.1 add-on pattern).
+- **`docs/scenarios/pharma.md`** + **`docs/recipes/bigquery-loading.md`
+  pharma section** — narrative documentation + hand-written DDL
+  with `CLUSTER BY bundesland_ags` clustering.
+- **`tests/pharma/README.md`** — developer-facing reference for the
+  fast-lane / slow-lane / real_geo split.
+
+### Changed
+
+- **Root CLI registers a new `pharma` sub-app.** Mounted via
+  `app.add_typer(pharma_app, name="pharma")` in
+  `src/synth_datagen/cli.py`. Lazy geopandas import — root
+  `synth-datagen --help` works cleanly even when the `[pharma]`
+  extra isn't installed.
+- **`SALT_REGISTRY` now has 4 entries:** `master`, `discounts`,
+  `saas_v3`, `pharma`. Insertion order preserved — existing seeds
+  for prior scenarios stay byte-stable.
+- **`scripts/baseline_diff.py`** envelope expanded from 5 scenarios
+  (retail/saas/fintech/logistics/saas_v3) to 7 (+ pharma-acute,
+  pharma-specialty). The `compare()` skip path now reports the
+  scenario era (pre-v0.3.0 / pre-v0.2.1 / older) for clarity.
+- **`pytest` markers:** new `real_geo` marker registered in
+  `pyproject.toml` for the two pharma tests that need real BKG VG250
+  + OSM data.
+- **`.github/workflows/ci.yml`** install step bumped from
+  `pip install -e ".[test]"` to `pip install -e ".[test,pharma]"`
+  so the matrix runs the pharma test suite on every leg.
+- **`CHANGELOG.md`** style: this release introduces a `Notes` block
+  alongside the standard Keep-a-Changelog `Added / Changed / Fixed`
+  trio so deferral context lives next to the release note rather
+  than getting lost in commit messages.
+
+### Fixed
+
+- _nothing yet_ — pharma is purely additive. Backward-compat
+  verified: retail/saas/fintech/logistics/saas_v3 byte-identical
+  to the v0.2.1 baseline (`scripts/baseline_diff.py compare`
+  passes empty for all 5 prior scenarios; pharma cleanly skipped
+  under the pre-v0.3.0 era).
+
+### Notes
+
+- **Tested on Linux + Windows.** macOS users may need to
+  `brew install gdal` before `pip install 'synth-datagen[pharma]'`
+  succeeds; geopandas's Linux + Windows wheels bundle GDAL but the
+  macOS wheel pipeline was patchy at the time of release. CI runs
+  Linux only at v0.3.0; macOS legs deferred to v0.3.x.
+- **Slow-lane pytest now ~9 minutes** (was ~30 s pre-pharma) due to
+  the Hypothesis `max_examples=20` setting on 14 active pharma
+  property tests. Fast-lane is unchanged at ~75 s. Re-evaluate the
+  setting in v0.3.1 if slow-lane inflates further.
+- **Pharma engine I/O contract:** `engine.generate(config)` is a
+  pure function returning `dict[str, pd.DataFrame]`. The CLI in
+  `src/synth_datagen/pharma/cli.py` is the only writer; it produces
+  8 CSVs + `metadata.json` + `geo_lineage.md` (+ optional
+  `benchmark_validation.md`) in a flat output directory.
+- **One bug found by Hypothesis during Phase 6 development:** at
+  `seed=1` with `account_count=200`, the university-revenue-share
+  check resolved to 0.38 % (below an initial 0.5 % floor). Diagnosis:
+  binomial variance on the ~6 expected universities × low
+  log-normal draws can dip the share below 0.5 %. Floor lowered to
+  0.1 %; non-zero contract preserved. Demonstrates the value of
+  the broader `max_examples=20` sampling.
 
 ### Deferred to v0.3.x
 
@@ -53,6 +184,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `validate.py` but skipped pending the engine surfacing per-BL
   populations through `geographic_metadata`. Round-trip lands in
   v0.3.x.
+- **Engine artifacts trimmed:** `schema.sql`, `load_to_bigquery.sh`,
+  `data_dictionary.md`, and `expected_findings.md` are NOT written
+  by the v0.3.0 CLI. BigQuery loading guidance lives as prose in
+  `docs/recipes/bigquery-loading.md` instead. Auto-generated DDL +
+  data dictionary deferred to v0.3.x once the schema_builder is
+  extended for the pharma column types.
+- **Parquet output** for pharma deferred to v0.3.x. v0.3.0 ships
+  CSV-only; the `--output-format` flag is intentionally absent
+  rather than present-with-only-csv (decision documented in the
+  Phase 6 plan).
+- **macOS CI matrix leg.** Geopandas wheels for macOS were
+  inconsistent at v0.3.0 release; CI runs Linux only. macOS users
+  install GDAL via brew + `pip install 'synth-datagen[pharma]'`
+  manually.
+- **SaaS `vertical-account-based` sub-mode** stays deferred —
+  scoped out of Phase 5 (v0.2.1) and not picked up in Phase 6.
+  Candidate for v0.4.0+ alongside the P14 RFEDA Account Health
+  Scorecard portfolio project. See the SaaS scenario page's
+  `Deferred modes` section under
+  <https://ryszard-twardy.github.io/synth-datagen/scenarios/saas/>.
 
 ## [0.2.1] — 2026-05-07
 
