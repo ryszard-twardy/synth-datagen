@@ -23,10 +23,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install package + test extras
+      - name: Install package + test + pharma extras
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[test]"
+          # `[pharma]` brings geopandas + shapely so the pharma test
+          # suite (Phase 6, v0.3.0+) runs hermetically against the
+          # tests/fixtures/pharma/ mini-fixtures. The `[test]` and
+          # `[pharma]` extras are independent in pyproject.toml so a
+          # pure-Python developer can still `pip install -e ".[test]"`
+          # alone — CI installs both because the matrix exercises
+          # everything.
+          pip install -e ".[test,pharma]"
 
       # Run pre-commit hooks once on the 3.12 leg to catch
       # "I forgot to install pre-commit locally" PRs cheaply (whitespace,

@@ -51,6 +51,7 @@ nav:
       - SaaS: scenarios/saas.md
       - Fintech: scenarios/fintech.md
       - Logistics: scenarios/logistics.md
+      - Pharma: scenarios/pharma.md
   - Architecture:
       - RNG isolation: architecture/rng-isolation.md
       - Distributions: architecture/distributions.md

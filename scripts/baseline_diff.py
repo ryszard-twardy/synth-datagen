@@ -21,7 +21,11 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PYTHON = str(REPO_ROOT / ".venv" / "Scripts" / "python.exe")
+# Use sys.executable so subprocess invocations work cross-platform.
+# The previous hardcoded ``.venv/Scripts/python.exe`` was Windows-only and
+# crashed on CI Ubuntu (FileNotFoundError) — caught by the Phase-6 final
+# CI matrix verification on c09af3e.
+PYTHON = sys.executable
 
 # Small row overrides per scenario to keep baseline diff fast and avoid
 # latent default-scale bugs that are out of scope for Phase 2 (e.g. fintech
@@ -63,6 +67,26 @@ SAAS_V3_CAPTURE = {
     ],
 }
 
+# Phase 6 (v0.3.0) addition: pin both pharma sub-modes against the
+# hermetic test fixtures. Pharma writes 8 CSVs + metadata.json +
+# geo_lineage.md to a flat output dir; ``compare`` already walks
+# ``*.csv`` only so the non-deterministic ``metadata.json`` (carries
+# a ``generated_at`` ISO-8601 timestamp) is implicitly excluded.
+# Account count is small (100) so each capture finishes in well under
+# a second.
+_PHARMA_FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "pharma"
+PHARMA_CAPTURES: tuple[dict[str, str], ...] = (
+    {
+        "label": "pharma-acute",
+        "sub_mode": "acute-care",
+    },
+    {
+        "label": "pharma-specialty",
+        "sub_mode": "specialty-care",
+    },
+)
+PHARMA_LABELS: tuple[str, ...] = tuple(c["label"] for c in PHARMA_CAPTURES)
+
 
 def capture_saas_v3(out_root: Path) -> None:
     """Capture the saas_v3 smoke run into ``out_root / "saas_v3"``.
@@ -96,6 +120,51 @@ def capture_saas_v3(out_root: Path) -> None:
     )
 
 
+def capture_pharma(out_root: Path) -> None:
+    """Capture both pharma sub-modes against the hermetic fixtures.
+
+    Each sub-mode writes its 8 CSVs + metadata.json + geo_lineage.md
+    to ``out_root / pharma-acute/`` and ``out_root / pharma-specialty/``
+    respectively. ``compare`` walks ``*.csv`` only, so ``metadata.json``
+    (with its non-deterministic ``generated_at``) is excluded from the
+    byte-equality check.
+    """
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    for cap in PHARMA_CAPTURES:
+        target = out_root / cap["label"]
+        print(f"[capture] {cap['label']} -> {target}")
+        target.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            [
+                PYTHON,
+                "-m",
+                "synth_datagen.cli",
+                "pharma",
+                "generate",
+                "--sub-mode",
+                cap["sub_mode"],
+                "--hospitals-csv",
+                str(_PHARMA_FIXTURE_DIR / "osm_hospitals_DE_test.csv"),
+                "--bkg-bundeslaender",
+                str(_PHARMA_FIXTURE_DIR / "bundeslaender_test.geojson"),
+                "--bkg-landkreise",
+                str(_PHARMA_FIXTURE_DIR / "landkreise_test.geojson"),
+                "--seed",
+                "42",
+                "--account-count",
+                "100",
+                "--rep-count",
+                "15",
+                "--data-quality",
+                "clean",
+                "--output",
+                str(target),
+            ],
+            check=True,
+            env=env,
+        )
+
+
 def capture(out_root: Path) -> None:
     if out_root.exists():
         shutil.rmtree(out_root)
@@ -123,6 +192,7 @@ def capture(out_root: Path) -> None:
             env=env,
         )
     capture_saas_v3(out_root)
+    capture_pharma(out_root)
 
 
 def _hash_csvs(root: Path) -> dict[str, str]:
@@ -135,14 +205,25 @@ def _hash_csvs(root: Path) -> dict[str, str]:
 
 def compare(baseline: Path, candidate: Path) -> int:
     failures: list[str] = []
-    targets = list(SCENARIOS) + [SAAS_V3_CAPTURE["label"]]
+    targets = list(SCENARIOS) + [SAAS_V3_CAPTURE["label"]] + list(PHARMA_LABELS)
     skipped: list[str] = []
     for label in targets:
         baseline_target = baseline / label
         candidate_target = candidate / label
         if not baseline_target.exists():
+            # Pharma labels were added in v0.3.0; saas_v3 in v0.2.1.
+            # A pre-v0.3.0 baseline won't have pharma; pre-v0.2.1 won't
+            # have saas_v3. Skip rather than fail — the same skip path
+            # the saas_v3 v0.2.1 add-on used.
+            era = (
+                "pre-v0.3.0"
+                if label in PHARMA_LABELS
+                else "pre-v0.2.1"
+                if label == SAAS_V3_CAPTURE["label"]
+                else "older"
+            )
             print(
-                f"  [skip] {label}: baseline does not contain this target (pre-v0.2.1 baseline)"
+                f"  [skip] {label}: baseline does not contain this target ({era} baseline)"
             )
             skipped.append(label)
             continue

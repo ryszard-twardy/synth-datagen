@@ -1,6 +1,6 @@
 # Scenarios overview
 
-`synth-datagen` ships with four built-in scenarios. Each is a star schema with realistic dim/fact/bridge structure; each accepts the same CLI surface (`--seed`, `--output`, `--rows`, `--data-quality`, exporter toggles).
+`synth-datagen` ships with five built-in scenarios. The four classic scenarios share a common CLI surface (`--seed`, `--output`, `--rows`, `--data-quality`, exporter toggles); the v0.3.0 pharma scenario uses a sub-app idiom (`synth-datagen pharma generate ...`) and ships behind the optional `[pharma]` extra.
 
 | Scenario | Tables | Models |
 |---|---|---|
@@ -8,6 +8,7 @@
 | [SaaS](saas.md) | 7 | B2B SaaS subscriptions, usage events, invoices |
 | [Fintech](fintech.md) | 7 | Payment ledger with cards, merchants, loans |
 | [Logistics](logistics.md) | 7 | Shipping with warehouses, carriers, inventory |
+| [Pharma](pharma.md) | 8 | German field-sales with AGS-hierarchical accounts (acute-care + specialty-care sub-modes) |
 
 Plus three sub-apps mounted under the same root command:
 
@@ -27,6 +28,7 @@ The sub-apps are the same engine wired up to YAML configs (in [`configs/`](https
 | Funnel / churn analysis, product analytics | [SaaS](saas.md) |
 | Reconciliation, fraud signals, ledger validation | [Fintech](fintech.md) |
 | Supply-chain / freight cost analysis | [Logistics](logistics.md) |
+| Geo-anchored field-sales territory dashboards (German pharma) | [Pharma](pharma.md) |
 | Audit-grade dirty CSVs (per-check defect rates) | `saas-v3` |
 | Monthly fact-table sharding (one CSV per month) | `kupferkanne-rfm` or `monthly-sales` |
 

@@ -143,6 +143,27 @@ from `make_rng(seed, "saas_v3").spawn(N)` — no direct
 byte output shifted once at v0.2.1 (the migration commits); v0.3.0 will
 pin it via `scripts/baseline_diff.py`.
 
+## Deferred modes
+
+The early Phase-5 planning documented a `vertical-account-based`
+SaaS sub-mode alongside `plg-usage-based`. Only `plg-usage-based`
+shipped in v0.2.1; `vertical-account-based` is **deferred to a
+future release** (v0.4.0+ candidate, no firm date).
+
+If you came here from the v0.3.0 [pharma scenario page](pharma.md)
+expecting a vertical-account-based reference: that's the same
+deferral. The pharma sub-modes (`acute-care`, `specialty-care`)
+are the v0.3.0 portfolio-ready surface; the SaaS counterpart will
+land alongside the [P14 RFEDA Account Health Scorecard](https://github.com/ryszard-twardy)
+when that consumer project starts.
+
+In practice this means: in v0.3.x, only `synth-datagen saas-v3
+generate --mode plg-usage-based` (and the legacy `--mode legacy`
+fallback) work. Passing `--mode vertical-account-based` raises a
+Pydantic ValidationError. See `RunConfig.mode` in
+[`src/synth_datagen/saas_v3/config.py`](https://github.com/ryszard-twardy/synth-datagen/blob/main/src/synth_datagen/saas_v3/config.py)
+for the locked literal.
+
 ## Python API equivalent
 
 ```python

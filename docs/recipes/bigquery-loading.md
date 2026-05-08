@@ -114,3 +114,50 @@ AS SELECT * FROM staging.fact_orders_raw;
 ## Refresh cadence for portfolio demos
 
 If you're shipping a "live" BigQuery-backed dashboard, regenerate weekly with `--seed $(date +%V)`, push the new Parquet to GCS, and run a `LOAD DATA OVERWRITE`. Cost is bytes-loaded only; with 100K-row scenarios that's pennies a week.
+
+## Pharma — eight tables with spatial clustering
+
+The v0.3.0 [pharma scenario](../scenarios/pharma.md) writes 8 CSVs that load straight into BigQuery. There is no auto-generated `schema.sql` for pharma at v0.3.0 (deferred to v0.3.x), so DDL is hand-written below. Cluster on `bundesland_ags` to make per-Bundesland aggregations cheap; partition large tables on the canonical date column.
+
+```bash
+PROJECT=my-pharma-portfolio
+DATASET=medicorp_acute
+RUN_DIR=./data/medicorp_acute
+
+bq mk --dataset --location=EU "$PROJECT:$DATASET"
+
+for table in accounts sales_reps territories products \
+             orders rep_visits account_specialties \
+             geographic_metadata; do
+  bq load --autodetect --source_format=CSV --skip_leading_rows=1 \
+    "$PROJECT:$DATASET.${table}_raw" "$RUN_DIR/${table}.csv"
+done
+```
+
+Then promote with the clustering keys the GIS Territory dashboard needs:
+
+```sql
+CREATE OR REPLACE TABLE `my-pharma-portfolio.medicorp_acute.accounts`
+CLUSTER BY bundesland_ags, landkreis_ags
+AS SELECT
+  account_id, name, account_type, account_archetype, sub_mode,
+  bed_count, bundesland_ags, landkreis_ags,
+  latitude, longitude, ownership_type,
+  CAST(annual_revenue AS NUMERIC) AS annual_revenue, status
+FROM `my-pharma-portfolio.medicorp_acute.accounts_raw`;
+
+CREATE OR REPLACE TABLE `my-pharma-portfolio.medicorp_acute.orders`
+PARTITION BY DATE(order_date)
+CLUSTER BY account_id
+AS SELECT
+  order_id, account_id, rep_id, product_id,
+  TIMESTAMP(order_date) AS order_date,
+  CAST(quantity AS INT64) AS quantity,
+  CAST(amount AS NUMERIC) AS amount,
+  CAST(discount_pct AS NUMERIC) AS discount_pct
+FROM `my-pharma-portfolio.medicorp_acute.orders_raw`;
+```
+
+Repeat the partition+cluster pattern for `rep_visits` (partition on `visit_date`) and `account_specialties` (no partition, cluster on `account_id`). The other dim tables stay un-clustered — they're small.
+
+`metadata.json` and `geo_lineage.md` aren't loaded into BigQuery — they're audit artifacts the consumer keeps alongside the dataset for reproducibility provenance and license attribution (ODbL for OSM, dl-de/by-2-0 for BKG).
