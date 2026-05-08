@@ -71,6 +71,18 @@ docs = [
     "mkdocstrings[python]>=0.25.0",
     "pymdown-extensions>=10.7.0",
 ]
+# Pharma scenario geographic stack. Phase 6 (v0.3.0). Pharma generation
+# does spatial joins of OSM hospital points against BKG VG250 admin
+# polygons; that work pulls in geopandas + shapely (which transitively
+# bring pyproj and a GDAL stack via prebuilt wheels). Kept out of the
+# core dependencies so a pure-Python `pip install synth-datagen` install
+# stays small and fast for retail/saas/fintech/logistics users. The
+# CLI fails fast with a friendly hint pointing here when geopandas is
+# missing. Install with `pip install 'synth-datagen[pharma]'`.
+pharma = [
+    "geopandas>=1.0",
+    "shapely>=2.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/ryszard-twardy/synth-datagen"
