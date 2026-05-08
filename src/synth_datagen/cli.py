@@ -14,6 +14,8 @@ Sub-command map:
     synth-datagen monthly-sales ... → mounts synth_datagen.monthly_sales_cli
     synth-datagen kupferkanne-rfm ... → mounts synth_datagen.kupferkanne_rfm_cli
     synth-datagen saas-v3 ...       → mounts synth_datagen.saas_v3.cli
+    synth-datagen pharma ...        → mounts synth_datagen.pharma.cli
+                                      (requires [pharma] extra)
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from .kupferkanne_rfm_cli import app as kupfer_app
 from .main import generate as _generate
 from .main import list_scenarios as _list_scenarios
 from .monthly_sales_cli import app as monthly_app
+from .pharma.cli import app as pharma_app
 from .saas_v3.cli import app as saas_v3_app
 
 app = typer.Typer(
@@ -122,6 +125,7 @@ app.command(name="scenarios")(_list_scenarios)
 app.add_typer(monthly_app, name="monthly-sales")
 app.add_typer(kupfer_app, name="kupferkanne-rfm")
 app.add_typer(saas_v3_app, name="saas-v3")
+app.add_typer(pharma_app, name="pharma")
 
 
 if __name__ == "__main__":
