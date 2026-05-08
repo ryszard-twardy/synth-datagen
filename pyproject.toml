@@ -112,6 +112,7 @@ testpaths = ["tests"]
 addopts = "-v -m 'not slow'"
 markers = [
     "slow: integration / property tests that take more than ~1s each. Run with `pytest -m slow` or include via `pytest -m 'slow or not slow'`.",
+    "real_geo: pharma tests that need the real BKG VG250 + OSM snapshot to be meaningful (population correlation, BL-09/05/08 rep concentration). Skipped by default. Set the PHARMA_REAL_GEO_DIR env var to enable.",
 ]
 
 # Coverage thresholds live here (single source of truth) so CI, pre-commit,
