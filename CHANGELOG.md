@@ -27,6 +27,33 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - _nothing yet_
 
+### Deferred to v0.3.x
+
+- **Pharma REQ-2 (ownership distribution validation)** and **REQ-6
+  (product catalog spread validation)** are not part of v0.3.0's
+  benchmark-validation pass. Both checks need production-scale
+  data (real BKG VG250 + OSM snapshot, account_count ≥ 2000) to
+  produce meaningful pass/fail signals; running them on the
+  hermetic test fixtures or smoke-scale outputs would always
+  resolve to `skip`. The five v0.3.0 checks (REQ-1 AGS hierarchy +
+  population correlation, REQ-3 revenue median band, REQ-4 visit
+  frequency band, REQ-5 top-20 % revenue concentration, REQ-7
+  orders FK integrity) are sufficient to gate the engine's
+  bit-stable contract; REQ-2 / REQ-6 calibration lands when the
+  v0.3.x release brings real-fixture support upstream of the
+  validation pass.
+- **University-hospital revenue boost (REQ-3 calibration).**
+  v0.3.0 draws Universitätsklinikum revenue from the same
+  log-normal as other acute accounts. The spec REQ targets 8-12 %
+  revenue concentration on the ~3 % university accounts; v0.3.0
+  uses a loose validation envelope (0.1-25 %) and defers the
+  multiplier-based calibration to v0.3.x.
+- **Real-data BL population correlation lookup.** REQ-1's
+  Spearman ρ check against DESTATIS population is wired through
+  `validate.py` but skipped pending the engine surfacing per-BL
+  populations through `geographic_metadata`. Round-trip lands in
+  v0.3.x.
+
 ## [0.2.1] — 2026-05-07
 
 ### Added
