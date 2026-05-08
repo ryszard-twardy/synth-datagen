@@ -7,11 +7,14 @@ the latest published minor version receives security fixes.
 
 | Version | Supported |
 |---|---|
-| 0.2.x | ✅ |
+| 0.3.x | ✅ |
+| 0.2.x | ✅ — security fixes through 2026-06-07 (30-day grace after 0.3.0 release) |
 | < 0.2 | ❌ (pre-audit; not on PyPI) |
 
-When 0.3.0 ships, 0.2.x will continue to receive security patches for
-30 days, then drop out of support.
+0.3.0 shipped 2026-05-08. The 0.2.x line continues to receive
+security patches until 2026-06-07, then drops out of support. When
+the next minor version (0.4.0) ships, 0.3.x will move to the same
+30-day grace window.
 
 ## Reporting a vulnerability
 
@@ -53,8 +56,9 @@ In scope:
   exporter quotes values via `_sql_val` and treats table/column names
   as a closed config schema; bypasses are bugs).
 - Path-traversal or arbitrary-write bugs in the exporters.
-- YAML deserialisation issues in the Kupferkanne / SaaS v3 / monthly
-  configs (we use `yaml.safe_load`; reports of unsafe loads are bugs).
+- YAML deserialisation issues in any of the YAML-driven sub-apps
+  (Kupferkanne RFM, SaaS v3, monthly-sales, pharma) — we use
+  `yaml.safe_load` everywhere; reports of unsafe loads are bugs.
 - Pickle / arbitrary-code-execution surfaces — there should be none;
   if you find one, that's a bug.
 - Denial-of-service via pathological config values that bypass Pydantic

@@ -1,14 +1,15 @@
 # Distributions
 
-How `synth-datagen` chooses values isn't usually random in the uniform sense — most fields are sampled from realistic distributions tuned per scenario. This page documents the patterns that actually live in the v0.2.0 codebase.
+How `synth-datagen` chooses values isn't usually random in the uniform sense — most fields are sampled from realistic distributions tuned per scenario. This page documents the patterns that actually live in the codebase as of v0.3.0.
 
-## The patterns in v0.2.0
+## The patterns
 
 | Pattern | When | Where in code |
 |---|---|---|
 | Weighted choice | Categorical with a known mix (segment, plan tier, status, MCC) | Inline `rng.choice(values, p=weights)` calls in each generator |
 | Uniform choice | Categorical with no informative mix (loan term, store category) | Inline `rng.choice(values)` calls |
 | Normal | Bounded numeric where mean + std are known (e.g. fintech `credit_score`) | `np.random.Generator.normal(mean, std, size)` |
+| Pareto / log-normal / beta | Heavy-tailed counts and revenue (pharma orders, pharma revenue, rep-visit frequency) | `rng.pareto`, `rng.lognormal`, `rng.beta` calls in `synth_datagen/pharma/engine.py` — calibrated against DESTATIS / PHAGRO / IQVIA / vfa |
 | Period-windowed timestamps | Activity timestamps clamped to the configured period | Inline `rng.integers(start_ts, end_ts)` plus per-scenario reweighting |
 | Seasonality reweighting | Monthly-shard scenarios (`kupferkanne-rfm`, `monthly-sales`) | YAML-driven multipliers in `kupferkanne_rfm_config.py` and `monthly_sales_profile.py` |
 
@@ -36,7 +37,7 @@ Every fact table that carries a timestamp draws it from the configured generatio
 
 - **Retail orders** are biased toward weekends and end-of-month via the segment-aware logic in `retail_builder.py`.
 - **Fintech transactions** are emitted in chronological order (post-sort) so account balances reconcile after a running-sum pass.
-- **SaaS events** distribute across the period without specific weekday weighting in v0.2.0; promoting that pattern from `kupferkanne-rfm` to the unified scenarios is open work.
+- **SaaS events** distribute across the period without specific weekday weighting (verified at v0.3.0); promoting that pattern from `kupferkanne-rfm` to the unified scenarios is open work.
 
 ## Seasonality reweighting (sub-apps)
 
@@ -48,7 +49,7 @@ Promoting this YAML pattern to the unified scenarios (so `synth-datagen retail` 
 
 These distributions are **plausible defaults**, not measured against any specific corporate dataset. They produce data that is *interesting* (statistically distinguishable from `rng.uniform`) and *realistic* (doesn't surprise an analyst), but they are not a benchmark.
 
-A future v0.3.0 release will introduce a `pharma` scenario with explicitly-cited benchmark sources (DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse). Until then, treat the existing scenarios as "looks-real-enough for ETL practice" rather than "matches industry X."
+v0.3.0 added a [`pharma` scenario](../scenarios/pharma.md) with explicitly-cited benchmark sources (DESTATIS, PHAGRO, IQVIA, vfa, Pharmalotse) — that's the one scenario in the suite that targets named industry benchmarks. The other four scenarios (retail, SaaS, fintech, logistics) remain "looks-real-enough for ETL practice" rather than "matches industry X."
 
 ## How distributions interact with `--data-quality`
 

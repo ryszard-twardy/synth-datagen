@@ -45,6 +45,44 @@ Now bumping `dim_customers` to 12,000 only affects the RNG attached to `dim_cust
 - The per-table spawning happens in [`synth_datagen.rng`](https://github.com/ryszard-twardy/synth-datagen/blob/main/src/synth_datagen/rng.py) — the small RNG-factory module is intentionally separate so it can be tested in isolation.
 - Faker is also seeded deterministically (`Faker.seed_instance(int_from_seed_sequence)`), so name/email values follow the same isolation rule.
 
+## Cross-concern salt registry
+
+The per-table spawn tree above is what isolates tables *within* a
+scenario. A second, complementary mechanism — the **salt registry** —
+isolates whole concerns *across* scenarios.
+
+Some draws are logically independent of the scenario stream but
+deterministic under the same `--seed`: the legacy retail discount
+engine, the SaaS v3 audit pipeline, the pharma defect injector. If
+they all spawned from the same parent `SeedSequence`, adding (say) a
+new pharma defect would shift the bytes of an unrelated discounts
+calculation.
+
+`synth_datagen.rng.SALT_REGISTRY` solves this by XOR-ing the user's
+`--seed` with a per-concern salt before constructing the
+`SeedSequence`. Each entry is permanent: changing a salt would break
+byte-equality for every dataset ever generated under that concern.
+
+| Concern | Salt | Introduced |
+|---|---|---|
+| `master` | `0` (implicit — the user-supplied seed, untouched) | v0.1.0 |
+| `discounts` | `int.from_bytes(b"D15C0UNT", "big")` (`0x44_3135_4330_554E_54`) | v0.1.0 |
+| `saas_v3` | `0x5AA50000` | v0.2.1 |
+| `pharma` | `0x5DDA50000` | v0.3.0 |
+
+**Register-or-raise discipline.** Every new RNG concern MUST register
+a salt in `src/synth_datagen/rng.py::SALT_REGISTRY` before being
+drawn. Use `make_rng(seed, "concern").spawn(N)` to derive child
+streams; calling `make_rng` with an unregistered concern raises
+`KeyError` rather than silently inventing a salt — the registry is a
+flight-recorder of every byte-shift surface in the project, and
+implicit registration would defeat the point.
+
+When you add a new scenario or sub-app that needs cross-scenario
+isolation, pick a salt that doesn't collide with existing entries
+(grep is enough — there are five), document it inline alongside the
+phase that introduced it, and add a row to the table above.
+
 ## Property tests that enforce this
 
 Three property tests in CI fail loudly if the isolation breaks:

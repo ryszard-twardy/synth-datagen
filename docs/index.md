@@ -2,7 +2,7 @@
 
 > Realistic synthetic business data — referential integrity, deterministic seeding, and quality injection you control.
 
-`synth-datagen` generates multi-table relational datasets — retail, SaaS, fintech, logistics — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
+`synth-datagen` generates multi-table relational datasets — retail, SaaS, fintech, logistics, pharma — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
 ## What this looks like
 
@@ -36,7 +36,7 @@ Faker handles names and emails; it doesn't give you `fact_orders` rows whose `cu
 ```mermaid
 flowchart LR
     CLI["synth-datagen CLI<br/>(Typer)"] --> Cfg["GeneratorConfig<br/>(Pydantic v2)"]
-    Cfg --> Gen["Scenario generator<br/>(retail / saas / fintech / logistics)"]
+    Cfg --> Gen["Scenario generator<br/>(retail / saas / fintech / logistics / pharma)"]
     Gen --> Schema["SchemaBuilder<br/>(topological sort,<br/>PK/FK pools)"]
     Schema --> Pipe["run_pipeline<br/>(chunked generation)"]
     Pipe --> DQ["apply_data_quality<br/>(none/light/medium/heavy)"]

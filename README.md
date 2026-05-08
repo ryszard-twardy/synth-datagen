@@ -112,7 +112,7 @@ See [docs/scenarios/](https://ryszard-twardy.github.io/synth-datagen/scenarios/r
 ```mermaid
 flowchart LR
     CLI["synth-datagen CLI<br/>(Typer)"] --> Cfg["GeneratorConfig<br/>(Pydantic v2)"]
-    Cfg --> Gen["Scenario generator<br/>(retail / saas / fintech / logistics)"]
+    Cfg --> Gen["Scenario generator<br/>(retail / saas / fintech / logistics / pharma)"]
     Gen --> Schema["SchemaBuilder<br/>(topological sort,<br/>PK/FK pools)"]
     Schema --> Pipe["run_pipeline<br/>(chunked generation)"]
     Pipe --> DQ["apply_data_quality<br/>(none/light/medium/heavy)"]
@@ -163,6 +163,7 @@ CI matrix runs Python 3.11 / 3.12 / 3.13 on Ubuntu with ruff lint + format-check
 - [Faker](https://faker.readthedocs.io/) — realistic strings
 - [Hypothesis](https://hypothesis.readthedocs.io/) — property-based tests
 - [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) — docs site
+- [geopandas](https://geopandas.org/) + [shapely](https://shapely.readthedocs.io/) — geographic data (optional, `[pharma]` extra)
 
 ## License
 
@@ -176,6 +177,6 @@ MIT. See [LICENSE](LICENSE).
   title  = {synth-datagen: realistic synthetic business data with referential integrity},
   year   = {2026},
   url    = {https://github.com/ryszard-twardy/synth-datagen},
-  version = {0.2.0}
+  version = {0.3.0}
 }
 ```

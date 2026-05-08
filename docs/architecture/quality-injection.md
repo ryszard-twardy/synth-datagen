@@ -46,11 +46,50 @@ The full list of injection checks lives in [`src/synth_datagen/exporters/quality
 
 `heavy` is for stress-testing detection systems. Don't load `heavy` output directly into a strict schema; you'll get type-coercion errors. That's the point.
 
-## Per-check defect rates (SaaS v3 only)
+## Per-check defect rates (SaaS v3)
 
-The `saas-v3` sub-app ships an `audit_093.yaml` profile with **per-check** defect rates instead of a global level. This lets you inject 0.93 % `bad_date_formats` while keeping every other check at 0 %, which is the realistic shape for "things our data team complained about" datasets.
+The `saas-v3` sub-app ships an `audit_093.yaml` profile with **fully per-check** defect rates instead of a global level — every check has its own `enabled` flag and `rate`. This lets you inject 0.93 % `bad_date_formats` while keeping every other check at 0 %, which is the realistic shape for "things our data team complained about" datasets.
 
-The per-check pattern is currently SaaS-v3 specific; promoting it to the unified CLI is a v0.3.x backlog item.
+The fully-independent per-check pattern is currently SaaS-v3 specific; promoting it to the unified CLI is a v0.3.x backlog item.
+
+## Pharma quality (v0.3.0)
+
+The `pharma` sub-app sits between the unified 4-level knob and the
+saas-v3 fully-per-check pattern: it ships **8 documented defects**
+each with its own published medium-mode rate, but they all scale
+together via a single `level` argument with three values:
+
+| Pharma level | What it does |
+|---|---|
+| `clean` | No-op — identical bytes to no-defect output |
+| `medium` | Each of the 8 defects fires at its spec-published rate |
+| `messy` | 4× medium across all 8 defects |
+
+The 8 defects (locked order, defined in
+[`src/synth_datagen/pharma/defects.py`](https://github.com/ryszard-twardy/synth-datagen/tree/main/src/synth_datagen/pharma/defects.py)):
+
+| Defect | Medium rate | Affected table |
+|---|---|---|
+| `hospital_name_variants` | 0.4 % | `accounts` |
+| `plz_format_inconsistency` | 0.6 % | `accounts` |
+| `bundesland_name_iso_mismatch` | 0.3 % | `accounts` |
+| `negative_order_quantities` | 1.1 % | `orders` |
+| `order_visit_date_misalignment` | 0.8 % | `orders` |
+| `account_rep_assignment_inconsistency` | 0.5 % | `orders` |
+| `duplicate_atc_old_new_pzn` | 0.3 % | `products` |
+| `coordinate_precision_inconsistency` | 1.0 % | `accounts` |
+
+Two notes worth flagging:
+
+- **Different level names than the unified knob.** Pharma uses
+  `clean / medium / messy`, not `none / light / medium / heavy`. They
+  intentionally don't map 1-to-1: pharma's `messy` is 4× medium
+  across 8 named defects, not the unified knob's `heavy` which adds
+  *additional* check categories (near-duplicates, outlier amounts).
+- **Stream isolation.** The defect pass uses a dedicated quality RNG
+  (one of the spawn slots from `make_rng(seed, "pharma")`); flipping
+  between levels does NOT shift account locations, AGS, or any other
+  upstream column. See `test_pharma_stream_isolation_quality_doesnt_shift_geo`.
 
 ## How it interacts with `--seed`
 
