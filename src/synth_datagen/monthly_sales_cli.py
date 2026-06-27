@@ -8,7 +8,6 @@ from datetime import datetime
 from pathlib import Path
 
 import typer
-from click.core import ParameterSource
 
 from .config import DataQuality
 from .runtime_support import is_missing_runtime_dependency, missing_dependency_message
@@ -193,7 +192,9 @@ def _reject_profile_conflicts(ctx: typer.Context, parameter_names: list[str]) ->
     conflicts: list[str] = []
     for name in parameter_names:
         source = ctx.get_parameter_source(name)
-        if source not in {None, ParameterSource.DEFAULT}:
+        # typer 0.26 vendors its own click, so ctx's ParameterSource is not the
+        # external click enum; compare by name instead of enum identity.
+        if source is not None and source.name != "DEFAULT":
             conflicts.append(f"--{name.replace('_', '-')}")
     if conflicts:
         joined = ", ".join(conflicts)

@@ -283,11 +283,18 @@ def test_pharma_acute_university_revenue_dominance(seed: int) -> None:
     # is bounded below by a few-university × low-lognormal-draw
     # corner case (binomial gives ~6 universities expected at n=200,
     # 3 % share, but variance means 1-3 is plausible) and above by
-    # the long-tail upside. 0.1 % floor to never flake on extreme
-    # low draws; 25 % ceiling to catch a runaway boost regression.
-    assert 0.001 <= uni_share <= 0.25, (
+    # the long-tail upside.
+    # v0.3.0: universities draw from the same lognormal as other acute accounts
+    # (no revenue boost), so a single low-draw university can fall arbitrarily
+    # close to zero; the old 0.1% magnitude floor is unsatisfiable for that corner.
+    # The lower bound here is strictly-positive only (the zero-university case already
+    # returns early and lognormal draws are positive), so it is a tripwire, not an
+    # active magnitude guard. The 25% ceiling remains the runaway-boost guard. When a
+    # university revenue boost is introduced (post-v0.3.0), restore a calibrated
+    # magnitude floor here to catch under-boost regressions.
+    assert 0 < uni_share <= 0.25, (
         f"seed={seed}: university revenue share {uni_share:.2%} "
-        f"outside [0.1%, 25%] envelope"
+        f"outside (0%, 25%] envelope"
     )
 
 
