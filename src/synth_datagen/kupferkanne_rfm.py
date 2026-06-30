@@ -999,6 +999,8 @@ def build_clean_kupferkanne_frames(
     fact_orders_rows: list[dict[str, object]] = []
     clean_line_rows: list[dict[str, object]] = []
     year_order_counters: dict[int, int] = {}
+    _baseline_values = list(config.seasonality.monthly_order_baseline.values())
+    _baseline_mean = sum(_baseline_values) / len(_baseline_values)
 
     for plan in month_plans:
         month_customers = customers_by_month[plan.label]
@@ -1022,9 +1024,9 @@ def build_clean_kupferkanne_frames(
                 discount_variation=discount_variation,
             )
 
-        remaining_orders = plan.order_target - plan.new_customer_target
         slot_customer_ids: list[str] = []
         slot_weights: list[float] = []
+        n_eligible_unique = 0
         for customer_id, state in customer_states.items():
             if state.signup_date > plan.month_end:
                 continue
@@ -1032,6 +1034,7 @@ def build_clean_kupferkanne_frames(
             weight = _customer_month_weight(state, archetype, plan)
             if weight <= 0:
                 continue
+            n_eligible_unique += 1
             existing_monthly_orders = state.monthly_order_counts.get(plan.label, 0)
             available_slots = max(
                 0, archetype.max_orders_per_month - existing_monthly_orders
@@ -1042,11 +1045,20 @@ def build_clean_kupferkanne_frames(
                     weight * (archetype.same_month_repeat_weight**slot_index)
                 )
 
-        if remaining_orders > 0 and slot_customer_ids:
+        seasonal_mult = (
+            config.seasonality.monthly_order_baseline[plan.month_start.month]
+            / _baseline_mean
+        )
+        repeat_budget = round(
+            n_eligible_unique
+            * config.customers.target_per_capita_repeat_rate
+            * seasonal_mult
+        )
+        if repeat_budget > 0 and slot_customer_ids:
             slot_array = np.array(slot_customer_ids, dtype=object)
             slot_weight_array = np.array(slot_weights, dtype=float)
             slot_weight_array = slot_weight_array / slot_weight_array.sum()
-            take = min(remaining_orders, len(slot_array))
+            take = min(repeat_budget, len(slot_array))
             sampled_customer_ids = rng.choice(
                 slot_array, size=take, replace=False, p=slot_weight_array
             )
