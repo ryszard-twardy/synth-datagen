@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "synth-datagen"
-version = "0.3.0"
+version = "0.3.1"
 description = "Realistic synthetic business data with referential integrity, deterministic seeding, and configurable quality injection."
 requires-python = ">=3.11"
 authors = [{ name = "Ryszard Twardy" }]

@@ -19,7 +19,38 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - _nothing yet_
 
-## [0.3.0] — 2026-05-07
+## [0.3.1] – 2026-06-30
+
+### Changed
+
+- **kupferkanne-rfm output shifts bytewise and back-loads order volume
+  toward later periods (intentional).** Overall order volume stays
+  within the configured validation bands (170,516 orders against a
+  175,000 target). The monthly distribution redistributes and per-year
+  totals differ by design, so they are not individually preserved.
+  Same-seed determinism is unchanged.
+
+### Fixed
+
+- **kupferkanne-rfm repeat-order allocation now scales a per-capita
+  repeat budget to the unique eligible base each month**, replacing a
+  shared monthly residual budget. This removes the population-dilution
+  artifact in which a fixed budget sprayed across a roughly 3x-growing
+  eligible base produced a spurious monotone vintage-retention decline
+  (#1).
+
+### Notes
+
+- **The Kupferkanne Power BI dashboard is pinned to pre-fix v0.3.0
+  data.** Datasets generated at 0.3.1+ will not byte-match the
+  published dashboard. To reproduce the pre-fix dataset, check out the
+  `v0.3.0` git tag (commit 74e210a) and regenerate at the same seed:
+  `git checkout v0.3.0` then `synthetic-rfm-kupferkanne generate
+  --config configs/kupferkanne_rfm_v3.yaml --seed 42`. This project is
+  not published to PyPI, so a `pip install` version pin is not
+  available.
+
+## [0.3.0] – 2026-05-07
 
 ### Added
 
@@ -42,13 +73,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   OSM hospital lat/lon against BKG VG250 Landkreise polygons
   resolves the AGS at generation time so downstream SQL doesn't
   need PostGIS for boundary-aligned aggregations.
-- **`src/synth_datagen/geo.py` shared module** — German-administrative
+- **`src/synth_datagen/geo.py` shared module** – German-administrative
   geometry helpers (`load_bundeslaender`, `load_landkreise`,
   `load_osm_hospitals`, `validate_ags_hierarchy`,
   `spatial_join_to_landkreis`, `haversine_km`). Top-level under
   `synth_datagen` because the AGS machinery is reusable for any
   future scenario that touches German geography. Lazy geopandas
-  imports — `import synth_datagen.geo` works even without the
+  imports – `import synth_datagen.geo` works even without the
   `[pharma]` extra installed; `haversine_km` is pure-stdlib and
   always works.
 - **`[pharma]` optional extra** in `pyproject.toml` pulling in
@@ -64,17 +95,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `len(_STREAM_LABELS)` so adding a new stream auto-extends without
   the saas_v3 hardcoded-N+1 fragility.
 - **`benchmark_validation.md` artifact** (Phase 6 follow-up to the
-  v0.2.1 saas_v3 pattern) — written when `--benchmark-validation`
+  v0.2.1 saas_v3 pattern) – written when `--benchmark-validation`
   is set. Five active checks at v0.3.0 (REQ-1 AGS + skipped
   population correlation, REQ-3 revenue median band, REQ-4 visit
   frequency band, REQ-5 top-20 % revenue concentration, REQ-7
   orders FK integrity). CLI exits non-zero on `fail`; CSVs still
   written for inspection (saas_v3 idiom).
 - **`geo_lineage.md` artifact** (8th output beyond the saas template)
-  — license attribution (ODbL for OSM, dl-de/by-2-0 for BKG VG250)
+  – license attribution (ODbL for OSM, dl-de/by-2-0 for BKG VG250)
   + caller-supplied filenames + dataset shape (BL count, LK count,
   account count, coverage %). Required for portfolio honesty.
-- **`metadata.json` audit trail** — full effective_config dump,
+- **`metadata.json` audit trail** – full effective_config dump,
   `rng_state_hash` (SHA-256 over per-stream first-three-int draws),
   `geo_lineage` block, `generated_at` ISO-8601 UTC timestamp, and
   summary stats. Reproducibility audit trail.
@@ -91,25 +122,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   synthetic Bundesländer, 12 Landkreise, 20 hospitals; total
   <20 KB). Provenance contract documented in
   `tests/fixtures/pharma/README.md`.
-- **`baseline_diff.py` pharma pinning** — `capture_pharma()` covers
+- **`baseline_diff.py` pharma pinning** – `capture_pharma()` covers
   both sub-modes against the hermetic fixtures with `seed=42`,
   `account_count=100`. Pre-v0.3.0 baselines gracefully skip pharma
   targets (mirror of the saas_v3 v0.2.1 add-on pattern).
 - **`docs/scenarios/pharma.md`** + **`docs/recipes/bigquery-loading.md`
-  pharma section** — narrative documentation + hand-written DDL
+  pharma section** – narrative documentation + hand-written DDL
   with `CLUSTER BY bundesland_ags` clustering.
-- **`tests/pharma/README.md`** — developer-facing reference for the
+- **`tests/pharma/README.md`** – developer-facing reference for the
   fast-lane / slow-lane / real_geo split.
 
 ### Changed
 
 - **Root CLI registers a new `pharma` sub-app.** Mounted via
   `app.add_typer(pharma_app, name="pharma")` in
-  `src/synth_datagen/cli.py`. Lazy geopandas import — root
+  `src/synth_datagen/cli.py`. Lazy geopandas import – root
   `synth-datagen --help` works cleanly even when the `[pharma]`
   extra isn't installed.
 - **`SALT_REGISTRY` now has 4 entries:** `master`, `discounts`,
-  `saas_v3`, `pharma`. Insertion order preserved — existing seeds
+  `saas_v3`, `pharma`. Insertion order preserved – existing seeds
   for prior scenarios stay byte-stable.
 - **`scripts/baseline_diff.py`** envelope expanded from 5 scenarios
   (retail/saas/fintech/logistics/saas_v3) to 7 (+ pharma-acute,
@@ -128,7 +159,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 
-- _nothing yet_ — pharma is purely additive. Backward-compat
+- _nothing yet_ – pharma is purely additive. Backward-compat
   verified: retail/saas/fintech/logistics/saas_v3 byte-identical
   to the v0.2.1 baseline (`scripts/baseline_diff.py compare`
   passes empty for all 5 prior scenarios; pharma cleanly skipped
@@ -198,7 +229,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   inconsistent at v0.3.0 release; CI runs Linux only. macOS users
   install GDAL via brew + `pip install 'synth-datagen[pharma]'`
   manually.
-- **SaaS `vertical-account-based` sub-mode** stays deferred —
+- **SaaS `vertical-account-based` sub-mode** stays deferred –
   scoped out of Phase 5 (v0.2.1) and not picked up in Phase 6.
   Candidate for v0.4.0+ alongside the P14 RFEDA Account Health
   Scorecard portfolio project. See the SaaS scenario page's
