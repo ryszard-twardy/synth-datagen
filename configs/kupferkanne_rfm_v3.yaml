@@ -467,6 +467,7 @@ catalog:
 customers:
   target_total_customers: 15000
   prelaunch_seed_customers: 0
+  target_per_capita_repeat_rate: 0.59
   acquisition_phases:
     - start_month: 2023-01
       end_month: 2023-03

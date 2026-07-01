@@ -150,6 +150,7 @@ class KupferkanneAcquisitionPhaseConfig(StrictModel):
 class KupferkanneCustomersConfig(StrictModel):
     target_total_customers: int = Field(gt=0)
     prelaunch_seed_customers: int = Field(default=0, ge=0)
+    target_per_capita_repeat_rate: float = Field(gt=0)
     acquisition_phases: list[KupferkanneAcquisitionPhaseConfig]
 
     @model_validator(mode="after")
