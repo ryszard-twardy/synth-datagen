@@ -21,19 +21,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
 
-      - name: Install package + test + pharma extras
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Install locked environment (test + pharma extras)
         run: |
-          python -m pip install --upgrade pip
           # `[pharma]` brings geopandas + shapely so the pharma test
           # suite (Phase 6, v0.3.0+) runs hermetically against the
           # tests/fixtures/pharma/ mini-fixtures. The `[test]` and
           # `[pharma]` extras are independent in pyproject.toml so a
-          # pure-Python developer can still `pip install -e ".[test]"`
-          # alone — CI installs both because the matrix exercises
-          # everything.
-          pip install -e ".[test,pharma]"
+          # pure-Python developer can still `uv sync --extra test`
+          # alone; CI installs both because the matrix exercises
+          # everything. `--frozen` installs exactly what uv.lock
+          # resolved to; it errors instead of re-resolving if the
+          # lock is stale relative to pyproject.toml.
+          uv sync --frozen --extra test --extra pharma --python ${{ matrix.python-version }}
 
       # Run pre-commit hooks once on the 3.12 leg to catch
       # "I forgot to install pre-commit locally" PRs cheaply (whitespace,
@@ -42,22 +47,22 @@ jobs:
       # surfaced separately.
       - name: pre-commit (3.12 only)
         if: matrix.python-version == '3.12'
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: uv run pre-commit run --all-files --show-diff-on-failure
 
       - name: ruff lint
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: ruff format check
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
       # mypy is currently advisory while the broader codebase is being
-      # typed up — promote to hard-fail once `mypy src/` is clean.
+      # typed up; promote to hard-fail once `mypy src/` is clean.
       - name: mypy (advisory)
         continue-on-error: true
-        run: mypy src/
+        run: uv run mypy src/
 
       - name: bandit (medium+ severity)
-        run: bandit -r src/ -ll
+        run: uv run bandit -r src/ -ll
 
       # Two-lane test run: fast lane keeps the developer feedback loop
       # under a minute; slow lane exercises the full saas_v3 pipeline and
@@ -66,22 +71,22 @@ jobs:
       # in a separate `coverage report` step that always runs even when
       # an earlier step failed.
       # ``--cov-fail-under=0`` disables pytest-cov's per-invocation gate
-      # so each lane can run independently — the real gate is the
+      # so each lane can run independently; the real gate is the
       # ``coverage report`` step below, which reads ``fail_under = 80``
       # from ``[tool.coverage.report]`` in ``pyproject.toml``.
       - name: pytest fast lane (default markers)
-        run: pytest --cov=src/synth_datagen --cov-report= --cov-fail-under=0
+        run: uv run pytest --cov=src/synth_datagen --cov-report= --cov-fail-under=0
 
       - name: pytest slow lane (full saas_v3 + property tests)
-        run: pytest -m slow --cov=src/synth_datagen --cov-append --cov-report= --cov-fail-under=0
+        run: uv run pytest -m slow --cov=src/synth_datagen --cov-append --cov-report= --cov-fail-under=0
 
       - name: coverage gate (combined fast + slow, 80% floor)
         if: always()
         run: |
-          coverage report
-          coverage xml -o coverage.xml
+          uv run coverage report
+          uv run coverage xml -o coverage.xml
 
-      # Public-repo tokenless upload — Codecov v4 supports this without
+      # Public-repo tokenless upload: Codecov v4 supports this without
       # CODECOV_TOKEN. Set fail_ci_if_error to false so a Codecov outage
       # doesn't block merges; the coverage gate above is the real signal.
       - name: Upload coverage to Codecov

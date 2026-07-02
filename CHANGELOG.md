@@ -13,7 +13,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- _nothing yet_
+- CI installs are now deterministic: a committed `uv.lock` is the single source of version truth, `ruff` is pinned to the pre-commit hook version, `click` is declared explicitly, and `typer` / `hypothesis` are upper-bounded (#9).
 
 ### Fixed
 
