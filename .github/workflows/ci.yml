@@ -35,10 +35,10 @@ jobs:
           # `[pharma]` extras are independent in pyproject.toml so a
           # pure-Python developer can still `uv sync --extra test`
           # alone; CI installs both because the matrix exercises
-          # everything. `--frozen` installs exactly what uv.lock
-          # resolved to; it errors instead of re-resolving if the
-          # lock is stale relative to pyproject.toml.
-          uv sync --frozen --extra test --extra pharma --python ${{ matrix.python-version }}
+          # everything. `--locked` installs exactly what uv.lock
+          # resolved to and errors, instead of silently proceeding,
+          # if the lock is stale relative to pyproject.toml.
+          uv sync --locked --extra test --extra pharma --python ${{ matrix.python-version }}
 
       # Run pre-commit hooks once on the 3.12 leg to catch
       # "I forgot to install pre-commit locally" PRs cheaply (whitespace,
