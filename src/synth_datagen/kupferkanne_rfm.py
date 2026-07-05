@@ -1049,10 +1049,17 @@ def build_clean_kupferkanne_frames(
             config.seasonality.monthly_order_baseline[plan.month_start.month]
             / _baseline_mean
         )
+        # Issue #7: scale the repeat budget by the partial-period day-ratio, the
+        # same active_days / days_in_month factor build_month_plans applies to the
+        # order target. Computed as a single division so full months, where
+        # active_days == days_in_month, yield exactly 1.0 and leave their repeat
+        # budgets byte-identical; only the final partial month shrinks.
+        partial_ratio = plan.active_days / plan.days_in_month
         repeat_budget = round(
             n_eligible_unique
             * config.customers.target_per_capita_repeat_rate
             * seasonal_mult
+            * partial_ratio
         )
         if repeat_budget > 0 and slot_customer_ids:
             slot_array = np.array(slot_customer_ids, dtype=object)

@@ -63,18 +63,25 @@ _SCALE_DIVISOR = 5
 # final month's base (the base grows over time), minimising growth confounding.
 _N_REFERENCE_MONTHS = 3
 
-# Maximum permitted ratio of the final partial month's season-neutral repeat budget Q
-# to the trailing full-month mean Q.
+# Two-sided bounds on the ratio of the final partial month's season-neutral repeat
+# budget Q to the trailing full-month mean Q. A correctly day-ratio-scaled final month
+# has Q ~= the trailing full months' Q (measured ratio 1.04 at 1/5, seed 42, after
+# Approach A + the target_per_capita_repeat_rate recalibration), differing only by one
+# to two months of eligible-base growth and 1/5-scale sampling noise (~5% on the
+# season-normalised Q across Nov-Feb).
 #
-# The defect leaves the final partial month with a full-month repeat budget, so its Q is
-# inflated by days_in_month / active_days (= 31/15 ~= 2.07 for the v3 config's
-# 15-of-31-day March 2026). A correctly day-ratio-scaled final month has Q ~= the
-# trailing full months' Q, differing only by one to two months of eligible-base growth
-# (a few percent) and 1/5-scale sampling noise (~5% on the season-normalised Q across
-# Nov-Feb). 1.5 sits roughly midway (log scale) between the corrected ~1.05 and the
-# defect's ~2.07: loose enough to tolerate growth + seasonal-normalisation residual +
-# seed noise, tight enough that the ~2x over-density cannot pass.
+# Upper bound 1.5: the pre-fix defect leaves the final month with a full-month repeat
+# budget, inflating Q by days_in_month / active_days (= 31/15 ~= 2.07 for the v3
+# config's 15-of-31-day March 2026). 1.5 sits roughly midway (log scale) between the
+# corrected ~1.04 and the defect's ~2.07: tight enough that the ~2x over-density cannot
+# pass, loose enough to tolerate growth + seasonal-normalisation residual + seed noise.
+#
+# Lower bound 0.6: guards against an over-correction that under-allocates the final
+# month. Applying the day-ratio twice would give ratio ~= 1.04 * 15/31 ~= 0.50 (and a
+# wrong-direction scale even less). 0.6 sits below the measured ~1.04 with headroom for
+# noise, yet above a double-applied ~0.50, so both directions of misapplication fail.
 _MAX_FINAL_MONTH_RATIO = 1.5
+_MIN_FINAL_MONTH_RATIO = 0.6
 
 
 def _reduced_config(divisor: int = _SCALE_DIVISOR) -> KupferkanneRfmConfig:
@@ -206,15 +213,16 @@ def test_final_partial_month_repeats_scale_with_active_days() -> None:
         f"(day-ratio={int(final_row['active_days']) / int(final_row['days_in_month']):.3f}); "
         f"reference full months={[str(p) for p in reference.index]}; "
         f"Q(final)={final_q:.1f} mean Q(reference)={reference_q:.1f} "
-        f"ratio={ratio:.3f} (threshold {_MAX_FINAL_MONTH_RATIO}); "
+        f"ratio={ratio:.3f} (bounds [{_MIN_FINAL_MONTH_RATIO}, {_MAX_FINAL_MONTH_RATIO}]); "
         f"defect predicts ratio ~ days_in_month/active_days = "
         f"{expected_defect_ratio:.3f}\n"
         f"per-month tail:\n"
         f"{table.tail(6)[['repeats', 'active_days', 'days_in_month', 'seasonal_mult', 'q']].round(3).to_string()}"
     )
 
-    assert ratio <= _MAX_FINAL_MONTH_RATIO, (
-        "kupferkanne-rfm final partial month is over-allocated repeat orders: its "
+    assert _MIN_FINAL_MONTH_RATIO <= ratio <= _MAX_FINAL_MONTH_RATIO, (
+        "kupferkanne-rfm final partial month repeat allocation is out of range: its "
         f"season-neutral repeat budget is {ratio:.2f}x the trailing full-month baseline, "
-        f"but a day-ratio-scaled final month should be ~1x. {detail}"
+        f"but a correctly day-ratio-scaled final month should be ~1x "
+        f"(within [{_MIN_FINAL_MONTH_RATIO}, {_MAX_FINAL_MONTH_RATIO}]). {detail}"
     )

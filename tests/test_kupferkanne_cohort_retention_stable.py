@@ -53,15 +53,18 @@ _V3_CONFIG_PATH = Path("configs/kupferkanne_rfm_v3.yaml")
 _SEED = 42
 
 # Reduction factor vs the production v3 config (15000 customers / 175000 orders).
-# 5x is the canonical proof scale: it keeps the budget/base ratio trajectory
-# intact while running fast, and -- unlike the default 1/10 -- it is not dominated
-# by binomial sampling noise. At 1/10 the smallest controlled cohort (August,
-# ~39 customers, so ~2.6pp per single customer) can swing the same-calendar-month
-# spread past the 15pp bound on sampling noise alone, not on allocator residual.
-# The 15pp threshold and the first-sim-year exclusion are unchanged; both
-# directions of the regression (green on the fix, red on the pre-fix allocator)
-# are proven at 5x.
-_SCALE_DIVISOR = 5
+# The scale keeps the budget/base ratio trajectory intact while staying above
+# binomial sampling noise: at 1/10 the smallest controlled cohort (August, ~39
+# customers, ~2.6pp per single customer) can swing the same-calendar-month spread
+# past the 15pp bound on sampling noise alone, not on allocator residual.
+#
+# Raised from 1/5 to 1/2 for issue #7: the repeat-budget recalibration
+# (target_per_capita_repeat_rate 0.59 -> 0.603) reshuffles the RNG stream, and at
+# 1/5 a small-cohort noise realisation (2026-01, n=52, ~1.9pp per single customer)
+# breached the bound at 16.03pp. At 1/2 the worst spread is 8.23pp with the same
+# structural property intact. The 15pp threshold and the first-sim-year exclusion
+# are unchanged.
+_SCALE_DIVISOR = 2
 
 # Maximum permitted m1 spread (percentage points) across vintages of the same
 # calendar month. Pre-fix this is in the tens of points (population dilution);
