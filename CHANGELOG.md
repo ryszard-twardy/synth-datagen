@@ -13,11 +13,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- CI installs are now deterministic: a committed `uv.lock` is the single source of version truth, `ruff` is pinned to the pre-commit hook version, `click` is declared explicitly, and `typer` / `hypothesis` are upper-bounded (#9).
+- _nothing yet_
 
 ### Fixed
 
 - _nothing yet_
+
+## [0.3.2] – 2026-07-04
+
+### Fixed
+
+- kupferkanne-rfm: the final partial month inherited a full-month repeat budget; the active_days/days_in_month ratio applied to order targets is now applied to repeat_budget as well (#7). Full months yield a factor of exactly 1.0 and are unaffected by the ratio itself.
+
+### Changed
+
+- kupferkanne-rfm: target_per_capita_repeat_rate recalibrated 0.59 -> 0.603 so the calibrated unique_orders band (170000-185000 full scale) holds after the fix. Data-behavior note: regenerated outputs differ from v0.3.1 in every month (global rate change), not only the final partial month. Consumers pinning v0.3.1 (e.g. the Kupferkanne dataset) are unaffected until they choose to re-pin.
+- tests: partial-month regression hardened to a two-sided bound (0.6 <= ratio <= 1.5); m1-stability guard rescaled from 1/5 to 1/2 proof scale (15pp threshold unchanged).
+- CI installs are now deterministic: a committed `uv.lock` is the single source of version truth, `ruff` is pinned to the pre-commit hook version, `click` is declared explicitly, and `typer` / `hypothesis` are upper-bounded (#9).
+- CI installs the toolchain with `uv sync --locked`, asserting lockfile freshness; `--frozen` silently accepted a stale lock (#13).
 
 ## [0.3.1] – 2026-06-30
 
