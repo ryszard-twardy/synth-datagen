@@ -177,6 +177,6 @@ MIT. See [LICENSE](LICENSE).
   title  = {synth-datagen: realistic synthetic business data with referential integrity},
   year   = {2026},
   url    = {https://github.com/ryszard-twardy/synth-datagen},
-  version = {0.3.0}
+  version = {0.3.3}
 }
 ```

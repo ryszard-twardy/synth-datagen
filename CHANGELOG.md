@@ -19,6 +19,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - _nothing yet_
 
+## [0.3.3] - 2026-07-08
+
+### Fixed
+- Runtime `synth_datagen.__version__` is now single-sourced from package metadata (`importlib.metadata.version`), so it can no longer drift from the packaged version. The v0.3.2 release shipped a stale runtime version (0.3.1); this closes a drift class that also occurred at v0.2.0 and v0.2.1 (#16). A guard test asserts runtime equals the `pyproject.toml` version.
+
+### Changed
+- README citation version updated to 0.3.3.
+- memory/ version-coupling notes reflect the single source; the only remaining manual version-value sites are `pyproject.toml` (canonical) and the README citation.
+
 ## [0.3.2] – 2026-07-04
 
 ### Fixed
