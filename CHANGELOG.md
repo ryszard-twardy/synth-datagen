@@ -28,7 +28,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - README citation version updated to 0.3.3.
 - memory/ version-coupling notes reflect the single source; the only remaining manual version-value sites are `pyproject.toml` (canonical) and the README citation.
 
-## [0.3.2] – 2026-07-04
+## [0.3.2] - 2026-07-04
 
 ### Fixed
 
@@ -41,7 +41,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - CI installs are now deterministic: a committed `uv.lock` is the single source of version truth, `ruff` is pinned to the pre-commit hook version, `click` is declared explicitly, and `typer` / `hypothesis` are upper-bounded (#9).
 - CI installs the toolchain with `uv sync --locked`, asserting lockfile freshness; `--frozen` silently accepted a stale lock (#13).
 
-## [0.3.1] – 2026-06-30
+## [0.3.1] - 2026-06-30
 
 ### Changed
 
@@ -72,7 +72,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   not published to PyPI, so a `pip install` version pin is not
   available.
 
-## [0.3.0] – 2026-05-07
+## [0.3.0] - 2026-05-07
 
 ### Added
 
@@ -258,7 +258,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Deferred modes` section under
   <https://ryszard-twardy.github.io/synth-datagen/scenarios/saas/>.
 
-## [0.2.1] — 2026-05-07
+## [0.2.1] - 2026-05-07
 
 ### Added
 
@@ -269,7 +269,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - 8th table `subscription_events` with the full 5-movement MRR
     waterfall: `new`, `expansion`, `contraction`, `churn`, and
     `reactivation`. `SUM(mrr_delta) GROUP BY account_id` matches the
-    account's current MRR within ±0.01 EUR — verified by a Hypothesis
+    account's current MRR within ±0.01 EUR – verified by a Hypothesis
     property test across 8 random seeds per run.
   - `--benchmark-validation` CLI flag on `synth-datagen saas-v3 generate`
     (saas-v3 only). Computes NRR, GRR, lifetime-churn-rate, and a
@@ -277,7 +277,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     Benchmarkit 2025 target ranges; writes `benchmark_validation.md` to
     the run root and exits non-zero on failure.
   - `BenchmarkConfig` model (`benchmarks:` block) with calibrated
-    defaults — override per-config without code changes.
+    defaults – override per-config without code changes.
   - `configs/saas_v3.plg.yaml` reference config exercising the new mode.
   - Hypothesis property test
     `tests/property/test_saas_v3_invariants.py` for the MRR-delta
@@ -290,7 +290,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **saas_v3 RNG migrated to the central `make_rng` factory** under the
   newly registered `"saas_v3"` salt (`0x5AA50000`). `SaaSV3Engine._rng`
   and `DefectInjector._rng` no longer call `np.random.default_rng`
-  directly — every saas_v3 random draw now flows through
+  directly – every saas_v3 random draw now flows through
   `make_rng(seed, "saas_v3").spawn(N)`. saas_v3 byte output shifted
   once at this release; pinned going forward by
   `scripts/baseline_diff.py`.
@@ -302,13 +302,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - _nothing yet_
 
-## [0.2.0] — 2026-05-07
+## [0.2.0] - 2026-05-07
 
 First public release. Refactored, tested, documented, and ready for PyPI.
 
 ### Added
 
-- **Phase 4 — Documentation & publication prep.**
+- **Phase 4 – Documentation & publication prep.**
   - Rewritten `README.md` (159 lines) with dual quickstart (source today /
     PyPI from v0.2.0), Mermaid architecture diagram, real CLI flag
     reference, and a citation block.
@@ -324,7 +324,7 @@ First public release. Refactored, tested, documented, and ready for PyPI.
     guide, PR checklist, and a "how to add a new scenario" walkthrough.
   - `SECURITY.md` documenting supported versions and the vulnerability
     reporting flow.
-  - `.github/workflows/docs.yml` — GitHub Pages deploy on push to `main`.
+  - `.github/workflows/docs.yml` – GitHub Pages deploy on push to `main`.
   - `pyproject.toml` metadata complete for PyPI: full classifiers
     (`Development Status :: 4 - Beta`, `Operating System :: OS
     Independent`, `Topic :: Software Development :: Testing`, `Typing ::
@@ -347,7 +347,7 @@ First public release. Refactored, tested, documented, and ready for PyPI.
 - **Parquet exporter dropped the object-column sanitiser branch.**
   `_sanitise_chunk` in `src/synth_datagen/exporters/parquet_exporter.py`
   used `if dtype is object:` to detect numpy object-dtype columns, but
-  `numpy.dtype('O') is object` is `False` in Python — identity vs
+  `numpy.dtype('O') is object` is `False` in Python – identity vs
   equality. The result: every datetime/date/None object column silently
   bypassed sanitisation and round-tripped to Parquet with `object` dtype
   instead of `datetime64`. Fixed by switching to
@@ -355,13 +355,13 @@ First public release. Refactored, tested, documented, and ready for PyPI.
   (`scripts/baseline_diff.py` confirmed byte-identical CSVs across
   retail / saas / fintech / logistics). Caught by the new direct unit
   tests added in P7.
-- **fintech leap-day card expiry crash** — moved card `valid_to` 1 March
+- **fintech leap-day card expiry crash** – moved card `valid_to` 1 March
   forward when a 4-year offset lands on Feb 29 in a non-leap year.
-- **saas feature-rank empty bucket fallback** — when a user-defined rank
+- **saas feature-rank empty bucket fallback** – when a user-defined rank
   bucket excluded every feature, the engine raised; it now falls back to
   the full feature list.
 
-### Phase 3 — test hardening (P1–P9)
+### Phase 3 – test hardening (P1–P9)
 
 - Hypothesis property tests covering invariants for every scenario
   (retail, saas, fintech, logistics, `kupferkanne_rfm`; P3 / P2-6).
@@ -407,7 +407,7 @@ Three intentional deviations from the literal Phase-3 spec:
    pass through `_sql_val` quoting; table/column names come from a
    closed config schema).
 
-## [0.1.0-preaudit] — 2026-04-30
+## [0.1.0-preaudit] - 2026-04-30
 
 Pre-audit baseline. Internal-only; not on PyPI. Initial multi-scenario
 generator (retail, saas, fintech, logistics, kupferkanne-rfm,
