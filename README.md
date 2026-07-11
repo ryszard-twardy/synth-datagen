@@ -1,27 +1,27 @@
 # synth-datagen
 
-> Realistic synthetic business data — referential integrity, deterministic seeding, and quality injection you control.
+> Realistic synthetic business data – referential integrity, deterministic seeding, and quality injection you control.
 
 [![CI](https://github.com/ryszard-twardy/synth-datagen/actions/workflows/ci.yml/badge.svg)](https://github.com/ryszard-twardy/synth-datagen/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-mkdocs--material-526CFE)](https://ryszard-twardy.github.io/synth-datagen/)
 
-Generate multi-table relational datasets — retail, SaaS, fintech, logistics — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
+Generate multi-table relational datasets – retail, SaaS, fintech, logistics – with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
-### v0.3.0 — Phase 6: Pharma scenario
+### v0.3.0 – Phase 6: Pharma scenario
 
-- **v0.3.0** — German pharma field-sales scenario with two sub-modes
+- **v0.3.0** – German pharma field-sales scenario with two sub-modes
   (acute-care + specialty-care). Calibrated against DESTATIS,
   PHAGRO, IQVIA, vfa, and Pharmalotse benchmarks. New shared
   `geo.py` for AGS hierarchy + spatial joins. New optional
   `[pharma]` extra (geopandas + shapely). 8th output artifact
   `geo_lineage.md` with license attribution (ODbL for OSM,
   dl-de/by-2-0 for BKG VG250).
-- **v0.2.1** — `saas-v3` `plg-usage-based` sub-mode with the 5-movement
+- **v0.2.1** – `saas-v3` `plg-usage-based` sub-mode with the 5-movement
   MRR waterfall (`subscription_events` table) and opt-in
   `--benchmark-validation` against KeyBanc/Benchmarkit ranges.
-- **v0.2.0** — initial PyPI release; four scenarios, three sub-apps, Parquet + DDL exports.
+- **v0.2.0** – initial PyPI release; four scenarios, three sub-apps, Parquet + DDL exports.
 
 ## Quickstart
 
@@ -55,9 +55,9 @@ Faker handles names and emails; it doesn't give you `fact_orders` rows whose `cu
 
 ## Features
 
-- **Five scenarios:** retail, SaaS, fintech, logistics, pharma — each a star schema with realistic dim/fact/bridge structure.
+- **Five scenarios:** retail, SaaS, fintech, logistics, pharma – each a star schema with realistic dim/fact/bridge structure.
 - **Three sub-apps:** Kupferkanne RFM (monthly fact shards from YAML), monthly-sales (period-windowed retail), SaaS v3 (audit-grade dirty-CSV pipeline with per-check defect rates).
-- **Referential integrity** across tables — FKs reconcile, totals sum, timelines are valid.
+- **Referential integrity** across tables – FKs reconcile, totals sum, timelines are valid.
 - **Configurable quality injection:** `--data-quality {none,light,medium,heavy}` toggles missing values, format drift, duplicates, and out-of-range outliers without breaking PK/FK structure.
 - **Reproducible:** identical `--seed` → identical bytes (verified by property tests in CI).
 - **Auto-documentation:** every run emits `data_dictionary.md` + Mermaid `erd.md` next to the data.
@@ -79,7 +79,7 @@ synth-datagen pharma generate --help   # v0.3.0 sub-app surface
 | `saas` | B2B SaaS with subscriptions, usage, invoices | `accounts`, `users`, `features`, `subscriptions`, `feature_usage`, `events`, `invoices` |
 | `fintech` | Payment ledger with cards, merchants, loans | `customers`, `accounts`, `cards`, `merchants`, `transactions`, `loans`, `loan_payments` |
 | `logistics` | Shipping with warehouses, carriers, inventory | `warehouses`, `suppliers`, `products`, `inventory`, `carriers`, `shipments`, `shipment_items` |
-| `pharma` (v0.3.0) | German field-sales — hospitals + clinics with AGS hierarchy, BKG-VG250-anchored territories, OSM-sourced accounts | `accounts`, `sales_reps`, `territories`, `products`, `orders`, `rep_visits`, `account_specialties`, `geographic_metadata` |
+| `pharma` (v0.3.0) | German field-sales – hospitals + clinics with AGS hierarchy, BKG-VG250-anchored territories, OSM-sourced accounts | `accounts`, `sales_reps`, `territories`, `products`, `orders`, `rep_visits`, `account_specialties`, `geographic_metadata` |
 
 The pharma scenario uses a sub-app idiom (`synth-datagen pharma generate ...`) and ships behind the optional `[pharma]` extra:
 
@@ -121,7 +121,7 @@ flowchart LR
     Pipe -. isolated RNG streams .-> Gen
 ```
 
-**RNG isolation.** A single `--seed` derives a tree of independent generators (`numpy.random.SeedSequence.spawn`) so each table — and each chunk within a table — gets its own RNG. Adding rows to one table doesn't shift values in another, which is what makes the byte-equality property tests possible. See [docs/architecture/rng-isolation.md](https://ryszard-twardy.github.io/synth-datagen/architecture/rng-isolation/).
+**RNG isolation.** A single `--seed` derives a tree of independent generators (`numpy.random.SeedSequence.spawn`) so each table – and each chunk within a table – gets its own RNG. Adding rows to one table doesn't shift values in another, which is what makes the byte-equality property tests possible. See [docs/architecture/rng-isolation.md](https://ryszard-twardy.github.io/synth-datagen/architecture/rng-isolation/).
 
 ## Examples
 
@@ -137,7 +137,7 @@ Each script header documents the equivalent `synth-datagen` shell invocation.
 
 ## Configuration
 
-Most CLI options map 1:1 to fields on `GeneratorConfig` — the same Pydantic model the pipeline consumes. The Kupferkanne RFM and SaaS v3 sub-apps are YAML-driven; example configs live in [`configs/`](configs/) and the schemas are documented at [docs/scenarios/](https://ryszard-twardy.github.io/synth-datagen/scenarios/saas/).
+Most CLI options map 1:1 to fields on `GeneratorConfig` – the same Pydantic model the pipeline consumes. The Kupferkanne RFM and SaaS v3 sub-apps are YAML-driven; example configs live in [`configs/`](configs/) and the schemas are documented at [docs/scenarios/](https://ryszard-twardy.github.io/synth-datagen/scenarios/saas/).
 
 ## Development
 
@@ -156,14 +156,14 @@ CI matrix runs Python 3.11 / 3.12 / 3.13 on Ubuntu with ruff lint + format-check
 
 ## Built with
 
-- [Typer](https://typer.tiangolo.com/) — CLI
-- [Pydantic v2](https://docs.pydantic.dev/) — config validation
-- [NumPy](https://numpy.org/) — RNG and statistics
-- [pandas](https://pandas.pydata.org/) + [PyArrow](https://arrow.apache.org/docs/python/) — data structures and Parquet
-- [Faker](https://faker.readthedocs.io/) — realistic strings
-- [Hypothesis](https://hypothesis.readthedocs.io/) — property-based tests
-- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) — docs site
-- [geopandas](https://geopandas.org/) + [shapely](https://shapely.readthedocs.io/) — geographic data (optional, `[pharma]` extra)
+- [Typer](https://typer.tiangolo.com/) – CLI
+- [Pydantic v2](https://docs.pydantic.dev/) – config validation
+- [NumPy](https://numpy.org/) – RNG and statistics
+- [pandas](https://pandas.pydata.org/) + [PyArrow](https://arrow.apache.org/docs/python/) – data structures and Parquet
+- [Faker](https://faker.readthedocs.io/) – realistic strings
+- [Hypothesis](https://hypothesis.readthedocs.io/) – property-based tests
+- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) – docs site
+- [geopandas](https://geopandas.org/) + [shapely](https://shapely.readthedocs.io/) – geographic data (optional, `[pharma]` extra)
 
 ## License
 
