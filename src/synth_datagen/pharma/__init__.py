@@ -13,7 +13,7 @@ The pharma scenario depends on ``geopandas`` and ``shapely`` for spatial
 joins against BKG VG250 administrative boundaries. Those are NOT core
 dependencies — install via the ``[pharma]`` optional extra::
 
-    pip install 'synth-datagen[pharma]'
+    pip install -e ".[pharma]"
 
 The CLI entry point fails fast with a friendly message if the extra is
 missing.

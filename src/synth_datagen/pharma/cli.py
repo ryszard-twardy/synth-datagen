@@ -49,7 +49,7 @@ app = typer.Typer(
     help=(
         "Generate German pharma field-sales synthetic datasets "
         "(acute-care + specialty-care). Requires the [pharma] extra: "
-        "pip install 'synth-datagen[pharma]'"
+        'pip install -e ".[pharma]"'
     ),
     add_completion=False,
     no_args_is_help=True,
@@ -58,8 +58,7 @@ app = typer.Typer(
 
 _INSTALL_HINT = (
     "Pharma scenario requires the [pharma] extra (geopandas + shapely).\n"
-    "Install with:  pip install 'synth-datagen[pharma]'\n"
-    'Or, if you\'re developing in this repo:  pip install -e ".[test,pharma]"'
+    'Install from your checkout with:  pip install -e ".[pharma]"'
 )
 
 

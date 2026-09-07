@@ -20,10 +20,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **Removed the unpublished PyPI install path from the docs.** `README.md`
   and `docs/quickstart.md` documented `pip install synth-datagen`, but the
   package has never been published to PyPI (JSON API and `/simple/` both
-  return 404, verified 2026-09-07). Install instructions are now
+  return 404, verified 2026-09-07). The Quickstart install paths are now
   source-only, and the `SECURITY.md` supported-versions table no longer
   implies the 0.2.x / 0.3.x lines are on a package index. No promise of
   future publication was added.
+- **Removed the remaining `synth-datagen[pharma]` index-install
+  instructions.** `README.md`, `docs/scenarios/pharma.md`,
+  `src/synth_datagen/pharma/cli.py` (both the `--help` text and the
+  missing-extra failure hint), `src/synth_datagen/pharma/__init__.py`
+  and `pyproject.toml` all told users to run
+  `pip install 'synth-datagen[pharma]'`, which cannot work for an
+  unpublished package. All now use an editable install from a source
+  checkout. Docs downstream of the Quickstart use the `uv` form
+  (`uv pip install -e ".[pharma]"`), since the Quickstart already
+  establishes a `uv` venv; runtime hints printed into an unknown
+  environment use bare `pip install -e ".[pharma]"`, because `uv` may
+  not be installed when the missing-extra hint fires. The two
+  near-identical hints in `cli.py` were collapsed into one.
 - **Normalised em-dashes (U+2014) to en-dashes (U+2013)** across the
   remaining public documentation surface (`CONTRIBUTING.md`, `SECURITY.md`,
   `mkdocs.yml` and `docs/`). `README.md` and `CHANGELOG.md` were already
