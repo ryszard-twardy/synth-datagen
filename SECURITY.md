@@ -8,7 +8,7 @@ the latest published minor version receives security fixes.
 | Version | Supported |
 |---|---|
 | 0.3.x | ✅ |
-| 0.2.x | ✅ — security fixes through 2026-06-07 (30-day grace after 0.3.0 release) |
+| 0.2.x | ✅ – security fixes through 2026-06-07 (30-day grace after 0.3.0 release) |
 | < 0.2 | ❌ (pre-audit) |
 
 0.3.0 shipped 2026-05-08. The 0.2.x line continues to receive
@@ -28,7 +28,7 @@ Please include:
 
 - A description of the vulnerability and its impact.
 - The version (`pip show synth-datagen` or commit SHA) you observed it on.
-- A minimal reproduction — the `--seed`, CLI command, or Python snippet
+- A minimal reproduction – the `--seed`, CLI command, or Python snippet
   that triggers the issue.
 - Any suggested fix or mitigation, if you have one.
 
@@ -57,21 +57,21 @@ In scope:
   as a closed config schema; bypasses are bugs).
 - Path-traversal or arbitrary-write bugs in the exporters.
 - YAML deserialisation issues in any of the YAML-driven sub-apps
-  (Kupferkanne RFM, SaaS v3, monthly-sales, pharma) — we use
+  (Kupferkanne RFM, SaaS v3, monthly-sales, pharma) – we use
   `yaml.safe_load` everywhere; reports of unsafe loads are bugs.
-- Pickle / arbitrary-code-execution surfaces — there should be none;
+- Pickle / arbitrary-code-execution surfaces – there should be none;
   if you find one, that's a bug.
 - Denial-of-service via pathological config values that bypass Pydantic
   validation.
 
 Out of scope:
 
-- The intentional `--data-quality {light,medium,heavy}` injection — it
+- The intentional `--data-quality {light,medium,heavy}` injection – it
   is supposed to produce malformed values; that is the whole point.
-- Supply-chain issues in upstream dependencies — report those to the
+- Supply-chain issues in upstream dependencies – report those to the
   upstream project (e.g. `pandas`, `numpy`, `pyarrow`) and we'll bump
   the pin once a fixed version ships.
-- Performance issues that aren't security-relevant — open a normal
+- Performance issues that aren't security-relevant – open a normal
   issue.
 
 Thank you for helping keep `synth-datagen` users safe.

@@ -31,14 +31,14 @@ pytest --no-cov                          # fast lane, ~60 s
 ```
 
 If `pytest` reports anything other than green, your environment is
-fighting you — fix it before writing code.
+fighting you – fix it before writing code.
 
 ## Running the test suite
 
 ```bash
 pytest                                   # default fast lane (slow tests skipped)
 pytest -m slow                           # slow lane only (Hypothesis + saas_v3)
-pytest -m 'slow or not slow'             # full suite — what CI runs
+pytest -m 'slow or not slow'             # full suite – what CI runs
 pytest --cov                             # with coverage (80% gate enforced)
 ```
 
@@ -59,7 +59,7 @@ auto-references). Always run it before opening a docs PR.
 The site is published by `.github/workflows/docs.yml` on push to `main`,
 so changes only appear at <https://ryszard-twardy.github.io/synth-datagen/>
 once your PR merges. The docs `changelog.md` page inlines the root
-`CHANGELOG.md` via a `pymdownx.snippets` directive — anything you put
+`CHANGELOG.md` via a `pymdownx.snippets` directive – anything you put
 under `## [Unreleased]` will show on the public site at next deploy, so
 keep that section to released-style bullets, not free-form notes.
 
@@ -108,7 +108,7 @@ Before requesting review, confirm:
       (`Added` / `Changed` / `Fixed`).
 - [ ] If you changed any CLI flag, the README scenarios table and
       `docs/quickstart.md` are updated.
-- [ ] PR description explains *why*, not just *what* — link the issue
+- [ ] PR description explains *why*, not just *what* – link the issue
       or design discussion.
 
 ## How to add a new scenario
@@ -134,20 +134,20 @@ Before requesting review, confirm:
 3. **Wire it into the registry.** Add the import + dispatch entry to
    `src/synth_datagen/pipeline.py::_get_generator`.
 4. **Cross-scenario utilities (if any).** If your scenario adds
-   primitives reusable across scenarios — spatial joins, hierarchy
-   walkers, coordinate-system helpers, period-windowing math — put
+   primitives reusable across scenarios – spatial joins, hierarchy
+   walkers, coordinate-system helpers, period-windowing math – put
    them in a top-level shared module like
    [`src/synth_datagen/geo.py`](src/synth_datagen/geo.py) rather than
    scenario-local code. This prevents duplication when future
    scenarios need the same primitive and keeps the per-scenario
    module focused on business logic.
 5. **Tests.**
-   - `tests/test_<name>_realism.py` — invariants (FK integrity, totals
+   - `tests/test_<name>_realism.py` – invariants (FK integrity, totals
      reconcile, no NaNs in PK columns).
-   - `tests/test_property_<name>.py` — Hypothesis property tests
+   - `tests/test_property_<name>.py` – Hypothesis property tests
      covering every seed-stable invariant. Add the `@pytest.mark.slow`
      marker.
-   - `tests/test_unified_cli.py` — add the new sub-command to the
+   - `tests/test_unified_cli.py` – add the new sub-command to the
      parametrised list.
    - **Fixtures.** If your scenario reads external data (CSVs,
      GeoJSON, etc.), commit hermetic mini-fixtures under
@@ -158,7 +158,7 @@ Before requesting review, confirm:
      for the canonical example. Tests that need real production-scale
      data gate behind a dedicated marker (e.g. `@pytest.mark.real_geo`,
      registered in `pyproject.toml`'s `[tool.pytest.ini_options]
-     markers`) and are skipped by default — opt in via env var or
+     markers`) and are skipped by default – opt in via env var or
      `pytest -m`.
 6. **Docs.** Add `docs/scenarios/<name>.md` with sample output, table
    inventory, and full config reference. Link it from
@@ -184,7 +184,7 @@ existing entries for canonical examples:
 
 Update [`memory/README.md`](memory/README.md)'s index table with a
 one-line summary in the same commit. Keep entries short, focused on
-the *one* lesson, and free of personal/workflow context — they're
+the *one* lesson, and free of personal/workflow context – they're
 project-level reference, not session notes.
 
 ## Reporting issues
@@ -197,4 +197,4 @@ suspected security issues, see [SECURITY.md](SECURITY.md) instead.
 ## Code of conduct
 
 Be respectful and assume good faith. Disagreements about technical
-trade-offs are expected — make your case with evidence and move on.
+trade-offs are expected – make your case with evidence and move on.

@@ -5,7 +5,7 @@ This page gets you from a clean machine to a generated retail dataset in under f
 ## Prerequisites
 
 - Python 3.11, 3.12, or 3.13
-- [uv](https://docs.astral.sh/uv/) (recommended) — or plain `python -m venv` + `pip` works fine
+- [uv](https://docs.astral.sh/uv/) (recommended) – or plain `python -m venv` + `pip` works fine
 
 ## Install
 
@@ -75,7 +75,7 @@ synth-datagen retail --seed 42 --output ./out/retail-dirty \
     --data-quality medium
 ```
 
-`--data-quality medium` injects missing values, format drift, duplicates, and out-of-range outliers across all tables. **Referential integrity is preserved** — the dirty data is realistic; it's not garbage. See [Architecture › Quality injection](architecture/quality-injection.md) for what each level produces.
+`--data-quality medium` injects missing values, format drift, duplicates, and out-of-range outliers across all tables. **Referential integrity is preserved** – the dirty data is realistic; it's not garbage. See [Architecture › Quality injection](architecture/quality-injection.md) for what each level produces.
 
 ## Try other scenarios
 
@@ -90,7 +90,7 @@ synth-datagen logistics --seed 42 --output ./out/logistics \
     --rows shipments=300,shipment_items=900
 ```
 
-Each scenario has a dedicated page — see the [scenarios overview](scenarios/index.md).
+Each scenario has a dedicated page – see the [scenarios overview](scenarios/index.md).
 
 ## Use the Python API instead
 

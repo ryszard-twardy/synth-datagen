@@ -34,10 +34,10 @@ The sub-apps are the same engine wired up to YAML configs (in [`configs/`](https
 
 ## What every scenario gives you
 
-- A **clean star schema** — at least one fact table, multiple dim tables, sometimes a bridge table.
-- **Stable PK formats** — `CU00000001`, `OR00000001`, etc. — and `YYYYMMDD` integer date keys.
-- **Cross-table coherence** — FK pools sampled from real PK pools; totals reconcile.
-- **Per-scenario invariants** — covered by Hypothesis property tests in CI.
-- **Deterministic output** — same `--seed` → same bytes.
+- A **clean star schema** – at least one fact table, multiple dim tables, sometimes a bridge table.
+- **Stable PK formats** – `CU00000001`, `OR00000001`, etc. – and `YYYYMMDD` integer date keys.
+- **Cross-table coherence** – FK pools sampled from real PK pools; totals reconcile.
+- **Per-scenario invariants** – covered by Hypothesis property tests in CI.
+- **Deterministic output** – same `--seed` → same bytes.
 
 For the architectural reasoning behind these guarantees, jump to [Architecture › RNG isolation](../architecture/rng-isolation.md) and [Architecture › Distributions](../architecture/distributions.md).

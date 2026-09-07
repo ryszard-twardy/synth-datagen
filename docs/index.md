@@ -1,8 +1,8 @@
 # synth-datagen
 
-> Realistic synthetic business data — referential integrity, deterministic seeding, and quality injection you control.
+> Realistic synthetic business data – referential integrity, deterministic seeding, and quality injection you control.
 
-`synth-datagen` generates multi-table relational datasets — retail, SaaS, fintech, logistics, pharma — with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
+`synth-datagen` generates multi-table relational datasets – retail, SaaS, fintech, logistics, pharma – with stable PK/FK formats, business-rule coherence across tables, and configurable data-quality issues you can inject on demand. Built for ETL practice, dashboard demos, and reproducible analytics portfolios. Same seed always yields byte-identical CSVs.
 
 ## What this looks like
 
@@ -45,7 +45,7 @@ flowchart LR
     Pipe -. isolated RNG streams .-> Gen
 ```
 
-The thread that holds it all together is RNG isolation — see [Architecture › RNG isolation](architecture/rng-isolation.md) for how a single `--seed` derives independent generators per table and per chunk.
+The thread that holds it all together is RNG isolation – see [Architecture › RNG isolation](architecture/rng-isolation.md) for how a single `--seed` derives independent generators per table and per chunk.
 
 ## Where to go next
 

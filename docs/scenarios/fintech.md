@@ -8,7 +8,7 @@ A 7-table payment ledger with chronologically valid transactions, account balanc
 |---|---|---|---|
 | `customers` | dim | 10,000 | Demographic profile, KYC tier |
 | `accounts` | fact-ish | 15,000 | Per-customer account; `balance` reverse-derived from ledger |
-| `cards` | dim | 12,000 | Issued, expired, reissued — `valid_to` shifts off Feb 29 in non-leap years |
+| `cards` | dim | 12,000 | Issued, expired, reissued – `valid_to` shifts off Feb 29 in non-leap years |
 | `merchants` | dim | 2,000 | Industry, MCC, region |
 | `transactions` | fact | 200,000 | Generated in **chronological order** so balances reconcile |
 | `loans` | fact | 3,000 | Principal, term, APR, status |
@@ -43,7 +43,7 @@ When data-quality injection is on, transactions get realistic fraud signatures i
 - Card-not-present spikes after a long quiet period
 - Round-amount clusters that don't match merchant pricing patterns
 
-These aren't labelled — building the labels is your exercise. They are statistically distinguishable from the clean baseline at `--data-quality none`.
+These aren't labelled – building the labels is your exercise. They are statistically distinguishable from the clean baseline at `--data-quality none`.
 
 ## Python API equivalent
 
@@ -70,4 +70,4 @@ run_pipeline(config)
 
 ## Determinism caveat
 
-Because `transactions` are emitted in chronological order, `--seed` controls every value but the row-write order is not arbitrary — re-running with the same seed produces byte-identical CSVs (verified by the determinism test in `tests/test_fintech_realism.py::test_fintech_csv_byte_equality`).
+Because `transactions` are emitted in chronological order, `--seed` controls every value but the row-write order is not arbitrary – re-running with the same seed produces byte-identical CSVs (verified by the determinism test in `tests/test_fintech_realism.py::test_fintech_csv_byte_equality`).

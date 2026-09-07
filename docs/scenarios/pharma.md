@@ -1,10 +1,10 @@
-# Pharma — German Field-Sales scenario
+# Pharma – German Field-Sales scenario
 
 A v0.3.0 8-table star schema modelling a German pharmaceutical
 manufacturer's field-sales motion. Two sub-modes (`acute-care` for
 hospitals, `specialty-care` for clinics + MVZ) target the unique
 narrative of the [P7 GIS Territory Optimization
-dashboard](https://github.com/ryszard-twardy) — acute-vs-specialty
+dashboard](https://github.com/ryszard-twardy) – acute-vs-specialty
 channel imbalance across the 16 Bundesländer + ~401 Landkreise.
 
 The pharma scenario depends on **caller-supplied** geographic data:
@@ -12,7 +12,7 @@ an [OSM](https://www.openstreetmap.org) hospital snapshot CSV
 (license: ODbL) and the
 [BKG VG250](https://gdz.bkg.bund.de) administrative-boundary
 GeoJSONs (license: dl-de/by-2-0). `synth-datagen` does not bundle
-either source — fetch them once into your consumer repo and pass the
+either source – fetch them once into your consumer repo and pass the
 paths via `--hospitals-csv` / `--bkg-bundeslaender` / `--bkg-landkreise`.
 
 ## Tables
@@ -68,7 +68,7 @@ data/medicorp_acute/
 The pharma sub-command sits at `synth-datagen pharma generate ...`
 matching the `saas-v3 generate` idiom (sub-app + sub-subcommand).
 This deviates from the spec's earlier flat-flag form
-(`synth-datagen pharma --sub-mode ...`) — the deviation is
+(`synth-datagen pharma --sub-mode ...`) – the deviation is
 deliberate: the saas-v3 idiom is what shipped in v0.2.1, so pharma
 mirrors the precedent rather than introducing a third surface.
 
@@ -86,7 +86,7 @@ vertical-account-based status.
 Hospitals (OSM `amenity=hospital`, beds ≥ 50). ATC mix dominated
 by anti-infectives (J), antineoplastic + immunomodulating (L),
 nervous-system (N), blood (B). Decision unit: hospital pharmacy
-committee — long sales cycles, monthly bulk orders.
+committee – long sales cycles, monthly bulk orders.
 
 - Account count: 600-900 typical (`--account-count`).
 - Archetypes: University, Maximalversorger, Schwerpunktversorger,
@@ -99,7 +99,7 @@ committee — long sales cycles, monthly bulk orders.
 Specialty clinics + MVZ (OSM `amenity=clinic`). One primary ATC
 group dominates per run (`--primary-atc`, defaults to L01 oncology;
 also accepts L04 / S01 / D). Decision unit: specialist physician
-— short cycles, weekly orders.
+– short cycles, weekly orders.
 
 - Account count: 1500-2500 typical.
 - Archetypes: Specialist, MVZ.
@@ -126,7 +126,7 @@ Federal statistical sources may show small subtype-vs-total
 arithmetic gaps due to reclassification timing. The DESTATIS 2023
 publication, for instance, lists `TOTAL_HOSPITALS_DE = 1874` while
 the sum of acute-care + psychiatric + day-surgery subtypes
-reconciles to 1925 — the ~3 % overrun reflects facilities counted
+reconciles to 1925 – the ~3 % overrun reflects facilities counted
 in more than one subtype table (e.g. a Universitätsklinikum
 publishing both an acute-care and a psychiatric department). The
 pharma constants reflect literal cited values; tests use loose
@@ -170,17 +170,17 @@ checks land in v0.3.0:
 | Orders FK integrity | REQ-7 | runs | runs |
 
 REQ-2 (ownership distribution) and REQ-6 (product catalog spread)
-are deferred to v0.3.x — those need production-scale data to
+are deferred to v0.3.x – those need production-scale data to
 assert meaningfully. See the
 [CHANGELOG](../changelog.md#deferred-to-v03x) for the full list.
 
 The pass exits non-zero when overall_status is `fail` (CSVs still
-written for inspection — saas_v3 idiom). Run validation as a
+written for inspection – saas_v3 idiom). Run validation as a
 CI gate or skip the flag for fast inner-loop generation.
 
 ## Loading recipes
 
-- [BigQuery — pharma section](../recipes/bigquery-loading.md#pharma-eight-tables-with-spatial-clustering)
+- [BigQuery – pharma section](../recipes/bigquery-loading.md#pharma-eight-tables-with-spatial-clustering)
 
 ## Caveats & limitations
 
