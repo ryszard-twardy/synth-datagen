@@ -12,7 +12,7 @@ A 7-table model of a multi-warehouse, multi-carrier shipping operation. Inventor
 | `inventory` | fact | 10,000 | (warehouse_id, product_id) on-hand snapshots |
 | `carriers` | dim | 50 | Mode (truck / air / sea / parcel), lanes, rate card hash |
 | `shipments` | fact | 50,000 | Origin warehouse, destination, carrier, freight cost |
-| `shipment_items` | fact | 120,000 | (shipment_id, product_id, quantity) — averages ~2.4× `shipments` |
+| `shipment_items` | fact | 120,000 | (shipment_id, product_id, quantity) – averages ~2.4× `shipments` |
 
 The defaults above match `src/synth_datagen/generators/logistics.py` at v0.2.0.
 
@@ -28,9 +28,9 @@ synth-datagen logistics \
 
 ## Schema highlights
 
-- **`shipments.freight_cost`** derives from `weight × distance × carrier_rate × surcharges`, where `surcharges` are realistic (fuel, residential, hazmat). Distinct from a uniform-random freight cost — useful when you want to demonstrate cost-allocation logic that survives sanity checks.
+- **`shipments.freight_cost`** derives from `weight × distance × carrier_rate × surcharges`, where `surcharges` are realistic (fuel, residential, hazmat). Distinct from a uniform-random freight cost – useful when you want to demonstrate cost-allocation logic that survives sanity checks.
 - **`shipment_items` quantities** never exceed the `inventory` row for the (warehouse, product) pair at the shipment's `created_at`. (Verified by the inventory-coverage Hypothesis property in CI.)
-- **`inventory`** is a snapshot, not a ledger — but the snapshot is consistent with the shipment fact: `on_hand_qty` reflects post-shipment levels for the simulated period.
+- **`inventory`** is a snapshot, not a ledger – but the snapshot is consistent with the shipment fact: `on_hand_qty` reflects post-shipment levels for the simulated period.
 - **Carriers** carry a `rate_card_hash` so you can group shipments that priced under the same rate revision.
 
 ## Realistic operational quirks
@@ -39,8 +39,8 @@ When `--data-quality` ≥ `medium`:
 
 - Some shipments lack a `delivered_at` (missing scan event).
 - Some `shipment_items.quantity` overshoot inventory by small amounts (oversells corrected at fulfilment).
-- Carrier rate cards drift mid-period — you'll see the same lane priced differently before/after a hash change.
-- A few shipments have `actual_delivered_at` before `scheduled_delivered_at` — yes, that does happen with timezone bugs in real systems.
+- Carrier rate cards drift mid-period – you'll see the same lane priced differently before/after a hash change.
+- A few shipments have `actual_delivered_at` before `scheduled_delivered_at` – yes, that does happen with timezone bugs in real systems.
 
 ## Python API equivalent
 

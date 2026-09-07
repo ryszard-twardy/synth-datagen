@@ -11,8 +11,8 @@ A 9-table star schema modelling a multi-store, multi-channel e-commerce business
 | `dim_stores` | dim | 200 | Channel mix (online / brick / hybrid) |
 | `dim_date` | dim | period-driven | One row per day across the configured period; warehouse `YYYYMMDD` int key |
 | `dim_promotions` | dim | 150 | Discount %, validity windows |
-| `fact_orders` | fact | 80,000 | Header — one row per order |
-| `fact_order_items` | fact | 200,000 | Line items — averages ~2.5× `fact_orders` |
+| `fact_orders` | fact | 80,000 | Header – one row per order |
+| `fact_order_items` | fact | 200,000 | Line items – averages ~2.5× `fact_orders` |
 | `fact_payments` | fact | 80,000 | **1:1 with `fact_orders`** (validated) |
 | `bridge_order_promotions` | bridge | 30,000 | M:N attaching promotions to orders |
 
@@ -24,7 +24,7 @@ The `--rows` flag accepts overrides per table:
 synth-datagen retail --rows fact_orders=200000,fact_order_items=600000,fact_payments=200000
 ```
 
-`fact_payments` must equal `fact_orders` or the Pydantic validator rejects the config — that 1:1 invariant is the engine's strictest constraint.
+`fact_payments` must equal `fact_orders` or the Pydantic validator rejects the config – that 1:1 invariant is the engine's strictest constraint.
 
 ## Sample command
 
@@ -71,8 +71,8 @@ A 10K-order run finishes in ~6 seconds and writes ~30K rows total.
 
 Every retail run writes:
 
-- `data_dictionary.md` — every column with its dtype, semantic type, and inferred description.
-- `erd.md` — a Mermaid ER diagram. Drop it into any Markdown viewer or paste it directly into a GitHub README.
+- `data_dictionary.md` – every column with its dtype, semantic type, and inferred description.
+- `erd.md` – a Mermaid ER diagram. Drop it into any Markdown viewer or paste it directly into a GitHub README.
 
 ## Python API equivalent
 

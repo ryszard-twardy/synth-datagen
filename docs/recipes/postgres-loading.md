@@ -73,7 +73,7 @@ For a 1M-order workload, additional `CLUSTER` ordering on `fact_orders (date_id)
 
 ## Constraint validation
 
-The schema declares `NOT NULL` only on PKs. With `--data-quality` ≥ `medium`, non-PK columns can contain `NULL` values — your application is expected to handle them, or you should layer a cleansing step (a `prod.<table>` view that filters `WHERE col IS NOT NULL`) on top of the loaded raw tables.
+The schema declares `NOT NULL` only on PKs. With `--data-quality` ≥ `medium`, non-PK columns can contain `NULL` values – your application is expected to handle them, or you should layer a cleansing step (a `prod.<table>` view that filters `WHERE col IS NOT NULL`) on top of the loaded raw tables.
 
 If you want strict-typed loading (i.e. the load fails when malformed values are present), use a staging-table pattern: load CSV → `STAGING.<table>_raw` with all columns as `TEXT`, validate, cast into `<table>`. The same pattern documented in [Loading into BigQuery](bigquery-loading.md) translates directly to Postgres.
 

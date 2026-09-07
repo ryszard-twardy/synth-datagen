@@ -4,7 +4,7 @@
 
 ## Clean path: Parquet via GCS
 
-Parquet is preferred — it keeps dtypes, doesn't need a schema declaration, and loads roughly 2× faster than CSV.
+Parquet is preferred – it keeps dtypes, doesn't need a schema declaration, and loads roughly 2× faster than CSV.
 
 ```bash
 # 1. Generate with Parquet output
@@ -54,7 +54,7 @@ A v0.3.x feature is a native BigQuery dialect for the SQL exporter. Until then, 
 
 ## Staging-table pattern (audit-grade dirty CSVs)
 
-The `saas-v3` sub-app's `audit_093.yaml` profile generates CSVs that intentionally contain malformed dates and other quality issues. **Do not load these into typed columns directly** — they fail. The intended pattern is a two-step staging:
+The `saas-v3` sub-app's `audit_093.yaml` profile generates CSVs that intentionally contain malformed dates and other quality issues. **Do not load these into typed columns directly** – they fail. The intended pattern is a two-step staging:
 
 ```bash
 # 1. Generate audit dataset
@@ -102,7 +102,7 @@ The audit profile injects ~0.93 % defects per active check, including `bad_date_
 
 ## Partitioning recommendation
 
-For `fact_orders`, `transactions`, `events`, `feature_usage`, `shipments` — partition by the canonical date column (`created_at`, `event_at`, etc.). The synthetic data is already date-distributed across the period window, so partition pruning is meaningful out of the box.
+For `fact_orders`, `transactions`, `events`, `feature_usage`, `shipments` – partition by the canonical date column (`created_at`, `event_at`, etc.). The synthetic data is already date-distributed across the period window, so partition pruning is meaningful out of the box.
 
 ```sql
 CREATE TABLE prod.fact_orders
@@ -115,7 +115,7 @@ AS SELECT * FROM staging.fact_orders_raw;
 
 If you're shipping a "live" BigQuery-backed dashboard, regenerate weekly with `--seed $(date +%V)`, push the new Parquet to GCS, and run a `LOAD DATA OVERWRITE`. Cost is bytes-loaded only; with 100K-row scenarios that's pennies a week.
 
-## Pharma — eight tables with spatial clustering
+## Pharma – eight tables with spatial clustering
 
 The v0.3.0 [pharma scenario](../scenarios/pharma.md) writes 8 CSVs that load straight into BigQuery. There is no auto-generated `schema.sql` for pharma at v0.3.0 (deferred to v0.3.x), so DDL is hand-written below. Cluster on `bundesland_ags` to make per-Bundesland aggregations cheap; partition large tables on the canonical date column.
 
@@ -158,6 +158,6 @@ AS SELECT
 FROM `my-pharma-portfolio.medicorp_acute.orders_raw`;
 ```
 
-Repeat the partition+cluster pattern for `rep_visits` (partition on `visit_date`) and `account_specialties` (no partition, cluster on `account_id`). The other dim tables stay un-clustered — they're small.
+Repeat the partition+cluster pattern for `rep_visits` (partition on `visit_date`) and `account_specialties` (no partition, cluster on `account_id`). The other dim tables stay un-clustered – they're small.
 
-`metadata.json` and `geo_lineage.md` aren't loaded into BigQuery — they're audit artifacts the consumer keeps alongside the dataset for reproducibility provenance and license attribution (ODbL for OSM, dl-de/by-2-0 for BKG).
+`metadata.json` and `geo_lineage.md` aren't loaded into BigQuery – they're audit artifacts the consumer keeps alongside the dataset for reproducibility provenance and license attribution (ODbL for OSM, dl-de/by-2-0 for BKG).

@@ -7,11 +7,11 @@
 | Level | Overall corruption rate | Use for |
 |---|---|---|
 | `none` | 0 % | Smoke tests, unit fixtures, anything where you assert exact values |
-| `light` | ~0.5 % per check | "Real-world clean" — looks like production data after a basic clean step |
-| `medium` | ~3 % per check | ETL practice — enough rough edges to need real cleaning logic |
+| `light` | ~0.5 % per check | "Real-world clean" – looks like production data after a basic clean step |
+| `medium` | ~3 % per check | ETL practice – enough rough edges to need real cleaning logic |
 | `heavy` | ~10 % per check | Stress-testing data-quality monitors and outlier detectors |
 
-Each level is applied independently per **check**, so a row can be missing a value AND have a malformed timestamp AND be a near-duplicate. The percentage you see is per-check, not total — total corruption can stack.
+Each level is applied independently per **check**, so a row can be missing a value AND have a malformed timestamp AND be a near-duplicate. The percentage you see is per-check, not total – total corruption can stack.
 
 ## What's preserved at every level
 
@@ -42,13 +42,13 @@ The full list of injection checks lives in [`src/synth_datagen/exporters/quality
 
 `light` is intentionally limited to checks that don't break naive type-coercion: missing values and trimmed strings. A `light`-quality CSV loads cleanly into a strict-typed warehouse table.
 
-`medium` is the sweet spot for ETL practice — enough rough edges to need cleaning logic, but every check is still individually catchable with standard validators (Great Expectations, Soda, dbt tests).
+`medium` is the sweet spot for ETL practice – enough rough edges to need cleaning logic, but every check is still individually catchable with standard validators (Great Expectations, Soda, dbt tests).
 
 `heavy` is for stress-testing detection systems. Don't load `heavy` output directly into a strict schema; you'll get type-coercion errors. That's the point.
 
 ## Per-check defect rates (SaaS v3)
 
-The `saas-v3` sub-app ships an `audit_093.yaml` profile with **fully per-check** defect rates instead of a global level — every check has its own `enabled` flag and `rate`. This lets you inject 0.93 % `bad_date_formats` while keeping every other check at 0 %, which is the realistic shape for "things our data team complained about" datasets.
+The `saas-v3` sub-app ships an `audit_093.yaml` profile with **fully per-check** defect rates instead of a global level – every check has its own `enabled` flag and `rate`. This lets you inject 0.93 % `bad_date_formats` while keeping every other check at 0 %, which is the realistic shape for "things our data team complained about" datasets.
 
 The fully-independent per-check pattern is currently SaaS-v3 specific; promoting it to the unified CLI is a v0.3.x backlog item.
 
@@ -61,7 +61,7 @@ together via a single `level` argument with three values:
 
 | Pharma level | What it does |
 |---|---|
-| `clean` | No-op — identical bytes to no-defect output |
+| `clean` | No-op – identical bytes to no-defect output |
 | `medium` | Each of the 8 defects fires at its spec-published rate |
 | `messy` | 4× medium across all 8 defects |
 
@@ -97,7 +97,7 @@ The corruption is also seeded. Same `--seed` + same `--data-quality` → same by
 
 ## Inspecting what got injected
 
-There's no "manifest of corruptions" file (yet). To see what changed, generate twice — once at `none`, once at the level you want — and `diff` the outputs:
+There's no "manifest of corruptions" file (yet). To see what changed, generate twice – once at `none`, once at the level you want – and `diff` the outputs:
 
 ```bash
 synth-datagen retail --seed 42 --output ./out/clean   --data-quality none   ...

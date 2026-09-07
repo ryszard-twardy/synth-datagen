@@ -1,6 +1,6 @@
 # RNG isolation
 
-The single most important architectural choice in `synth-datagen` is how randomness is partitioned. **A single `--seed` derives a tree of independent generators, one per table and one per chunk within a table.** This is what makes byte-equal output across runs possible — and what allows you to add rows to one table without shifting any value in another.
+The single most important architectural choice in `synth-datagen` is how randomness is partitioned. **A single `--seed` derives a tree of independent generators, one per table and one per chunk within a table.** This is what makes byte-equal output across runs possible – and what allows you to add rows to one table without shifting any value in another.
 
 ## The problem
 
@@ -42,13 +42,13 @@ Now bumping `dim_customers` to 12,000 only affects the RNG attached to `dim_cust
 ## Where this lives in code
 
 - The seed entry point is [`synth_datagen.utils.seed_everything`](https://github.com/ryszard-twardy/synth-datagen/blob/main/src/synth_datagen/utils.py), which returns the parent `SeedSequence`, a `numpy.random.Generator`, and a `Faker` instance.
-- The per-table spawning happens in [`synth_datagen.rng`](https://github.com/ryszard-twardy/synth-datagen/blob/main/src/synth_datagen/rng.py) — the small RNG-factory module is intentionally separate so it can be tested in isolation.
+- The per-table spawning happens in [`synth_datagen.rng`](https://github.com/ryszard-twardy/synth-datagen/blob/main/src/synth_datagen/rng.py) – the small RNG-factory module is intentionally separate so it can be tested in isolation.
 - Faker is also seeded deterministically (`Faker.seed_instance(int_from_seed_sequence)`), so name/email values follow the same isolation rule.
 
 ## Cross-concern salt registry
 
 The per-table spawn tree above is what isolates tables *within* a
-scenario. A second, complementary mechanism — the **salt registry** —
+scenario. A second, complementary mechanism – the **salt registry** –
 isolates whole concerns *across* scenarios.
 
 Some draws are logically independent of the scenario stream but
@@ -65,7 +65,7 @@ byte-equality for every dataset ever generated under that concern.
 
 | Concern | Salt | Introduced |
 |---|---|---|
-| `master` | `0` (implicit — the user-supplied seed, untouched) | v0.1.0 |
+| `master` | `0` (implicit – the user-supplied seed, untouched) | v0.1.0 |
 | `discounts` | `int.from_bytes(b"D15C0UNT", "big")` (`0x44_3135_4330_554E_54`) | v0.1.0 |
 | `saas_v3` | `0x5AA50000` | v0.2.1 |
 | `pharma` | `0x5DDA50000` | v0.3.0 |
@@ -74,22 +74,22 @@ byte-equality for every dataset ever generated under that concern.
 a salt in `src/synth_datagen/rng.py::SALT_REGISTRY` before being
 drawn. Use `make_rng(seed, "concern").spawn(N)` to derive child
 streams; calling `make_rng` with an unregistered concern raises
-`KeyError` rather than silently inventing a salt — the registry is a
+`KeyError` rather than silently inventing a salt – the registry is a
 flight-recorder of every byte-shift surface in the project, and
 implicit registration would defeat the point.
 
 When you add a new scenario or sub-app that needs cross-scenario
 isolation, pick a salt that doesn't collide with existing entries
-(grep is enough — there are five), document it inline alongside the
+(grep is enough – there are five), document it inline alongside the
 phase that introduced it, and add a row to the table above.
 
 ## Property tests that enforce this
 
 Three property tests in CI fail loudly if the isolation breaks:
 
-1. **`test_*_csv_byte_equality`** — generate, hash the CSVs, regenerate with the same seed, hash again, assert equal. One per scenario.
-2. **`test_*_determinism`** — generate twice in the same process, assert all dataframes equal.
-3. **Hypothesis property tests** — for each scenario, assert that adding rows to a single table doesn't change any other table's CSV bytes. (This is the strongest form: it verifies isolation, not just determinism.)
+1. **`test_*_csv_byte_equality`** – generate, hash the CSVs, regenerate with the same seed, hash again, assert equal. One per scenario.
+2. **`test_*_determinism`** – generate twice in the same process, assert all dataframes equal.
+3. **Hypothesis property tests** – for each scenario, assert that adding rows to a single table doesn't change any other table's CSV bytes. (This is the strongest form: it verifies isolation, not just determinism.)
 
 These run in the slow CI lane.
 
@@ -102,4 +102,4 @@ Two reasons:
 
 ## Reading the data dictionary
 
-Every generated `data_dictionary.md` carries the seed in its header. If you check in a generated dataset, future-you can regenerate it exactly with `synth-datagen <scenario> --seed <that-seed> ...`. There is no "approximate match" — the bytes are equal or there's a bug.
+Every generated `data_dictionary.md` carries the seed in its header. If you check in a generated dataset, future-you can regenerate it exactly with `synth-datagen <scenario> --seed <that-seed> ...`. There is no "approximate match" – the bytes are equal or there's a bug.

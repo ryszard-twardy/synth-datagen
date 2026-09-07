@@ -11,7 +11,7 @@ A 7-table star schema modelling a B2B SaaS product with subscription billing, us
 | `features` | dim | 50 | Product features for usage attribution |
 | `subscriptions` | fact | 6,000 | Plan, term, MRR, status; valid timeline (start ≤ end) |
 | `feature_usage` | fact | 150,000 | (account_id, feature_id, period) usage counters |
-| `events` | fact | 500,000 | Activity event log — login, action, page view |
+| `events` | fact | 500,000 | Activity event log – login, action, page view |
 | `invoices` | fact | 20,000 | Monthly recurring billing aligned to subscription terms |
 
 The defaults above match `src/synth_datagen/generators/saas.py` at v0.2.0.
@@ -46,7 +46,7 @@ out/saas/
 - **`accounts.mrr`** is reverse-derived from active subscriptions, so it's always internally consistent with the subscription fact.
 - **`subscriptions`** carries `plan`, `term` (`monthly` / `annual`), `status` (`trial` / `active` / `paused` / `churned`), `started_at`, `ended_at`. End ≥ start is enforced. Churned subscriptions have `ended_at`; active ones don't.
 - **`invoices`** are issued monthly per active subscription; amounts derive from plan price × proration. Issue dates fall on or after the subscription start.
-- **`feature_usage`** — when `--data-quality` ≥ `medium` injects "rank-bucket empty" cases, the engine falls back to the full feature list (a regression we hardened in Phase 3).
+- **`feature_usage`** – when `--data-quality` ≥ `medium` injects "rank-bucket empty" cases, the engine falls back to the full feature list (a regression we hardened in Phase 3).
 - **`events`** is the largest table; it dominates wall time. Trim it via `--rows events=N` for faster iteration.
 
 ## Sub-app: SaaS v3
@@ -62,18 +62,18 @@ synth-datagen saas-v3 generate \
 
 The shipped configs are:
 
-- `configs/saas_v3.default.yaml` — realistic profile, clean output
-- `configs/saas_v3.smoke.yaml` — small smoke profile
-- `configs/saas_v3.audit_093.yaml` — ~0.93 % dirty rows per active check, including a deliberate `bad_date_formats` defect intended for staging-table audit before BigQuery load
+- `configs/saas_v3.default.yaml` – realistic profile, clean output
+- `configs/saas_v3.smoke.yaml` – small smoke profile
+- `configs/saas_v3.audit_093.yaml` – ~0.93 % dirty rows per active check, including a deliberate `bad_date_formats` defect intended for staging-table audit before BigQuery load
 
-The audit profile's dirty CSV is **not** safe to load directly into typed `DATE`/`TIMESTAMP` columns — that's the whole point. Stage to a `STRING` raw layer first.
+The audit profile's dirty CSV is **not** safe to load directly into typed `DATE`/`TIMESTAMP` columns – that's the whole point. Stage to a `STRING` raw layer first.
 
-### v0.2.1 — `plg-usage-based` sub-mode
+### v0.2.1 – `plg-usage-based` sub-mode
 
 The `saas-v3` engine now supports two modes via `run.mode` in YAML:
 
-- `legacy` (default) — original 7-table output. Byte-stable across versions.
-- `plg-usage-based` — emits an 8th table, `subscription_events`, and
+- `legacy` (default) – original 7-table output. Byte-stable across versions.
+- `plg-usage-based` – emits an 8th table, `subscription_events`, and
   unlocks the `--benchmark-validation` CLI flag.
 
 Reference config: [`configs/saas_v3.plg.yaml`](https://github.com/ryszard-twardy/synth-datagen/blob/main/configs/saas_v3.plg.yaml).
@@ -128,7 +128,7 @@ Override per-config under the top-level `benchmarks:` block.
 
 The flag exits non-zero (CLI exit code 1) on benchmark failure so CI can
 detect drift. **Smoke-sized configs (≤ 100 accounts) are too small for
-benchmark targets to hold reliably** — calibrate against portfolio-scale
+benchmark targets to hold reliably** – calibrate against portfolio-scale
 runs. For shape testing without benchmark gating, omit `--benchmark-validation`.
 
 In legacy mode, `--benchmark-validation` is silently a no-op (the report
@@ -138,7 +138,7 @@ is `skipped=True`, no md file is written, exit 0).
 
 `saas_v3` is registered under salt `0x5AA50000` in
 `src/synth_datagen/rng.py:SALT_REGISTRY`. All saas_v3 RNG draws derive
-from `make_rng(seed, "saas_v3").spawn(N)` — no direct
+from `make_rng(seed, "saas_v3").spawn(N)` – no direct
 `np.random.default_rng(...)` calls in saas_v3 scenario code. saas_v3
 byte output shifted once at v0.2.1 (the migration commits); v0.3.0 will
 pin it via `scripts/baseline_diff.py`.

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship a v0.2.1 minimum-viable SaaS extension on top of `saas_v3` that (a) migrates the engine onto the central `make_rng` factory under salt `0x5AA50000`, (b) adds the `plg-usage-based` sub-mode dispatch (single sub-mode for v0.2.1; `vertical-account-based` deferred to v0.3.0), (c) emits the 5-movement MRR waterfall via a new `subscription_events` table, and (d) adds an opt-in benchmark validation pass — without changing any byte of the legacy `retail / saas / fintech / logistics` baseline outputs.
+**Goal:** Ship a v0.2.1 minimum-viable SaaS extension on top of `saas_v3` that (a) migrates the engine onto the central `make_rng` factory under salt `0x5AA50000`, (b) adds the `plg-usage-based` sub-mode dispatch (single sub-mode for v0.2.1; `vertical-account-based` deferred to v0.3.0), (c) emits the 5-movement MRR waterfall via a new `subscription_events` table, and (d) adds an opt-in benchmark validation pass – without changing any byte of the legacy `retail / saas / fintech / logistics` baseline outputs.
 
 **Architecture:**
 - Extend `src/synth_datagen/saas_v3/` rather than fork. Add a `mode` field on `RunConfig` (`plg-usage-based` | `legacy`; default `legacy` so existing configs are byte-stable when paired with the same RNG state).
@@ -33,9 +33,9 @@
   mkdocs build --strict
   ```
 - **Memory gotchas to honor (already in `memory/`):**
-  - `ruff-pin-coupling.md` — pre-commit ruff rev must match `[test]` extra ruff version.
-  - `cli-tests-ansi-on-ci.md` — CliRunner help asserts go through `tests.helpers.strip_ansi`.
-  - `precommit-checkyaml-mkdocs.md` — new YAML configs run `pre-commit run --all-files` locally; check-yaml hook excludes `mkdocs.yml`.
+  - `ruff-pin-coupling.md` – pre-commit ruff rev must match `[test]` extra ruff version.
+  - `cli-tests-ansi-on-ci.md` – CliRunner help asserts go through `tests.helpers.strip_ansi`.
+  - `precommit-checkyaml-mkdocs.md` – new YAML configs run `pre-commit run --all-files` locally; check-yaml hook excludes `mkdocs.yml`.
 
 ---
 
@@ -69,7 +69,7 @@
 
 **Files:**
 - Create branch: `feat/saas-extension` off `main @ c2ff53e`
-- Create: `out/baseline_main/` (gitignored — run output)
+- Create: `out/baseline_main/` (gitignored – run output)
 
 - [ ] **Step 1: Confirm clean tree on main @ c2ff53e**
 
@@ -103,7 +103,7 @@ mkdocs build --strict
 ```
 Expected: all three pass. If anything is red on a fresh `main`, stop and surface it before continuing.
 
-- [ ] **Step 5: No commit yet — Task 0 is environment-only.**
+- [ ] **Step 5: No commit yet – Task 0 is environment-only.**
 
 ---
 
@@ -127,7 +127,7 @@ def test_saas_v3_salt_registered() -> None:
 def test_saas_v3_make_rng_independent_of_master() -> None:
     master = make_rng(42, "master")
     saas = make_rng(42, "saas_v3")
-    # First five draws must differ — proves stream isolation.
+    # First five draws must differ – proves stream isolation.
     assert list(master.integers(0, 1_000_000, size=5)) != list(
         saas.integers(0, 1_000_000, size=5)
     )
@@ -144,7 +144,7 @@ Expected: FAIL with `KeyError: 'saas_v3'`.
 
 In `src/synth_datagen/rng.py`, extend `SALT_REGISTRY`:
 ```python
-# Phase 5 — SaaS extension v0.2.1. Locked decision: 0x5AA50000.
+# Phase 5 – SaaS extension v0.2.1. Locked decision: 0x5AA50000.
 _SAAS_V3_SALT = 0x5AA50000
 
 SALT_REGISTRY: dict[str, int] = {
@@ -217,7 +217,7 @@ Edit `src/synth_datagen/saas_v3/engine.py`:
    ```
 2. Define a stable label registry just above `class SaaSV3Engine`:
    ```python
-   # Stable order — appending new labels is OK; reordering shifts bytes.
+   # Stable order – appending new labels is OK; reordering shifts bytes.
    _RNG_LABELS: tuple[str, ...] = (
        "accounts",
        "lifecycle",
@@ -254,11 +254,11 @@ Edit `src/synth_datagen/saas_v3/engine.py`:
 
 - [ ] **Step 4: Update existing determinism test golden assertions if needed**
 
-`test_saas_v3_deterministic_core_tables` is shape-only (`assert_frame_equal` between two runs of same seed) — should still pass. Run it:
+`test_saas_v3_deterministic_core_tables` is shape-only (`assert_frame_equal` between two runs of same seed) – should still pass. Run it:
 ```powershell
 pytest tests/test_saas_v3_engine.py -v
 ```
-Expected: all PASS. If `test_saas_v3_clean_validation_and_id_formats` or the dirty test fails on validation thresholds (e.g. defect counts shifted across the 0.20 tolerance band), inspect the diff and adjust the smoke config row counts in a SEPARATE follow-up task — do not loosen the tolerance.
+Expected: all PASS. If `test_saas_v3_clean_validation_and_id_formats` or the dirty test fails on validation thresholds (e.g. defect counts shifted across the 0.20 tolerance band), inspect the diff and adjust the smoke config row counts in a SEPARATE follow-up task – do not loosen the tolerance.
 
 - [ ] **Step 5: Backward-compat check**
 
@@ -266,7 +266,7 @@ Expected: all PASS. If `test_saas_v3_clean_validation_and_id_formats` or the dir
 python scripts/baseline_diff.py capture out/baseline_t2
 python scripts/baseline_diff.py compare out/baseline_main out/baseline_t2
 ```
-Expected: empty diff for retail/saas/fintech/logistics. (`saas_v3` is NOT in the diff yet — pinned in Task 12.)
+Expected: empty diff for retail/saas/fintech/logistics. (`saas_v3` is NOT in the diff yet – pinned in Task 12.)
 
 - [ ] **Step 6: Quality gates + commit**
 
@@ -300,7 +300,7 @@ def test_saas_v3_defects_use_central_factory(tmp_path) -> None:
     # NOT a direct np.random.default_rng call.
     assert hasattr(injector, "_parent_rng")
     parent = make_rng(config.run.seed, "saas_v3")
-    # Just assert the bit-state is reachable from the saas_v3 stream — exact
+    # Just assert the bit-state is reachable from the saas_v3 stream – exact
     # spawn index is locked by _DEFECT_LABELS (see implementation).
     assert injector._parent_rng is not None
 ```
@@ -327,7 +327,7 @@ Edit `src/synth_datagen/saas_v3/defects.py`:
    ```
    The `+ 1` keeps the engine's nine streams disjoint from the defects parent.
 
-   **Note:** import `_RNG_LABELS` from `engine` — or duplicate the constant `9` here with a comment explaining the offset. Prefer importing to avoid drift:
+   **Note:** import `_RNG_LABELS` from `engine` – or duplicate the constant `9` here with a comment explaining the offset. Prefer importing to avoid drift:
    ```python
    from .engine import _RNG_LABELS as _ENGINE_RNG_LABELS
    ```
@@ -348,7 +348,7 @@ Edit `src/synth_datagen/saas_v3/defects.py`:
 ```powershell
 pytest tests/test_saas_v3_engine.py tests/test_saas_v3_cli_unit.py tests/test_saas_empty_feature_pool.py -v
 ```
-Expected: all PASS. Defect counts may shift within the 0.20 tolerance — that's fine.
+Expected: all PASS. Defect counts may shift within the 0.20 tolerance – that's fine.
 
 - [ ] **Step 5: Backward-compat check + commit**
 
@@ -398,7 +398,7 @@ def test_runconfig_mode_rejects_unknown() -> None:
 ```powershell
 pytest tests/test_saas_v3_config.py -v
 ```
-Expected: FAIL — `mode` not a known field.
+Expected: FAIL – `mode` not a known field.
 
 - [ ] **Step 3: Add `mode` field**
 
@@ -517,7 +517,7 @@ def test_plg_mode_reproducible(tmp_path) -> None:
 ```powershell
 pytest tests/test_saas_v3_subscription_events.py -v
 ```
-Expected: FAIL — `KeyError: 'subscription_events'`.
+Expected: FAIL – `KeyError: 'subscription_events'`.
 
 - [ ] **Step 3: Implement `_build_subscription_events`**
 
@@ -538,7 +538,7 @@ Edit `src/synth_datagen/saas_v3/engine.py`:
        "event_date", "mrr_delta", "previous_mrr", "new_mrr", "reason",
    ],
    ```
-3. Add the build method (full implementation — derive from existing `subscriptions` history + `account_month_state`):
+3. Add the build method (full implementation – derive from existing `subscriptions` history + `account_month_state`):
    ```python
    def _build_subscription_events(
        self,
@@ -572,7 +572,7 @@ Edit `src/synth_datagen/saas_v3/engine.py`:
        return df_with_columns(EXPORTED_COLUMNS["subscription_events"])
    ```
    Full implementation (~80 lines) to be authored during execution; the contract above is binding.
-4. Add `event_id` pattern in `src/synth_datagen/saas_v3/ids.py`: `"SE-XXXXX"` 8-digit zero-padded; update `pattern_for("event_id")` ONLY if the existing pattern doesn't already match — otherwise use a distinct key `subscription_event_id`.
+4. Add `event_id` pattern in `src/synth_datagen/saas_v3/ids.py`: `"SE-XXXXX"` 8-digit zero-padded; update `pattern_for("event_id")` ONLY if the existing pattern doesn't already match – otherwise use a distinct key `subscription_event_id`.
 5. In `generate()`, after `subscriptions = self._build_subscriptions(...)`, add:
    ```python
    if self.config.run.mode == "plg-usage-based":
@@ -581,7 +581,7 @@ Edit `src/synth_datagen/saas_v3/engine.py`:
        # Surface account mrr for tests / waterfall consumers
        clean.hidden_tables["account_mrr"] = profiles[["account_id", "mrr"]].copy()
    ```
-6. Update `TABLE_ORDER` only at export time — the constant stays as-is for legacy mode.
+6. Update `TABLE_ORDER` only at export time – the constant stays as-is for legacy mode.
 
 - [ ] **Step 4: Run new tests to verify they pass**
 
@@ -640,11 +640,11 @@ def test_plg_mode_exports_subscription_events_csv(tmp_path) -> None:
 ```powershell
 pytest tests/test_saas_v3_subscription_events.py::test_plg_mode_exports_subscription_events_csv -v
 ```
-Expected: FAIL — file missing.
+Expected: FAIL – file missing.
 
 - [ ] **Step 3: Patch the exporter**
 
-In `src/synth_datagen/saas_v3/exporters.py`, find the table-iteration loop and add a conditional branch that includes `"subscription_events"` when present in `result.clean.tables`. Mirror the existing CSV/Parquet export plumbing — no special-casing.
+In `src/synth_datagen/saas_v3/exporters.py`, find the table-iteration loop and add a conditional branch that includes `"subscription_events"` when present in `result.clean.tables`. Mirror the existing CSV/Parquet export plumbing – no special-casing.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -713,7 +713,7 @@ def test_subscription_events_mrr_delta_balances(tmp_path_factory, seed: int) -> 
 ```powershell
 pytest tests/property/test_saas_v3_invariants.py -v -m slow
 ```
-Expected: PASS for all 8 generated seeds. If any seed fails, fix the engine — do NOT loosen the tolerance.
+Expected: PASS for all 8 generated seeds. If any seed fails, fix the engine – do NOT loosen the tolerance.
 
 - [ ] **Step 3: Quality gates + commit**
 
@@ -795,7 +795,7 @@ def test_compute_benchmarks_flags_out_of_range(tmp_path) -> None:
 ```powershell
 pytest tests/test_saas_v3_benchmarks.py -v
 ```
-Expected: ImportError / failure — types don't exist.
+Expected: ImportError / failure – types don't exist.
 
 - [ ] **Step 3: Implement `BenchmarkConfig` + `compute_benchmarks`**
 
@@ -907,17 +907,17 @@ Also add a `plg_smoke_config_path` fixture in `tests/conftest.py` that copies `c
 ```powershell
 pytest tests/test_saas_v3_cli_unit.py -v -k benchmark
 ```
-Expected: FAIL — flag unknown.
+Expected: FAIL – flag unknown.
 
 - [ ] **Step 3: Add the CLI flag + exporter writer**
 
-Edit `src/synth_datagen/saas_v3/cli.py` — add to `generate()`:
+Edit `src/synth_datagen/saas_v3/cli.py` – add to `generate()`:
 ```python
 benchmark_validation: bool = typer.Option(
     False,
     "--benchmark-validation/--no-benchmark-validation",
     help="Run industry-benchmark validation (NRR/GRR/churn/trial-conversion). "
-         "plg-usage-based mode only — skipped in legacy mode.",
+         "plg-usage-based mode only – skipped in legacy mode.",
 ),
 ```
 After `clean_report = validate_generated_dataset(...)`:
@@ -971,7 +971,7 @@ synth-datagen saas-v3 generate --config configs/saas_v3.plg.yaml --mode clean --
 ```
 Expected: exit 0, all 8 tables (`subscription_events.csv` included), `benchmark_validation.md` with NRR in 1.05–1.35 range.
 
-If the run takes > 90 s, scale the row counts down — the goal is a deterministic reference, not a stress test.
+If the run takes > 90 s, scale the row counts down – the goal is a deterministic reference, not a stress test.
 
 - [ ] **Step 3: pre-commit + commit**
 
@@ -982,11 +982,11 @@ git commit -m "feat(saas_v3): ship plg-usage-based reference config"
 git push origin feat/saas-extension
 ```
 
-If pre-commit's `check-yaml` complains, recall `precommit-checkyaml-mkdocs.md` — `mkdocs.yml` is the only excluded YAML; new ones should pass. Fix any indentation issues directly.
+If pre-commit's `check-yaml` complains, recall `precommit-checkyaml-mkdocs.md` – `mkdocs.yml` is the only excluded YAML; new ones should pass. Fix any indentation issues directly.
 
 ---
 
-## Task 11: Documentation update — `docs/scenarios/saas.md` + `README.md`
+## Task 11: Documentation update – `docs/scenarios/saas.md` + `README.md`
 
 **Files:**
 - Modify: `docs/scenarios/saas.md`
@@ -997,12 +997,12 @@ If pre-commit's `check-yaml` complains, recall `precommit-checkyaml-mkdocs.md` �
 Add a new top-level section after "Sub-app: SaaS v3":
 
 ```markdown
-### v0.2.1 — `plg-usage-based` sub-mode
+### v0.2.1 – `plg-usage-based` sub-mode
 
 The `saas-v3` engine now supports two modes via `run.mode` in YAML:
 
-- `legacy` (default) — original 7-table output. Byte-stable across versions.
-- `plg-usage-based` — emits an 8th table, `subscription_events`, and
+- `legacy` (default) – original 7-table output. Byte-stable across versions.
+- `plg-usage-based` – emits an 8th table, `subscription_events`, and
   unlocks the `--benchmark-validation` CLI flag.
 
 #### `subscription_events` schema
@@ -1020,7 +1020,7 @@ The `saas-v3` engine now supports two modes via `run.mode` in YAML:
 | reason | string | Pareto-distributed for churn; tag for expansion/contraction |
 
 The 5-movement decomposition is the source of truth for an MRR waterfall.
-`SUM(mrr_delta) GROUP BY account_id` equals `accounts.mrr` ± 0.01 — verified
+`SUM(mrr_delta) GROUP BY account_id` equals `accounts.mrr` ± 0.01 – verified
 by a Hypothesis property test (`tests/property/test_saas_v3_invariants.py`).
 
 #### `--benchmark-validation`
@@ -1040,7 +1040,7 @@ calibrated to KeyBanc 2024 SaaS Survey + Benchmarkit 2025).
 
 `saas_v3` is now registered under salt `0x5AA50000` in
 `src/synth_datagen/rng.py:SALT_REGISTRY`. All saas_v3 RNG draws derive from
-`make_rng(seed, "saas_v3").spawn(N)` — no direct `np.random.default_rng(...)`
+`make_rng(seed, "saas_v3").spawn(N)` – no direct `np.random.default_rng(...)`
 calls in scenario code. This means saas_v3 byte output shifted once at
 v0.2.1; v0.3.0 will pin it via `scripts/baseline_diff.py`.
 ```
@@ -1048,7 +1048,7 @@ v0.2.1; v0.3.0 will pin it via `scripts/baseline_diff.py`.
 - [ ] **Step 2: Add a one-line entry to `README.md` under "What's new"**
 
 ```markdown
-- **v0.2.1** — `saas-v3` `plg-usage-based` sub-mode with the 5-movement
+- **v0.2.1** – `saas-v3` `plg-usage-based` sub-mode with the 5-movement
   MRR waterfall (`subscription_events` table) and opt-in
   `--benchmark-validation` against KeyBanc/Benchmarkit ranges.
 ```
@@ -1081,7 +1081,7 @@ git push origin feat/saas-extension
 Add a `saas_v3` capture target invoking the sub-app:
 ```python
 SAAS_V3_CAPTURE = {
-    "config": "configs/saas_v3.smoke.yaml",  # legacy mode — most stable
+    "config": "configs/saas_v3.smoke.yaml",  # legacy mode – most stable
     "args": ["saas-v3", "generate", "--config", "configs/saas_v3.smoke.yaml",
              "--mode", "clean", "--seed", "42"],
 }
@@ -1094,7 +1094,7 @@ Add a `capture_saas_v3(out_root)` function that runs the sub-app under the same 
 python scripts/baseline_diff.py capture out/baseline_v0_2_1
 python scripts/baseline_diff.py compare out/baseline_main out/baseline_v0_2_1
 ```
-Expected: empty diff for retail/saas/fintech/logistics. `saas_v3` won't be in `out/baseline_main` (it didn't exist in the diff at task 0) — expected.
+Expected: empty diff for retail/saas/fintech/logistics. `saas_v3` won't be in `out/baseline_main` (it didn't exist in the diff at task 0) – expected.
 
 - [ ] **Step 3: Commit + smoke-test the new pin**
 
@@ -1121,7 +1121,7 @@ git push origin feat/saas-extension
 - Modify: `CHANGELOG.md`
 - Modify: `pyproject.toml`
 
-- [ ] **Step 1: Populate `[Unreleased]` → `[0.2.1] — 2026-05-07`**
+- [ ] **Step 1: Populate `[Unreleased]` → `[0.2.1] – 2026-05-07`**
 
 Replace the `[Unreleased]` block:
 ```markdown
@@ -1136,7 +1136,7 @@ Replace the `[Unreleased]` block:
 ### Fixed
 - _nothing yet_
 
-## [0.2.1] — 2026-05-07
+## [0.2.1] – 2026-05-07
 
 ### Added
 - **`saas-v3` `plg-usage-based` sub-mode (Phase 5).**
@@ -1190,7 +1190,7 @@ git push origin feat/saas-extension
 
 - [ ] **Step 1: Activate code-reviewer skill**
 
-Per spec section "SESSION CLOSURE — code-reviewer pass":
+Per spec section "SESSION CLOSURE – code-reviewer pass":
 - Run `git diff main..HEAD --stat -w` and inspect semantic changes.
 - Verify every Phase 5 deliverable has a matching commit:
   - REQ-1 (5 movement types) → Task 5
@@ -1208,7 +1208,7 @@ Per spec section "SESSION CLOSURE — code-reviewer pass":
   ```
   Expected: no output (or only inside `make_rng` itself, which lives in `rng.py`, not saas_v3).
 
-Report findings — fix any issues before proceeding.
+Report findings – fix any issues before proceeding.
 
 - [ ] **Step 2: Final CI sweep**
 
@@ -1242,11 +1242,11 @@ Surface to the user:
 
 ## Self-review checklist (run before declaring this plan complete)
 
-- [x] **Spec coverage** — REQ-1 (5 movement types) ✓ Task 5; REQ-7 (RNG salt) ✓ Task 1+2+3; REQ-8 (benchmark validation) ✓ Task 8+9. REQ-2/3/4/5/6 scoped out per "v0.2.1 = minimum-viable" decision; documented as v0.3.0 in CHANGELOG/docs.
-- [x] **Placeholder scan** — algorithm bodies in Task 5/8 are described as binding contracts with line-count budgets, not as TODOs. The engineer must implement them, but the inputs/outputs/columns are pinned.
-- [x] **Type consistency** — `_RNG_LABELS` referenced consistently across Task 2/3/5; `BenchmarkConfig`/`BenchmarkReport` defined in Task 8 before referenced in Task 9.
-- [x] **Backward compat enforced at every commit** — every push step includes the `baseline_diff` compare against `out/baseline_main`.
-- [x] **Memory gotchas** — ruff-pin-coupling, ansi-on-ci, checkyaml-mkdocs all referenced in conventions section.
+- [x] **Spec coverage** – REQ-1 (5 movement types) ✓ Task 5; REQ-7 (RNG salt) ✓ Task 1+2+3; REQ-8 (benchmark validation) ✓ Task 8+9. REQ-2/3/4/5/6 scoped out per "v0.2.1 = minimum-viable" decision; documented as v0.3.0 in CHANGELOG/docs.
+- [x] **Placeholder scan** – algorithm bodies in Task 5/8 are described as binding contracts with line-count budgets, not as TODOs. The engineer must implement them, but the inputs/outputs/columns are pinned.
+- [x] **Type consistency** – `_RNG_LABELS` referenced consistently across Task 2/3/5; `BenchmarkConfig`/`BenchmarkReport` defined in Task 8 before referenced in Task 9.
+- [x] **Backward compat enforced at every commit** – every push step includes the `baseline_diff` compare against `out/baseline_main`.
+- [x] **Memory gotchas** – ruff-pin-coupling, ansi-on-ci, checkyaml-mkdocs all referenced in conventions section.
 
 ---
 
@@ -1254,7 +1254,7 @@ Surface to the user:
 
 Plan complete and saved to `docs/superpowers/plans/2026-05-07-saas-extension-v0-2-1.md`. Two execution options:
 
-1. **Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration. Good for this plan because tasks 5 and 8 have non-trivial algorithm bodies that benefit from a clean context per task.
-2. **Inline Execution** — Execute tasks in this session using executing-plans, batch execution with checkpoints. Faster end-to-end but main context will fill.
+1. **Subagent-Driven (recommended)** – I dispatch a fresh subagent per task, review between tasks, fast iteration. Good for this plan because tasks 5 and 8 have non-trivial algorithm bodies that benefit from a clean context per task.
+2. **Inline Execution** – Execute tasks in this session using executing-plans, batch execution with checkpoints. Faster end-to-end but main context will fill.
 
 **Which approach?**

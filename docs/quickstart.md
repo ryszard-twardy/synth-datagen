@@ -1,29 +1,21 @@
 # Quickstart
 
-This page gets you from a clean machine to a generated retail dataset in under five minutes. Two install paths are documented: from source (today) and from PyPI (from v0.2.0 onward).
+This page gets you from a clean machine to a generated retail dataset in under five minutes. Installation is from source.
 
 ## Prerequisites
 
 - Python 3.11, 3.12, or 3.13
-- [uv](https://docs.astral.sh/uv/) (recommended) — or plain `python -m venv` + `pip` works fine
+- [uv](https://docs.astral.sh/uv/) (recommended) – or plain `python -m venv` + `pip` works fine
 
 ## Install
 
-=== "From source (today)"
-
-    ```bash
-    git clone https://github.com/ryszard-twardy/synth-datagen
-    cd synth-datagen
-    uv venv
-    source .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
-    uv pip install -e ".[test]"
-    ```
-
-=== "From PyPI (from v0.2.0 onward)"
-
-    ```bash
-    pip install synth-datagen
-    ```
+```bash
+git clone https://github.com/ryszard-twardy/synth-datagen
+cd synth-datagen
+uv venv
+source .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
+uv pip install -e ".[test]"
+```
 
 Verify the install:
 
@@ -83,7 +75,7 @@ synth-datagen retail --seed 42 --output ./out/retail-dirty \
     --data-quality medium
 ```
 
-`--data-quality medium` injects missing values, format drift, duplicates, and out-of-range outliers across all tables. **Referential integrity is preserved** — the dirty data is realistic; it's not garbage. See [Architecture › Quality injection](architecture/quality-injection.md) for what each level produces.
+`--data-quality medium` injects missing values, format drift, duplicates, and out-of-range outliers across all tables. **Referential integrity is preserved** – the dirty data is realistic; it's not garbage. See [Architecture › Quality injection](architecture/quality-injection.md) for what each level produces.
 
 ## Try other scenarios
 
@@ -98,7 +90,7 @@ synth-datagen logistics --seed 42 --output ./out/logistics \
     --rows shipments=300,shipment_items=900
 ```
 
-Each scenario has a dedicated page — see the [scenarios overview](scenarios/index.md).
+Each scenario has a dedicated page – see the [scenarios overview](scenarios/index.md).
 
 ## Use the Python API instead
 
@@ -143,4 +135,4 @@ The full set of public types is in the [API reference](api/reference.md), and th
 
 ??? failure "`Missing runtime dependency 'faker'.`"
 
-    The package was installed without runtime deps. Re-run `uv pip install -e ".[test]"` (the `[test]` extra installs everything you need to develop) or `pip install synth-datagen` (which pulls in runtime deps automatically).
+    The package was installed without runtime deps. Re-run `uv pip install -e ".[test]"` (the `[test]` extra installs everything you need to develop).
