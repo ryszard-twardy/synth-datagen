@@ -76,7 +76,7 @@ synth-datagen pharma generate --help   # v0.3.0 sub-app surface
 The pharma scenario uses a sub-app idiom (`synth-datagen pharma generate ...`) and ships behind the optional `[pharma]` extra:
 
 ```bash
-pip install 'synth-datagen[pharma]'  # adds geopandas + shapely
+uv pip install -e ".[pharma]"  # adds geopandas + shapely
 ```
 
 Each accepts the same flags:

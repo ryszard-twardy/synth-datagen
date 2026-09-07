@@ -184,8 +184,8 @@ CI gate or skip the flag for fast inner-loop generation.
 
 ## Caveats & limitations
 
-- **`[pharma]` extra required.** Install with
-  `pip install 'synth-datagen[pharma]'`. The CLI fails fast with a
+- **`[pharma]` extra required.** From your source checkout, install with
+  `uv pip install -e ".[pharma]"`. The CLI fails fast with a
   friendly install hint when `geopandas` / `shapely` aren't
   available.
 - **Tested on Linux + Windows.** macOS users may need to
