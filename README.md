@@ -21,11 +21,11 @@ Generate multi-table relational datasets – retail, SaaS, fintech, logistics �
 - **v0.2.1** – `saas-v3` `plg-usage-based` sub-mode with the 5-movement
   MRR waterfall (`subscription_events` table) and opt-in
   `--benchmark-validation` against KeyBanc/Benchmarkit ranges.
-- **v0.2.0** – initial PyPI release; four scenarios, three sub-apps, Parquet + DDL exports.
+- **v0.2.0** – first public release; four scenarios, three sub-apps, Parquet + DDL exports.
 
 ## Quickstart
 
-### From source (today)
+### Install from source
 
 ```bash
 git clone https://github.com/ryszard-twardy/synth-datagen
@@ -35,14 +35,6 @@ uv pip install -e ".[test]"
 synth-datagen retail --seed 42 --output ./out/retail \
     --rows fact_orders=500,fact_order_items=1500,fact_payments=500 \
     --export-parquet
-```
-
-### From PyPI (from v0.2.0 onward)
-
-```bash
-pip install synth-datagen
-synth-datagen retail --seed 42 --output ./out/retail \
-    --rows fact_orders=10000,fact_order_items=30000,fact_payments=10000
 ```
 
 You now have a clean retail star schema (5 dim + 3 fact + 1 bridge table) as CSV, plus an auto-generated `data_dictionary.md`, Mermaid `erd.md`, and a `schema.sql` DDL file ready to load into Postgres / MySQL / SQLServer / SQLite.

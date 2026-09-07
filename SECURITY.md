@@ -9,7 +9,7 @@ the latest published minor version receives security fixes.
 |---|---|
 | 0.3.x | ✅ |
 | 0.2.x | ✅ — security fixes through 2026-06-07 (30-day grace after 0.3.0 release) |
-| < 0.2 | ❌ (pre-audit; not on PyPI) |
+| < 0.2 | ❌ (pre-audit) |
 
 0.3.0 shipped 2026-05-08. The 0.2.x line continues to receive
 security patches until 2026-06-07, then drops out of support. When

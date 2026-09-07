@@ -1,6 +1,6 @@
 # Quickstart
 
-This page gets you from a clean machine to a generated retail dataset in under five minutes. Two install paths are documented: from source (today) and from PyPI (from v0.2.0 onward).
+This page gets you from a clean machine to a generated retail dataset in under five minutes. Installation is from source.
 
 ## Prerequisites
 
@@ -9,21 +9,13 @@ This page gets you from a clean machine to a generated retail dataset in under f
 
 ## Install
 
-=== "From source (today)"
-
-    ```bash
-    git clone https://github.com/ryszard-twardy/synth-datagen
-    cd synth-datagen
-    uv venv
-    source .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
-    uv pip install -e ".[test]"
-    ```
-
-=== "From PyPI (from v0.2.0 onward)"
-
-    ```bash
-    pip install synth-datagen
-    ```
+```bash
+git clone https://github.com/ryszard-twardy/synth-datagen
+cd synth-datagen
+uv venv
+source .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
+uv pip install -e ".[test]"
+```
 
 Verify the install:
 
@@ -143,4 +135,4 @@ The full set of public types is in the [API reference](api/reference.md), and th
 
 ??? failure "`Missing runtime dependency 'faker'.`"
 
-    The package was installed without runtime deps. Re-run `uv pip install -e ".[test]"` (the `[test]` extra installs everything you need to develop) or `pip install synth-datagen` (which pulls in runtime deps automatically).
+    The package was installed without runtime deps. Re-run `uv pip install -e ".[test]"` (the `[test]` extra installs everything you need to develop).

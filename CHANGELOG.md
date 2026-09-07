@@ -17,7 +17,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 
-- _nothing yet_
+- **Removed the unpublished PyPI install path from the docs.** `README.md`
+  and `docs/quickstart.md` documented `pip install synth-datagen`, but the
+  package has never been published to PyPI (JSON API and `/simple/` both
+  return 404, verified 2026-09-07). Install instructions are now
+  source-only, and the `SECURITY.md` supported-versions table no longer
+  implies the 0.2.x / 0.3.x lines are on a package index. No promise of
+  future publication was added.
+- **Normalised em-dashes (U+2014) to en-dashes (U+2013)** across the
+  remaining public documentation surface (`CONTRIBUTING.md`, `SECURITY.md`,
+  `mkdocs.yml` and `docs/`). `README.md` and `CHANGELOG.md` were already
+  normalised upstream. Source, tests and generated-artifact strings are
+  deliberately untouched: the em-dash in `pharma/defects.py` is
+  generated-data content, not authorial typography, and normalising it
+  would shift generated CSV bytes.
 
 ## [0.3.3] - 2026-07-08
 
