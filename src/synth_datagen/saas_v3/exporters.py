@@ -215,7 +215,7 @@ class SaaSV3Exporter:
                 lines.append(f"| {name} | {formatted} |")
             lines.append("\n## Issues\n")
             if not report.issues:
-                lines.append("_None — all metrics within configured target ranges._")
+                lines.append("_None – all metrics within configured target ranges._")
             else:
                 lines.append("| Metric | Actual | Expected | Message |")
                 lines.append("|---|---|---|---|")

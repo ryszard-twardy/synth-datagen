@@ -166,7 +166,7 @@ def _write_geo_lineage_md(
         geo_lineage = dict(geo_lineage) if geo_lineage else {}
 
     lines = [
-        f"# Geographic data lineage — {config.sub_mode}",
+        f"# Geographic data lineage – {config.sub_mode}",
         "",
         "## Source files (caller-supplied)",
         "",
@@ -180,7 +180,7 @@ def _write_geo_lineage_md(
         f"- BKG VG250 data is **{geo_lineage.get('bkg_license', 'dl-de/by-2-0')}**.",
         "",
         "Both licenses require attribution from the consumer when redistributing.",
-        "synth-datagen does NOT bundle either source — the caller passes them in.",
+        "synth-datagen does NOT bundle either source – the caller passes them in.",
         "",
         "## Dataset shape",
         "",

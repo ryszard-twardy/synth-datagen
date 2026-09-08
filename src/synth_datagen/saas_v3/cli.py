@@ -40,7 +40,7 @@ def generate(
         help=(
             "Run industry-benchmark validation (NRR/GRR/lifetime-churn) and "
             "write benchmark_validation.md to the run root. plg-usage-based "
-            "mode only — silently skipped in legacy mode."
+            "mode only – silently skipped in legacy mode."
         ),
     ),
 ) -> None:

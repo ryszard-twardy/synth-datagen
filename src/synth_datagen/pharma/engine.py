@@ -590,7 +590,7 @@ def _generate_sales_reps(
     if not territory_ids:
         # Should never happen — territories is always non-empty —
         # but fail loudly rather than silently producing NaN FKs.
-        raise RuntimeError("territories table empty — cannot assign reps")
+        raise RuntimeError("territories table empty – cannot assign reps")
     rep_territory = [territory_ids[i % len(territory_ids)] for i in range(n)]
 
     # Names: simple "Rep {i}" — engine doesn't pretend to generate
