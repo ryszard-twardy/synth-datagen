@@ -163,7 +163,7 @@ def render_markdown(result: ValidationResult) -> str:
     """Render a ValidationResult as a markdown report string."""
     lines: list[str] = []
     lines.append(
-        f"# Pharma benchmark validation — {result.sub_mode} (seed={result.seed})"
+        f"# Pharma benchmark validation – {result.sub_mode} (seed={result.seed})"
     )
     lines.append("")
     summary = result.summary()
@@ -186,7 +186,7 @@ def render_markdown(result: ValidationResult) -> str:
 
 def _render_value(value: Any) -> str:
     if value is None:
-        return "—"
+        return "–"
     if isinstance(value, float):
         return f"{value:.4g}"
     if isinstance(value, tuple) and len(value) == 2:

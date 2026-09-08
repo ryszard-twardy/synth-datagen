@@ -13,7 +13,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- _nothing yet_
+- **`geo_lineage.md` and `benchmark_validation.md` output changed by one
+  character per affected line.** The em-dash (U+2014) in four emitted
+  strings is now an en-dash (U+2013), so an artifact regenerated with this
+  version will not compare byte-equal against one produced by v0.3.3 or
+  earlier. Affected: the `geo_lineage.md` title and its source-attribution
+  line, the `benchmark_validation.md` title, and the null-value placeholder
+  in its results table. Generated CSV bytes, table data and the
+  `scripts/baseline_diff.py` pins are all unaffected, since those cover
+  `*.csv` only.
+- **Three user-facing messages normalised the same way**: the `saas-v3`
+  `--benchmark-validation` help text, the empty-territories `RuntimeError`
+  in the pharma engine, and the AGS-hierarchy `ValueError` in `geo.py`.
+  Code comments and docstrings are deliberately untouched, as is the
+  em-dash in `pharma/defects.py`, which is generated-data content.
 
 ### Fixed
 

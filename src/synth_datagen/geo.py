@@ -148,7 +148,7 @@ def validate_ags_hierarchy(
         sample = bad_rows.head(5).to_dict("records")
         raise ValueError(
             f"AGS hierarchy violation: prefix mismatch on "
-            f"{int(mismatches_mask.sum())} Landkreis row(s) — "
+            f"{int(mismatches_mask.sum())} Landkreis row(s) – "
             f"ags_5digit[:2] != ags_2digit_parent. Sample: {sample}."
         )
 
