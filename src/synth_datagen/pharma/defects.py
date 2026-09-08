@@ -139,6 +139,11 @@ def _apply_hospital_name_variants(
     if n == 0:
         return
     idx = _pick_indices(rng, n, len(df))
+    # NOTE: the em-dash (U+2014) in " — Klinik" is deliberate generated-data
+    # content, not authorial typography – master-data formatting noise the
+    # defect injector adds to account names. Do NOT normalise it to an
+    # en-dash: it changes generated CSV bytes and breaks both the
+    # byte-equality guarantee and the baselines in scripts/baseline_diff.py.
     suffixes = (" (Hauptstandort)", " - Standort 2", " (alt)", " — Klinik")
     suffix_pick = rng.integers(0, len(suffixes), size=n)
     new_names = df["name"].astype(str).copy()
