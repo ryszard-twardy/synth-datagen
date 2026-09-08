@@ -27,6 +27,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   in the pharma engine, and the AGS-hierarchy `ValueError` in `geo.py`.
   Code comments and docstrings are deliberately untouched, as is the
   em-dash in `pharma/defects.py`, which is generated-data content.
+- **The internal planning document is no longer published to the docs site.**
+  `docs/superpowers/plans/2026-05-07-saas-extension-v0-2-1.md` is an internal
+  planning artifact, not user documentation, but it lived under `docs_dir` and
+  was therefore built and served (reachable by URL, and indexed by the site
+  search, though it was never listed in `nav`). `mkdocs.yml` now sets
+  `exclude_docs: superpowers/`, so it is dropped from the build. The file stays
+  in git; this changes the published site only.
 
 ### Fixed
 
