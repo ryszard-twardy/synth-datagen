@@ -9,6 +9,13 @@ copyright: Copyright &copy; 2026 Ryszard Twardy – MIT licensed
 
 docs_dir: docs
 
+# docs/superpowers/plans/ holds internal planning artifacts. They live in the
+# repo on purpose, but they are not documentation for users, so they are kept
+# out of the published site. This removes them from the build only; the files
+# stay in git. MkDocs 1.6+ feature; the [docs] extra pins mkdocs>=1.6.0.
+exclude_docs: |
+  superpowers/
+
 theme:
   name: material
   language: en
