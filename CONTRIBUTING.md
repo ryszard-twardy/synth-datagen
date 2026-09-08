@@ -17,6 +17,10 @@ uv pip install -e ".[test,docs]"
 pre-commit install
 ```
 
+If you set up this repo before the commit-message guard landed, re-run
+`pre-commit install` once: it now registers a `commit-msg` hook in
+addition to the pre-commit one.
+
 The `[test]` extra installs `pytest`, `pytest-cov`, `mypy`, `hypothesis`,
 `ruff`, `bandit`, and `pre-commit`. The `[docs]` extra adds
 `mkdocs-material`, `mkdocstrings[python]`, and `pymdown-extensions` for

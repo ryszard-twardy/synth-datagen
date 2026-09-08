@@ -7,6 +7,12 @@
 # Run against the whole repo on demand:
 #     pre-commit run --all-files
 
+# `default_install_hook_types` makes a plain `pre-commit install` register
+# BOTH the pre-commit and the commit-msg hooks. Without it the commit-msg
+# guard below is inert. Contributors who installed hooks before this landed
+# must re-run `pre-commit install` once.
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -79,3 +85,36 @@ repos:
         entry: bandit -r src/ -ll
         pass_filenames: false
         files: ^src/
+
+  # Local guards. These encode two conventions previously enforced by review
+  # alone, each of which was breached at least once: house typography
+  # (en-dash only) and install instructions (this package is not published to
+  # any index, so every install must be editable, from a source checkout).
+  - repo: local
+    hooks:
+      - id: no-em-dash-docs
+        name: reject em-dash (U+2014) in the public docs surface
+        language: pygrep
+        # Written as a YAML escape so this config carries no literal em-dash.
+        entry: "\u2014"
+        files: ^(README|CHANGELOG|CONTRIBUTING|SECURITY)\.md$|^mkdocs\.yml$|^docs/.*\.md$
+
+      - id: no-em-dash-commit-msg
+        name: reject em-dash (U+2014) in commit messages
+        language: pygrep
+        entry: "\u2014"
+        # commit-msg stage only. `pre-commit run --all-files` does not exercise
+        # this stage, and neither does CI; it is local enforcement.
+        stages: [commit-msg]
+
+      - id: no-unpublished-pip-install
+        name: reject index-install of synth-datagen (use pip install -e)
+        language: pygrep
+        # Tempered match: steps forward one character at a time and refuses to
+        # cross a ` -e ` token, so the package name is only reachable when no
+        # `-e` intervenes. Catches the quoted extras form
+        # `pip install 'synth-datagen[pharma]'` that a naive
+        # `pip install synth-datagen` pattern misses, which is how six of them
+        # survived an earlier repo-wide scan.
+        entry: 'pip install(?:(?!\s-e\s)[^\n])*?synth[-_]datagen'
+        files: ^(docs|src|examples|scripts)/|^README\.md$
